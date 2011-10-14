@@ -189,7 +189,7 @@ abstract class ORM_Table
 				break;
 
 				default:
-					throw new LogicException('Invalid type "' . @$attrs['type'] . '" for column' . $name);
+					throw new LogicException('Invalid type "' . @$attrs['type'] . '" for column ' . $name);
 			}
 			if (array_key_exists('default', $attrs))
 			{
@@ -215,6 +215,22 @@ abstract class ORM_Table
 			$sql []= 'KEY ' . $name . ' (' . implode(', ', $params['fields']) . ')';
 		}
 		$sql = "CREATE TABLE $tableName (" . implode(', ', $sql) . ') TYPE InnoDB';
+		$db->exec($sql);
+	}
+	//-----------------------------------------------------------------------------
+
+	/**
+	 * Удаляет таблицу из БД
+	 *
+	 * @return void
+	 *
+	 * @since 1.00
+	 */
+	public function drop()
+	{
+		$db = DB::getHandler();
+		$tableName = $db->options->tableNamePrefix . $this->getTableName();
+		$sql = "DROP TABLE $tableName";
 		$db->exec($sql);
 	}
 	//-----------------------------------------------------------------------------

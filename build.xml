@@ -145,7 +145,7 @@
 
 		<delete dir="${docs.dir}" includeemptydirs="true" failonerror="true" />
 
-		<phpdoc title="MyPlugin ${product.version} API"
+		<phpdoc title="ORM ${product.version} API"
 			destdir="${docs.dir}"
 			sourcecode="no"
 			parseprivate="false"
