@@ -78,6 +78,8 @@ class ORM_Driver_MySQL
 	 * @return string  SQL
 	 *
 	 * @since 1.00
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedPrivateMethod)
 	 */
 	private function getDefinitionFor_boolean(array $attrs)
 	{
@@ -99,6 +101,8 @@ class ORM_Driver_MySQL
 	 * @return string  SQL
 	 *
 	 * @since 1.00
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedPrivateMethod)
 	 */
 	private function getDefinitionFor_date(array $attrs)
 	{
@@ -116,6 +120,8 @@ class ORM_Driver_MySQL
 	 * @return string  SQL
 	 *
 	 * @since 1.00
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedPrivateMethod)
 	 */
 	private function getDefinitionFor_float(array $attrs)
 	{
@@ -140,6 +146,8 @@ class ORM_Driver_MySQL
 	 * @return string  SQL
 	 *
 	 * @since 1.00
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedPrivateMethod)
 	 */
 	private function getDefinitionFor_integer(array $attrs)
 	{
@@ -167,6 +175,8 @@ class ORM_Driver_MySQL
 	 * @return string  SQL
 	 *
 	 * @since 1.00
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedPrivateMethod)
 	 */
 	private function getDefinitionFor_string(array $attrs)
 	{
@@ -195,6 +205,8 @@ class ORM_Driver_MySQL
 	 * @return string  SQL
 	 *
 	 * @since 1.00
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedPrivateMethod)
 	 */
 	private function getDefinitionFor_time(array $attrs)
 	{
@@ -212,6 +224,8 @@ class ORM_Driver_MySQL
 	 * @return string  SQL
 	 *
 	 * @since 1.00
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedPrivateMethod)
 	 */
 	private function getDefinitionFor_timestamp(array $attrs)
 	{
