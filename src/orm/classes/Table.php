@@ -256,7 +256,6 @@ abstract class ORM_Table
 	{
 		$q = DB::createInsertQuery();
 		$q->insertInto($this->getTableName());
-		$autoincrementField = null;
 		foreach ($this->columns as $name => $attrs)
 		{
 			$type = $this->pdoFieldType(@$attrs['type']);
