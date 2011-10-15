@@ -71,6 +71,15 @@ class ORM extends Plugin
 	private static $tables = array();
 
 	/**
+	 * Типы полей
+	 *
+	 * @var array
+	 * @since 1.00
+	 */
+	private static $filedTypes = array('boolean', 'date', 'float', 'integer', 'string', 'time',
+		'timestamp');
+
+	/**
 	 * Возвращает объект таблицы для указанной сущности указанного плагина
 	 *
 	 * @param Plugin $plugin      плагин, которому принадлежит сущность
@@ -88,6 +97,19 @@ class ORM extends Plugin
 			self::$tables[$className] = new $className($plugin);
 		}
 		return self::$tables[$className];
+	}
+	//-----------------------------------------------------------------------------
+
+	/**
+	 * Возвращает возможные типы полей
+	 *
+	 * @return array
+	 *
+	 * @since 1.00
+	 */
+	public static function fieldTypes()
+	{
+		return self::$filedTypes;
 	}
 	//-----------------------------------------------------------------------------
 }

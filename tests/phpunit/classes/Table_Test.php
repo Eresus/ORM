@@ -34,7 +34,9 @@
 
 
 require_once __DIR__ . '/../bootstrap.php';
+require_once TESTS_SRC_DIR . '/orm.php';
 require_once TESTS_SRC_DIR . '/orm/classes/Entity.php';
+require_once TESTS_SRC_DIR . '/orm/classes/Driver/MySQL.php';
 require_once TESTS_SRC_DIR . '/orm/classes/Table.php';
 
 /**

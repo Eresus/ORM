@@ -173,3 +173,11 @@ class ezcQuery extends UniversalStub {}
  * @subpackage Tests
  */
 class ezcQuerySelect extends ezcQuery {}
+
+/**
+ * Заглушка для интерфейса UI_List_DataProvider_Interface
+ *
+ * @package ORM
+ * @subpackage Tests
+ */
+interface UI_List_DataProvider_Interface {};

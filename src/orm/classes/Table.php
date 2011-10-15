@@ -117,97 +117,11 @@ abstract class ORM_Table
 	{
 		$db = DB::getHandler();
 		$tableName = $db->options->tableNamePrefix . $this->getTableName();
+		$driver = new ORM_Driver_MySQL();
 		$sql = array();
 		foreach ($this->columns as $name => $attrs)
 		{
-			$field = $name . ' ';
-			$isStringType = false;
-			switch (@$attrs['type'])
-			{
-				case 'boolean':
-					$field .= 'BOOL';
-					if (@$attrs['autoincrement'])
-					{
-						$field .= ' AUTO_INCREMENT';
-					}
-				break;
-
-				case 'float':
-					if (isset($attrs['length']) && 2147483647 == $attrs['length'])
-					{
-						$field .= 'DOUBLE';
-					}
-					else
-					{
-						$field .= 'FLOAT';
-					}
-				break;
-
-				case 'integer':
-					$field .= 'INT';
-					$length = isset($attrs['length']) ? $attrs['length'] : 10;
-					$field .= '(' . $length . ')';
-					if (@$attrs['unsigned'])
-					{
-						$field .= ' UNSIGNED';
-					}
-					if (@$attrs['autoincrement'])
-					{
-						$field .= ' AUTO_INCREMENT';
-					}
-				break;
-
-				case 'string':
-					if (isset($attrs['length']) && 255 >= $attrs['length'])
-					{
-						$field .= 'VARCHAR(' . $attrs['length'] . ')';
-					}
-					elseif (!isset($attrs['length']) || 65535 >= $attrs['length'])
-					{
-						$field .= 'TEXT';
-					}
-					else
-					{
-						$field .= 'LONGTEXT';
-					}
-					$isStringType = true;
-				break;
-
-				case 'timestamp':
-					$field .= 'TIMESTAMP';
-					$isStringType = true;
-				break;
-
-				case 'date':
-					$field .= 'DATE';
-					$isStringType = true;
-				break;
-
-				case 'time':
-					$field .= 'TIME';
-					$isStringType = true;
-				break;
-
-				default:
-					throw new LogicException('Invalid type "' . @$attrs['type'] . '" for column ' . $name);
-			}
-			if (array_key_exists('default', $attrs))
-			{
-				$field .= ' DEFAULT ';
-				if (is_null($attrs['default']))
-				{
-					$field .= 'NULL';
-				}
-				elseif ($isStringType)
-				{
-					$field .= '\'' . $attrs['default'] . '\'';
-				}
-				else
-				{
-					$field .= $attrs['default'];
-				}
-			}
-			$sql []= $field;
+			$sql []= $name . ' ' . $driver->getFieldDefinition($attrs);
 		}
 		$sql []= 'PRIMARY KEY (' . $this->getPrimaryKey() . ')';
 		foreach ($this->indexes as $name => $params)
