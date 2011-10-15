@@ -349,29 +349,6 @@ abstract class ORM_Table
 	//-----------------------------------------------------------------------------
 
 	/**
-	 * Возвращает количество записей по полю
-	 *
-	 * @param string $field
-	 * @param mixed  $value
-	 *
-	 * @return int
-	 *
-	 * @since 1.00
-	 */
-	public function countByField($field, $value)
-	{
-		$q = $this->createCountQuery();
-		$q->where($q->expr->eq($field, $q->bindValue($value)));
-		$raw = DB::fetch($q);
-		if ($raw)
-		{
-			return $raw['record_count'];
-		}
-		return 0;
-	}
-	//-----------------------------------------------------------------------------
-
-	/**
 	 * Возвращает все записи
 	 *
 	 * @param int $limit   максимум элементов, который следует вернуть
