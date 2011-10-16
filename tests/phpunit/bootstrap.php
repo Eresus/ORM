@@ -180,4 +180,12 @@ class ezcQuerySelect extends ezcQuery {}
  * @package ORM
  * @subpackage Tests
  */
-interface UI_List_DataProvider_Interface {};
+interface UI_List_DataProvider_Interface {}
+
+/**
+* Заглушка для интерфейса UI_List_Item_Interface
+*
+* @package ORM
+* @subpackage Tests
+*/
+interface UI_List_Item_Interface {}
