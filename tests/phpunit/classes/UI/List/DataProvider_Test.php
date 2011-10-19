@@ -66,6 +66,35 @@ class ORM_UI_List_DataProvider_Test extends PHPUnit_Framework_TestCase
 			$p_filter->getValue($provider));
 	}
 	//-----------------------------------------------------------------------------
+
+	/**
+	 * @covers ORM_UI_List_DataProvider::setFilter
+	 */
+	public function test_setFilter()
+	{
+		$provider = $this->getMockBuilder('ORM_UI_List_DataProvider')->disableOriginalConstructor()->
+			setMethods(array('__none__'))->getMock();
+		$m_setFilter = new ReflectionMethod('ORM_UI_List_DataProvider', 'setFilter');
+		$m_setFilter->setAccessible(true);
+
+		$p_filter = new ReflectionProperty('ORM_UI_List_DataProvider', 'filter');
+		$p_filter->setAccessible(true);
+		$p_filter->setValue($provider, array(
+			array('foo', 123, '='),
+			array('foo', array(1, 2, 3), '='),
+			array('bar', 456, '<'),
+		));
+
+		$q = $this->getMock('ezcQuerySelect');
+		$q->expr = $this->getMock('stdClass', array('eq', 'lt', 'lAnd', 'in'));
+		$q->expr->expects($this->once())->method('eq');
+		$q->expr->expects($this->once())->method('lt');
+		$q->expr->expects($this->once())->method('lAnd');
+		$q->expr->expects($this->once())->method('in');
+
+		$m_setFilter->invoke($provider, $q);
+	}
+	//-----------------------------------------------------------------------------
 }
 
 class ORM_UI_List_DataProvider_Test_Pluign extends Plugin {};

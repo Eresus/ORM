@@ -247,6 +247,80 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
 	//-----------------------------------------------------------------------------
 
 	/**
+	 * @covers ORM_Table::findAll
+	 */
+	public function test_findAll()
+	{
+		$table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
+			setMethods(array('setTableDefinition', 'createSelectQuery', 'loadFromQuery'))->getMock();
+
+		$q = new ezcQuerySelect();
+		$table->expects($this->once())->method('createSelectQuery')->with(true)->
+			will($this->returnValue($q));
+		$table->expects($this->once())->method('loadFromQuery')->with($q, null, 0)->
+			will($this->returnValue(array(1, 2, 3)));
+
+		$this->assertEquals(array(1, 2, 3), $table->findAll());
+	}
+	//-----------------------------------------------------------------------------
+
+	/**
+	 * @covers ORM_Table::createSelectQuery
+	 */
+	public function test_createSelectQuery()
+	{
+		$table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
+			setMethods(array('setTableDefinition'))->getMock();
+
+		$q = new ezcQuerySelect();
+		$handler = $this->getMock('stdClass', array('createSelectQuery'));
+		$handler->expects($this->exactly(2))->method('createSelectQuery')->will($this->returnValue($q));
+		$db = $this->getMock('stdClass', array('getHandler'));
+		$db->expects($this->exactly(2))->method('getHandler')->will($this->returnValue($handler));
+		DB::setMock($db);
+
+		$p_ordering = new ReflectionProperty('ORM_Table', 'ordering');
+		$p_ordering->setAccessible(true);
+		$p_ordering->setValue($table, array(array('foo', 'DESC')));
+		$table->createSelectQuery();
+
+		$p_ordering->setValue($table, array());
+		$p_columns = new ReflectionProperty('ORM_Table', 'columns');
+		$p_columns->setAccessible(true);
+		$p_columns->setValue($table, array('position' => array()));
+		$table->createSelectQuery();
+	}
+	//-----------------------------------------------------------------------------
+
+	/**
+	 * @covers ORM_Table::loadFromQuery
+	 */
+	public function test_loadFromQuery()
+	{
+		$table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
+			setMethods(array('setTableDefinition', 'entityFactory'))->getMock();
+
+		$q = $this->getMock('ezcQuerySelect', array('limit'));
+		$q->expects($this->never())->method('limit');
+		$table->loadFromQuery($q);
+
+		$q = $this->getMock('ezcQuerySelect', array('limit'));
+		$q->expects($this->once())->method('limit')->with(10, 5);
+		$table->loadFromQuery($q, 10, 5);
+
+		$db = $this->getMock('stdClass', array('fetchAll'));
+		$db->expects($this->once())->method('fetchAll')->will($this->
+			returnValue(array(array(1), array(1), array(1))));
+		DB::setMock($db);
+		$table->expects($this->exactly(3))->method('entityFactory')->with(array(1))->
+			will($this->returnValue('foo'));
+		$q = $this->getMock('ezcQuerySelect');
+		$this->assertEquals(array('foo', 'foo', 'foo'), $table->loadFromQuery($q));
+
+	}
+	//-----------------------------------------------------------------------------
+
+	/**
 	 * @covers ORM_Table::setTableName
 	 * @covers ORM_Table::getTableName
 	 */
