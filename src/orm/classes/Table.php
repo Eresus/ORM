@@ -51,14 +51,14 @@ abstract class ORM_Table
 	 *
 	 * @var string
 	 */
-	private $tableName ;
+	private $tableName;
 
 	/**
 	 * Описание столбцов
 	 *
 	 * @var array
 	 */
-	private $columns;
+	private $columns = array();
 
 	/**
 	 * Имя класса сущности
