@@ -32,37 +32,45 @@
  * $Id: bootstrap.php 1849 2011-10-03 17:34:22Z mk $
  */
 
-if (class_exists('PHP_CodeCoverage_Filter', false))
-{
-	PHP_CodeCoverage_Filter::getInstance()->addFileToBlacklist(__FILE__);
-}
-else
-{
-	PHPUnit_Util_Filter::addFileToFilter(__FILE__);
-}
 
-require_once dirname(__FILE__) . '/Driver/AllTests.php';
-require_once dirname(__FILE__) . '/Entity_Test.php';
-require_once dirname(__FILE__) . '/Helper/AllTests.php';
-require_once dirname(__FILE__) . '/Table_Test.php';
-require_once dirname(__FILE__) . '/UI/AllTests.php';
+require_once __DIR__ . '/../../bootstrap.php';
+require_once TESTS_SRC_DIR . '/orm/classes/Table.php';
+require_once TESTS_SRC_DIR . '/orm/classes/Helper/Ordering.php';
 
 /**
  * @package ORM
  * @subpackage Tests
  */
-class ORM_Classes_AllTests
+class ORM_Helper_Ordering_Test extends PHPUnit_Framework_TestCase
 {
-	public static function suite()
+	/**
+	 * @ covers ORM_Helper_Ordering::moveUp
+	 */
+	public function test_moveUp()
 	{
-		$suite = new PHPUnit_Framework_TestSuite('Classes\All Tests');
-
-		$suite->addTest(      ORM_Classes_Driver_AllTests::suite());
-		$suite->addTestSuite('ORM_Entity_Test');
-		$suite->addTest(      ORM_Classes_Helper_AllTests::suite());
-		$suite->addTestSuite('ORM_Table_Test');
-		$suite->addTest(      ORM_Classes_UI_AllTests::suite());
-
-		return $suite;
+		$helper = $this->getMock('ORM_Helper_Ordering', array('swap'));
+		$plugin = new ORM_Helper_Ordering_Test_Plugin();
+		$entity = new ORM_Helper_Ordering_Test_Plugin_Entity_Foo($plugin);
+		$entity->position = 1;
+		$helper->moveUp($entity);
 	}
+	//-----------------------------------------------------------------------------
+}
+
+class ORM_Helper_Ordering_Test_Plugin extends Plugin {}
+class ORM_Helper_Ordering_Test_Plugin_Entity_Foo extends ORM_Entity {}
+class ORM_Helper_Ordering_Test_Plugin_Entity_Table_Foo extends ORM_Table
+{
+	protected function setTableDefinition() {}
+	//-----------------------------------------------------------------------------
+	public function createSelectQuery($fill = true)
+	{
+		return new ezcQuerySelect();
+	}
+	//-----------------------------------------------------------------------------
+	public function loadOneFromQuery(ezcQuerySelect $query)
+	{
+		return new ORM_Helper_Ordering_Test_Plugin_Entity_Foo(new ORM_Helper_Ordering_Test_Plugin);
+	}
+	//-----------------------------------------------------------------------------
 }

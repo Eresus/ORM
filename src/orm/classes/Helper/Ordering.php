@@ -122,11 +122,7 @@ class ORM_Helper_Ordering
 			return;
 		}
 
-		$pos = $entity->{$this->fieldName};
-		$entity->{$this->fieldName} = $swap->{$this->fieldName};
-		$swap->{$this->fieldName} = $pos;
-		$table->update($entity);
-		$table->update($swap);
+		$this->swap($table, $entity, $swap);
 	}
 	//-----------------------------------------------------------------------------
 
@@ -160,11 +156,28 @@ class ORM_Helper_Ordering
 			return;
 		}
 
-		$pos = $entity->{$this->fieldName};
-		$entity->{$this->fieldName} = $swap->{$this->fieldName};
-		$swap->{$this->fieldName} = $pos;
-		$table->update($entity);
-		$table->update($swap);
+		$this->swap($table, $entity, $swap);
+	}
+	//-----------------------------------------------------------------------------
+
+	/**
+	 * Меняет сущности местами в их группе
+	 *
+	 * @param ORM_Table  $table  таблица
+	 * @param ORM_Entity $ent1   сущность 1
+	 * @param ORM_Entity $ent2   сущность 2
+	 *
+	 * @return void
+	 *
+	 * @since 1.00
+	 */
+	protected function swap(ORM_Table $table = null, ORM_Entity $ent1, ORM_Entity $ent2)
+	{
+		$pos = $ent1->{$this->fieldName};
+		$ent1->{$this->fieldName} = $ent2->{$this->fieldName};
+		$ent2->{$this->fieldName} = $pos;
+		$table->update($ent1);
+		$table->update($ent2);
 	}
 	//-----------------------------------------------------------------------------
 }

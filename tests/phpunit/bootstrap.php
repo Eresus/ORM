@@ -207,7 +207,11 @@ class ezcQueryInsert extends ezcQuery {}
  * @package ORM
  * @subpackage Tests
  */
-class ezcQuerySelect extends ezcQuery {}
+class ezcQuerySelect extends ezcQuery
+{
+	const ASC = 'ASC';
+	const DESC = 'DESC';
+}
 
 /**
  * Заглушка для класса ezcQueryUpdate
