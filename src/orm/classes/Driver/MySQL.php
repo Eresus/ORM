@@ -134,10 +134,6 @@ class ORM_Driver_MySQL
 	private function getDefinitionFor_boolean(array $attrs)
 	{
 		$sql = 'BOOL';
-		if (@$attrs['autoincrement'])
-		{
-			$sql .= ' AUTO_INCREMENT';
-		}
 		$sql .= $this->getDefinitionFor_DEFAULT($attrs);
 		return $sql;
 	}

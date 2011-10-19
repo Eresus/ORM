@@ -100,4 +100,106 @@ class ORM_Driver_MySQL_Test extends PHPUnit_Framework_TestCase
 			'type' => 'int')));
 	}
 	//-----------------------------------------------------------------------------
+
+	/**
+	 * @covers ORM_Driver_MySQL::getDefinitionFor_boolean
+	 */
+	public function test_getDefinitionFor_boolean()
+	{
+		$method = new ReflectionMethod('ORM_Driver_MySQL', 'getDefinitionFor_boolean');
+		$method->setAccessible(true);
+		$driver = new ORM_Driver_MySQL();
+
+		$this->assertEquals('BOOL', $method->invoke($driver, array()));
+	}
+	//-----------------------------------------------------------------------------
+
+	/**
+	 * @covers ORM_Driver_MySQL::getDefinitionFor_date
+	 */
+	public function test_getDefinitionFor_date()
+	{
+		$method = new ReflectionMethod('ORM_Driver_MySQL', 'getDefinitionFor_date');
+		$method->setAccessible(true);
+		$driver = new ORM_Driver_MySQL();
+
+		$this->assertEquals('DATE', $method->invoke($driver, array()));
+	}
+	//-----------------------------------------------------------------------------
+
+	/**
+	 * @covers ORM_Driver_MySQL::getDefinitionFor_float
+	 */
+	public function test_getDefinitionFor_float()
+	{
+		$method = new ReflectionMethod('ORM_Driver_MySQL', 'getDefinitionFor_float');
+		$method->setAccessible(true);
+		$driver = new ORM_Driver_MySQL();
+
+		$this->assertEquals('FLOAT', $method->invoke($driver, array()));
+		$this->assertEquals('DOUBLE', $method->invoke($driver, array('length' => 2147483647)));
+	}
+	//-----------------------------------------------------------------------------
+
+	/**
+	 * @covers ORM_Driver_MySQL::getDefinitionFor_integer
+	 */
+	public function test_getDefinitionFor_integer()
+	{
+		$method = new ReflectionMethod('ORM_Driver_MySQL', 'getDefinitionFor_integer');
+		$method->setAccessible(true);
+		$driver = new ORM_Driver_MySQL();
+
+		$this->assertEquals('INT(10)', $method->invoke($driver, array()));
+		$this->assertEquals('INT(20)', $method->invoke($driver, array('length' => 20)));
+		$this->assertEquals('INT(10) AUTO_INCREMENT',
+			$method->invoke($driver, array('autoincrement' => true)));
+		$this->assertEquals('INT(10) UNSIGNED',
+			$method->invoke($driver, array('unsigned' => true)));
+		$this->assertEquals('INT(10) UNSIGNED AUTO_INCREMENT',
+			$method->invoke($driver, array('autoincrement' => true, 'unsigned' => true)));
+	}
+	//-----------------------------------------------------------------------------
+
+	/**
+	 * @covers ORM_Driver_MySQL::getDefinitionFor_string
+	 */
+	public function test_getDefinitionFor_string()
+	{
+		$method = new ReflectionMethod('ORM_Driver_MySQL', 'getDefinitionFor_string');
+		$method->setAccessible(true);
+		$driver = new ORM_Driver_MySQL();
+
+		$this->assertEquals('TEXT', $method->invoke($driver, array()));
+		$this->assertEquals('VARCHAR(255)', $method->invoke($driver, array('length' => 255)));
+		$this->assertEquals('TEXT',	$method->invoke($driver, array('length' => 65535)));
+		$this->assertEquals('LONGTEXT',	$method->invoke($driver, array('length' => 65536)));
+	}
+	//-----------------------------------------------------------------------------
+
+	/**
+	 * @covers ORM_Driver_MySQL::getDefinitionFor_time
+	 */
+	public function test_getDefinitionFor_time()
+	{
+		$method = new ReflectionMethod('ORM_Driver_MySQL', 'getDefinitionFor_time');
+		$method->setAccessible(true);
+		$driver = new ORM_Driver_MySQL();
+
+		$this->assertEquals('TIME', $method->invoke($driver, array()));
+	}
+	//-----------------------------------------------------------------------------
+
+	/**
+	 * @covers ORM_Driver_MySQL::getDefinitionFor_timestamp
+	 */
+	public function test_getDefinitionFor_timestamp()
+	{
+		$method = new ReflectionMethod('ORM_Driver_MySQL', 'getDefinitionFor_timestamp');
+		$method->setAccessible(true);
+		$driver = new ORM_Driver_MySQL();
+
+		$this->assertEquals('TIMESTAMP', $method->invoke($driver, array()));
+	}
+	//-----------------------------------------------------------------------------
 }
