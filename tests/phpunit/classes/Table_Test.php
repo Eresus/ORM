@@ -265,6 +265,27 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
 	//-----------------------------------------------------------------------------
 
 	/**
+	 * @covers ORM_Table::find
+	 */
+	public function test_find()
+	{
+		$table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
+			setMethods(array('setTableDefinition', 'getPrimaryKey', 'createSelectQuery',
+			'pdoFieldType', 'loadOneFromQuery'))->getMock();
+
+		$table->expects($this->once())->method('getPrimaryKey')->will($this->returnValue('id'));
+		$q = $this->getMock('ezcQuerySelect', array('where'));
+		$q->expects($this->once())->method('where');
+		$table->expects($this->once())->method('createSelectQuery')->with(true)->
+			will($this->returnValue($q));
+		$table->expects($this->once())->method('loadOneFromQuery')->with($q)->
+			will($this->returnValue('foo'));
+
+		$this->assertEquals('foo', $table->find(123));
+	}
+	//-----------------------------------------------------------------------------
+
+	/**
 	 * @covers ORM_Table::createSelectQuery
 	 */
 	public function test_createSelectQuery()
@@ -293,6 +314,29 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
 	//-----------------------------------------------------------------------------
 
 	/**
+	 * @covers ORM_Table::createCountQuery
+	 */
+	public function test_createCountQuery()
+	{
+		$table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
+			setMethods(array('setTableDefinition', 'getTableName'))->getMock();
+		$table->expects($this->once())->method('getTableName')->will($this->returnValue('foo'));
+
+		$q = $this->getMock('ezcQuerySelect', array('select', 'alias', 'from', 'limit'));
+		$q->expects($this->once())->method('select')->will($this->returnValue($q));
+		$q->expects($this->once())->method('from')->with('foo')->will($this->returnValue($q));
+		$q->expects($this->once())->method('limit')->with(1);
+		$handler = $this->getMock('stdClass', array('createSelectQuery'));
+		$handler->expects($this->once())->method('createSelectQuery')->will($this->returnValue($q));
+		$db = $this->getMock('stdClass', array('getHandler'));
+		$db->expects($this->once())->method('getHandler')->will($this->returnValue($handler));
+		DB::setMock($db);
+
+		$table->createCountQuery();
+	}
+	//-----------------------------------------------------------------------------
+
+	/**
 	 * @covers ORM_Table::loadFromQuery
 	 */
 	public function test_loadFromQuery()
@@ -317,6 +361,36 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
 		$q = $this->getMock('ezcQuerySelect');
 		$this->assertEquals(array('foo', 'foo', 'foo'), $table->loadFromQuery($q));
 
+	}
+	//-----------------------------------------------------------------------------
+
+	/**
+	 * @covers ORM_Table::loadOneFromQuery
+	 */
+	public function test_loadOneFromQuery()
+	{
+		$table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
+			setMethods(array('setTableDefinition', 'entityFactory'))->getMock();
+
+		$q = $this->getMock('ezcQuerySelect', array('limit'));
+		$q->expects($this->once())->method('limit')->with(1);
+
+		$db = $this->getMock('stdClass', array('fetch'));
+		$db->expects($this->once())->method('fetch')->will($this->returnValue(array(1)));
+		DB::setMock($db);
+		$table->expects($this->once())->method('entityFactory')->with(array(1))->
+			will($this->returnValue('foo'));
+		$this->assertEquals('foo', $table->loadOneFromQuery($q));
+
+		$db = $this->getMock('stdClass', array('fetch'));
+		$db->expects($this->once())->method('fetch')->will($this->returnValue(null));
+		DB::setMock($db);
+		$table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
+			setMethods(array('setTableDefinition', 'entityFactory'))->getMock();
+		$table->expects($this->never())->method('entityFactory');
+		$q = $this->getMock('ezcQuerySelect', array('limit'));
+		$q->expects($this->once())->method('limit')->with(1);
+		$this->assertNull($table->loadOneFromQuery($q));
 	}
 	//-----------------------------------------------------------------------------
 
@@ -365,6 +439,19 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
 		$m_getPrimaryKey = new ReflectionMethod('ORM_Table', 'getPrimaryKey');
 		$m_getPrimaryKey->setAccessible(true);
 		$this->assertEquals('id', $m_getPrimaryKey->invoke($table));
+	}
+	//-----------------------------------------------------------------------------
+
+	/**
+	 * @covers ORM_Table::index
+	 */
+	public function test_index()
+	{
+		$table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
+			setMethods(array('setTableDefinition'))->getMock();
+		$m_index = new ReflectionMethod('ORM_Table', 'index');
+		$m_index->setAccessible(true);
+		$m_index->invoke($table, 'foo', array());
 	}
 	//-----------------------------------------------------------------------------
 
