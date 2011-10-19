@@ -43,6 +43,47 @@ require_once TESTS_SRC_DIR . '/orm/classes/Driver/MySQL.php';
 class ORM_Driver_MySQL_Test extends PHPUnit_Framework_TestCase
 {
 	/**
+	 * @covers ORM_Driver_MySQL::createTable
+	 */
+	public function test_createTable()
+	{
+		$driver = $this->getMock('ORM_Driver_MySQL', array('getFieldDefinition'));
+		$driver->expects($this->any())->method('getFieldDefinition')->will($this->returnValue('F'));
+
+		$handler = $this->getMock('stdClass', array('exec'));
+		$handler->expects($this->once())->method('exec')->
+			with('CREATE TABLE prefix_foo (f1 F, PRIMARY KEY (id), KEY idx1 (f1)) TYPE InnoDB');
+		$handler->options = new stdClass;
+		$handler->options->tableNamePrefix = 'prefix_';
+		$db = $this->getMock('stdClass', array('getHandler'));
+		$db->expects($this->once())->method('getHandler')->will($this->returnValue($handler));
+		DB::setMock($db);
+
+		$driver->createTable('foo', array('f1' => array()), 'id',
+			array('idx1' => array('fields' => array('f1'))));
+	}
+	//-----------------------------------------------------------------------------
+
+	/**
+	 * @covers ORM_Driver_MySQL::dropTable
+	 */
+	public function test_dropTable()
+	{
+		$driver = new ORM_Driver_MySQL();
+
+		$handler = $this->getMock('stdClass', array('exec'));
+		$handler->expects($this->once())->method('exec')->with('DROP TABLE prefix_foo');
+		$handler->options = new stdClass;
+		$handler->options->tableNamePrefix = 'prefix_';
+		$db = $this->getMock('stdClass', array('getHandler'));
+		$db->expects($this->once())->method('getHandler')->will($this->returnValue($handler));
+		DB::setMock($db);
+
+		$driver->dropTable('foo');
+	}
+	//-----------------------------------------------------------------------------
+
+	/**
 	 * @covers ORM_Driver_MySQL::getDefinitionFor_DEFAULT
 	 */
 	public function test_getDefinitionFor_DEFAULT()

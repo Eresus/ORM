@@ -83,7 +83,7 @@ class ORM_Driver_MySQL
 	public function dropTable($tableName)
 	{
 		$db = DB::getHandler();
-		$tableName = $db->options->tableNamePrefix . $tableName();
+		$tableName = $db->options->tableNamePrefix . $tableName;
 		$sql = "DROP TABLE $tableName";
 		$db->exec($sql);
 	}
