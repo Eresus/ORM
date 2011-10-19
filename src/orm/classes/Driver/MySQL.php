@@ -40,6 +40,56 @@
 class ORM_Driver_MySQL
 {
 	/**
+	 * Создаёт таблицу
+	 *
+	 * @param string $tableName   имя таблицы
+	 * @param array  $columns     описание столбцов
+	 * @param string $primaryKey  первичный ключ
+	 * @param array  $indexes     описание индексов
+	 *
+	 * @return void
+	 *
+	 * @since 1.00
+	 */
+	public function createTable($tableName, array $columns, $primaryKey, array $indexes)
+	{
+		$db = DB::getHandler();
+		$tableName = $db->options->tableNamePrefix . $tableName;
+
+		$sql = array();
+		foreach ($columns as $name => $attrs)
+		{
+			$sql []= $name . ' ' . $this->getFieldDefinition($attrs);
+		}
+		$sql []= 'PRIMARY KEY (' . $primaryKey . ')';
+		foreach ($indexes as $name => $params)
+		{
+			$sql []= 'KEY ' . $name . ' (' . implode(', ', $params['fields']) . ')';
+		}
+		$sql = "CREATE TABLE $tableName (" . implode(', ', $sql) . ') TYPE InnoDB';;
+		$db->exec($sql);
+	}
+	//-----------------------------------------------------------------------------
+
+	/**
+	 * Удаляет таблицу
+	 *
+	 * @param string $tableName  имя таблицы
+	 *
+	 * @return void
+	 *
+	 * @since 1.00
+	 */
+	public function dropTable($tableName)
+	{
+		$db = DB::getHandler();
+		$tableName = $db->options->tableNamePrefix . $tableName();
+		$sql = "DROP TABLE $tableName";
+		$db->exec($sql);
+	}
+	//-----------------------------------------------------------------------------
+
+	/**
 	 * Возвращает объявление поля
 	 *
 	 * @param array $attrs  атрибуты поля

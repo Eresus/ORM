@@ -115,21 +115,9 @@ abstract class ORM_Table
 	 */
 	public function create()
 	{
-		$db = DB::getHandler();
-		$tableName = $db->options->tableNamePrefix . $this->getTableName();
 		$driver = new ORM_Driver_MySQL();
-		$sql = array();
-		foreach ($this->columns as $name => $attrs)
-		{
-			$sql []= $name . ' ' . $driver->getFieldDefinition($attrs);
-		}
-		$sql []= 'PRIMARY KEY (' . $this->getPrimaryKey() . ')';
-		foreach ($this->indexes as $name => $params)
-		{
-			$sql []= 'KEY ' . $name . ' (' . implode(', ', $params['fields']) . ')';
-		}
-		$sql = "CREATE TABLE $tableName (" . implode(', ', $sql) . ') TYPE InnoDB';
-		$db->exec($sql);
+		$driver->createTable($this->getTableName(), $this->columns, $this->getPrimaryKey(),
+			$this->indexes);
 	}
 	//-----------------------------------------------------------------------------
 
@@ -142,10 +130,8 @@ abstract class ORM_Table
 	 */
 	public function drop()
 	{
-		$db = DB::getHandler();
-		$tableName = $db->options->tableNamePrefix . $this->getTableName();
-		$sql = "DROP TABLE $tableName";
-		$db->exec($sql);
+		$driver = new ORM_Driver_MySQL();
+		$driver->dropTable($this->getTableName());
 	}
 	//-----------------------------------------------------------------------------
 
