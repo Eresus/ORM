@@ -135,6 +135,31 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
 	//-----------------------------------------------------------------------------
 
 	/**
+	 * @covers ORM_Table::drop
+	 */
+	public function test_drop()
+	{
+		$table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
+			setMethods(array('setTableDefinition'))->getMock();
+		$p_tableName = new ReflectionProperty('ORM_Table', 'tableName');
+		$p_tableName->setAccessible(true);
+		$p_tableName->setValue($table, 'foo');
+
+		$db = $this->getMock('stdClass', array('exec'));
+		$db->expects($this->once())->method('exec')->with("DROP TABLE p_foo");
+		$db->options = new stdClass();
+		$db->options->tableNamePrefix = 'p_';
+
+		$DB = $this->getMock('stdClass', array('getHandler'));
+		$DB->expects($this->any())->method('getHandler')->will($this->returnValue($db));
+
+		DB::setMock($DB);
+
+		$table->drop();
+	}
+	//-----------------------------------------------------------------------------
+
+	/**
 	 * @covers ORM_Table::persist
 	 */
 	public function test_persist()
