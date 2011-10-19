@@ -50,6 +50,22 @@ class ORM_UI_List_DataProvider_Test extends PHPUnit_Framework_TestCase
 		$obj = new ORM_UI_List_DataProvider(new ORM_UI_List_DataProvider_Test_Pluign(), 'foo');
 	}
 	//-----------------------------------------------------------------------------
+
+	/**
+	 * @covers ORM_UI_List_DataProvider::filterInclude
+	 */
+	public function test_filterInclude()
+	{
+		$provider = $this->getMockBuilder('ORM_UI_List_DataProvider')->disableOriginalConstructor()->
+			setMethods(array('__none__'))->getMock();
+		$p_filter = new ReflectionProperty('ORM_UI_List_DataProvider', 'filter');
+		$p_filter->setAccessible(true);
+		$provider->filterInclude('foo', 123);
+		$provider->filterInclude('bar', 456, '<');
+		$this->assertEquals(array(array('foo', 123, '='), array('bar', 456, '<')),
+			$p_filter->getValue($provider));
+	}
+	//-----------------------------------------------------------------------------
 }
 
 class ORM_UI_List_DataProvider_Test_Pluign extends Plugin {};
