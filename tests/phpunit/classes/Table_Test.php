@@ -218,13 +218,31 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
 			'id' => array(
 				'type' => 'integer',
 				'autoincrement' => true,
-			),
-			'foo' => array(
-				'type' => 'string'
 			)
 		));
 
 		$table->delete(new ORM_Entity(new Plugin));
+	}
+	//-----------------------------------------------------------------------------
+
+	/**
+	 * @covers ORM_Table::count
+	 */
+	public function test_count()
+	{
+		$table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
+			setMethods(array('setTableDefinition', 'createCountQuery'))->getMock();
+
+		$db = $this->getMock('stdClass', array('fetch'));
+		$db->expects($this->once())->method('fetch')->
+			will($this->returnValue(array('record_count' => 123)));
+		DB::setMock($db);
+		$this->assertEquals(123, $table->count());
+
+		$db = $this->getMock('stdClass', array('fetch'));
+		$db->expects($this->once())->method('fetch')->will($this->returnValue(null));
+		DB::setMock($db);
+		$this->assertEquals(0, $table->count());
 	}
 	//-----------------------------------------------------------------------------
 
