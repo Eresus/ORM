@@ -184,6 +184,7 @@ class ORM_Entity
 	 * @return void
 	 *
 	 * @since 1.00
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter)
 	 */
 	public function beforeSave(ezcQuery $query)
 	{
@@ -214,6 +215,7 @@ class ORM_Entity
 	 * @return void
 	 *
 	 * @since 1.00
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter)
 	 */
 	public function beforeDelete(ezcQuery $query)
 	{
