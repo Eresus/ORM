@@ -156,7 +156,26 @@ class Plugin extends UniversalStub {}
  * @package ORM
  * @subpackage Tests
  */
-class DB extends MockFacade {}
+class DB extends MockFacade
+{
+	public static function createDeleteQuery()
+	{
+		return new ezcQueryInsert();
+	}
+	//-----------------------------------------------------------------------------
+
+	public static function createInsertQuery()
+	{
+		return new ezcQueryInsert();
+	}
+	//-----------------------------------------------------------------------------
+
+	public static function createUpdateQuery()
+	{
+		return new ezcQueryUpdate();
+	}
+	//-----------------------------------------------------------------------------
+}
 
 /**
  * Заглушка для класса ezcQuery
@@ -167,12 +186,36 @@ class DB extends MockFacade {}
 class ezcQuery extends UniversalStub {}
 
 /**
+ * Заглушка для класса ezcQueryDelete
+ *
+ * @package ORM
+ * @subpackage Tests
+ */
+class ezcQueryDelete extends ezcQuery {}
+
+/**
+ * Заглушка для класса ezcQueryInsert
+ *
+ * @package ORM
+ * @subpackage Tests
+ */
+class ezcQueryInsert extends ezcQuery {}
+
+/**
  * Заглушка для класса ezcQuerySelect
  *
  * @package ORM
  * @subpackage Tests
  */
 class ezcQuerySelect extends ezcQuery {}
+
+/**
+ * Заглушка для класса ezcQueryUpdate
+ *
+ * @package ORM
+ * @subpackage Tests
+ */
+class ezcQueryUpdate extends ezcQuery {}
 
 /**
  * Заглушка для интерфейса UI_List_DataProvider_Interface
