@@ -65,7 +65,7 @@ class ORM_UI_List_DataProvider implements UI_List_DataProvider_Interface
 	 *
 	 * @var array
 	 */
-	private $fulltext = array();
+	//private $fulltext = array();
 
 	/**
 	 * Правила сортировки
@@ -118,10 +118,10 @@ class ORM_UI_List_DataProvider implements UI_List_DataProvider_Interface
 	 *
 	 * @since 1.00
 	 */
-	public function filterFullText($properties, $query)
+	/*public function filterFullText($properties, $query)
 	{
 		$this->fulltext []= array($properties, $query);
-	}
+	}*/
 	//-----------------------------------------------------------------------------
 
 	/**
@@ -224,7 +224,7 @@ class ORM_UI_List_DataProvider implements UI_List_DataProvider_Interface
 					is_array($rule[1]) ? $rule[1] : $query->bindValue($rule[1]));
 			}
 		}
-
+		/*
 		if (count($this->fulltext))
 		{
 			foreach ($this->fulltext as $fulltext)
@@ -236,6 +236,7 @@ class ORM_UI_List_DataProvider implements UI_List_DataProvider_Interface
 				}
 			}
 		}
+		*/
 
 		if (count($andParts))
 		{
@@ -255,7 +256,7 @@ class ORM_UI_List_DataProvider implements UI_List_DataProvider_Interface
 	 *
 	 * @since 1.00
 	 */
-	private function buildFullTextQuery($fields, $query)
+	/*private function buildFullTextQuery($fields, $query)
 	{
 		if (class_exists('SearchAPI_QueryBuilder_LIKE'))
 		{
@@ -267,6 +268,6 @@ class ORM_UI_List_DataProvider implements UI_List_DataProvider_Interface
 			eresus_log(__METHOD__, LOG_ERR, 'Class "SearchAPI_QueryBuilder_LIKE" not found!');
 			return '';
 		}
-	}
+	}*/
 	//-----------------------------------------------------------------------------
 }

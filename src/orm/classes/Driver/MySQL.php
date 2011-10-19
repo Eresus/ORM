@@ -66,7 +66,7 @@ class ORM_Driver_MySQL
 		{
 			$sql []= 'KEY ' . $name . ' (' . implode(', ', $params['fields']) . ')';
 		}
-		$sql = "CREATE TABLE $tableName (" . implode(', ', $sql) . ') TYPE InnoDB';;
+		$sql = "CREATE TABLE $tableName (" . implode(', ', $sql) . ') TYPE InnoDB';
 		$db->exec($sql);
 	}
 	//-----------------------------------------------------------------------------
