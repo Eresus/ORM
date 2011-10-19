@@ -47,13 +47,13 @@ require_once dirname(__FILE__) . '/classes/AllTests.php';
  * @package ORM
  * @subpackage Tests
  */
-class AllTests
+class ORM_AllTests
 {
 	public static function suite()
 	{
 		$suite = new PHPUnit_Framework_TestSuite('All Tests');
 
-		$suite->addTest(      Classes_AllTests::suite());
+		$suite->addTest(      ORM_Classes_AllTests::suite());
 
 		return $suite;
 	}

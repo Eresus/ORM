@@ -26,7 +26,7 @@
  * GNU с этой программой. Если Вы ее не получили, смотрите документ на
  * <http://www.gnu.org/licenses/>
  *
- * @package UI
+ * @package ORM
  *
  * $Id$
  */
@@ -35,7 +35,7 @@
 /**
  * Поставщик данных из таблицы модуля ORM
  *
- * @package UI
+ * @package ORM
  */
 class ORM_UI_List_DataProvider implements UI_List_DataProvider_Interface
 {

@@ -32,34 +32,21 @@
  * $Id: bootstrap.php 1849 2011-10-03 17:34:22Z mk $
  */
 
-if (class_exists('PHP_CodeCoverage_Filter', false))
-{
-	PHP_CodeCoverage_Filter::getInstance()->addFileToBlacklist(__FILE__);
-}
-else
-{
-	PHPUnit_Util_Filter::addFileToFilter(__FILE__);
-}
+PHP_CodeCoverage_Filter::getInstance()->addFileToBlacklist(__FILE__);
 
-require_once dirname(__FILE__) . '/Driver/AllTests.php';
-require_once dirname(__FILE__) . '/Entity_Test.php';
-require_once dirname(__FILE__) . '/Table_Test.php';
-require_once dirname(__FILE__) . '/UI/AllTests.php';
+require_once dirname(__FILE__) . '/DataProvider_Test.php';
 
 /**
  * @package ORM
  * @subpackage Tests
  */
-class ORM_Classes_AllTests
+class ORM_Classes_UI_List_AllTests
 {
 	public static function suite()
 	{
-		$suite = new PHPUnit_Framework_TestSuite('Classes\All Tests');
+		$suite = new PHPUnit_Framework_TestSuite('Classes\UI\List\All Tests');
 
-		$suite->addTest(      ORM_Classes_Driver_AllTests::suite());
-		$suite->addTestSuite('ORM_Entity_Test');
-		$suite->addTestSuite('ORM_Table_Test');
-		$suite->addTest(      ORM_Classes_UI_AllTests::suite());
+		$suite->addTestSuite('ORM_UI_List_DataProvider_Test');
 
 		return $suite;
 	}

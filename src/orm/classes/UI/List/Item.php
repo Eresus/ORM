@@ -26,7 +26,7 @@
  * GNU с этой программой. Если Вы ее не получили, смотрите документ на
  * <http://www.gnu.org/licenses/>
  *
- * @package UI
+ * @package ORM
  *
  * $Id$
  */
@@ -34,7 +34,7 @@
 /**
  * Элемент списка {@link UI_List}
  *
- * @package UI
+ * @package ORM
  */
 class ORM_UI_List_Item implements UI_List_Item_Interface
 {
@@ -86,6 +86,19 @@ class ORM_UI_List_Item implements UI_List_Item_Interface
 	public function getId()
 	{
 		return $this->entity->id;
+	}
+	//-----------------------------------------------------------------------------
+
+	/**
+	 * Возвращает состояние элемента (вкл/выкл)
+	 *
+	 * @return bool
+	 *
+	 * @since 1.00
+	 */
+	public function isEnabled()
+	{
+		return $this->entity->active;
 	}
 	//-----------------------------------------------------------------------------
 }

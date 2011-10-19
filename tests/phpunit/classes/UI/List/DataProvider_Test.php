@@ -32,35 +32,31 @@
  * $Id: bootstrap.php 1849 2011-10-03 17:34:22Z mk $
  */
 
-if (class_exists('PHP_CodeCoverage_Filter', false))
-{
-	PHP_CodeCoverage_Filter::getInstance()->addFileToBlacklist(__FILE__);
-}
-else
-{
-	PHPUnit_Util_Filter::addFileToFilter(__FILE__);
-}
 
-require_once dirname(__FILE__) . '/Driver/AllTests.php';
-require_once dirname(__FILE__) . '/Entity_Test.php';
-require_once dirname(__FILE__) . '/Table_Test.php';
-require_once dirname(__FILE__) . '/UI/AllTests.php';
+require_once __DIR__ . '/../../../bootstrap.php';
+require_once TESTS_SRC_DIR . '/orm/classes/UI/List/DataProvider.php';
 
 /**
  * @package ORM
  * @subpackage Tests
  */
-class ORM_Classes_AllTests
+class ORM_UI_List_DataProvider_Test extends PHPUnit_Framework_TestCase
 {
-	public static function suite()
+	/**
+	 * @covers ORM_UI_List_DataProvider::__construct
+	 */
+	public function test_construct()
 	{
-		$suite = new PHPUnit_Framework_TestSuite('Classes\All Tests');
-
-		$suite->addTest(      ORM_Classes_Driver_AllTests::suite());
-		$suite->addTestSuite('ORM_Entity_Test');
-		$suite->addTestSuite('ORM_Table_Test');
-		$suite->addTest(      ORM_Classes_UI_AllTests::suite());
-
-		return $suite;
+		$obj = new ORM_UI_List_DataProvider(new ORM_UI_List_DataProvider_Test_Pluign(), 'foo');
 	}
+	//-----------------------------------------------------------------------------
 }
+
+class ORM_UI_List_DataProvider_Test_Pluign extends Plugin {};
+class ORM_UI_List_DataProvider_Test_Pluign_Entity_Table_foo extends ORM_Table
+{
+	protected function setTableDefinition()
+	{
+	}
+	//-----------------------------------------------------------------------------
+};
