@@ -673,7 +673,9 @@ abstract class ORM_Table
 		{
 			switch (@$attrs['type'])
 			{
+				case 'date':
 				case 'datetime':
+				case 'time':
 					$values[$name] = new DateTime($values[$name]);
 				break;
 			}

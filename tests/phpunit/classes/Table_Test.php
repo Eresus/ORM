@@ -384,6 +384,24 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
 	//-----------------------------------------------------------------------------
 
 	/**
+	 * @covers ORM_Table::setOrdering
+	 */
+	public function test_setOrdering()
+	{
+		$table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
+			setMethods(array('setTableDefinition'))->getMock();
+		$m_setOrdering = new ReflectionMethod('ORM_Table', 'setOrdering');
+		$m_setOrdering->setAccessible(true);
+		$m_setOrdering->invoke($table, 'foo', 'DESC', 'bar');
+
+		$p_ordering = new ReflectionProperty('ORM_Table', 'ordering');
+		$p_ordering->setAccessible(true);
+		$this->assertEquals(array(array('foo', 'DESC'), array('bar', 'ASC')),
+			$p_ordering->getValue($table));
+	}
+	//-----------------------------------------------------------------------------
+
+	/**
 	 * @covers ORM_Table::pdoFieldType
 	 * @expectedException InvalidArgumentException
 	 */
@@ -491,4 +509,33 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
 		$this->assertNull($m_pdoFieldValue->invoke($table, null, 'time'));
 	}
 	//-----------------------------------------------------------------------------
+
+	/**
+	 * @covers ORM_Table::entityFactory
+	 */
+	public function test_entityFactory()
+	{
+		$table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
+			setMethods(array('setTableDefinition', 'getEntityClass'))->getMock();
+		$table->expects($this->once())->method('getEntityClass')->
+			will($this->returnValue('ORM_Table_Test_Plugin_Entity_Foo'));
+		$p_plugin = new ReflectionProperty('ORM_Table', 'plugin');
+		$p_plugin->setAccessible(true);
+		$p_plugin->setValue($table, new Plugin);
+		$p_columns = new ReflectionProperty('ORM_Table', 'columns');
+		$p_columns->setAccessible(true);
+		$p_columns->setValue($table, array(
+			'id' => array('type' => 'integer'),
+			'time' => array('type' => 'time'),
+		));
+		$m_entityFactory = new ReflectionMethod('ORM_Table', 'entityFactory');
+		$m_entityFactory->setAccessible(true);
+
+		$entity = $m_entityFactory->invoke($table, array('id' => 123, 'time' => '12:34'));
+		$this->assertInstanceOf('ORM_Entity', $entity);
+		$this->assertInstanceOf('DateTime', $entity->time);
+	}
+	//-----------------------------------------------------------------------------
 }
+
+class ORM_Table_Test_Plugin_Entity_Foo extends ORM_Entity {}
