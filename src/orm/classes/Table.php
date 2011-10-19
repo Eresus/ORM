@@ -176,6 +176,7 @@ abstract class ORM_Table
 			$value = $this->pdoFieldValue($entity->getProperty($name), @$attrs['type']);
 			$q->set($name, $q->bindValue($value, null, $type));
 		}
+		$entity->beforeSave($q);
 		DB::execute($q);
 		if (@$this->columns[$this->primaryKey]['autoincrement'])
 		{
@@ -214,6 +215,7 @@ abstract class ORM_Table
 			$value = $this->pdoFieldValue($entity->getProperty($name), @$attrs['type']);
 			$q->set($name, $q->bindValue($value, null, $type));
 		}
+		$entity->beforeSave($q);
 		DB::execute($q);
 		$entity->afterSave();
 	}
@@ -236,8 +238,9 @@ abstract class ORM_Table
 			where($q->expr->eq($pKey,
 				$q->bindValue($entity->$pKey, null, $this->pdoFieldType(@$this->columns[$pKey]['type']))
 			));
-		$entity->beforeDelete();
+		$entity->beforeDelete($q);
 		DB::execute($q);
+		$entity->afterDelete();
 	}
 	//-----------------------------------------------------------------------------
 

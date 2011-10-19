@@ -177,6 +177,22 @@ class ORM_Entity
 	//-----------------------------------------------------------------------------
 
 	/**
+	 * Вызывается перед изменением в БД
+	 *
+	 * @param ezcQuery $query  запрос, который будет выполнен для сохранения записи
+	 *
+	 * @return void
+	 *
+	 * @since 1.00
+	 */
+	public function beforeSave(ezcQuery $query)
+	{
+		//@codeCoverageIgnoreStart
+	}
+	//@codeCoverageIgnoreEnd
+	//-----------------------------------------------------------------------------
+
+	/**
 	 * Вызывается после записи изменений в БД
 	 *
 	 * @return void
@@ -193,11 +209,27 @@ class ORM_Entity
 	/**
 	 * Вызывается перед удалением записи из БД
 	 *
+	 * @param ezcQuery $query  запрос, который будет выполнен для удаления записи
+	 *
 	 * @return void
 	 *
 	 * @since 1.00
 	 */
-	public function beforeDelete()
+	public function beforeDelete(ezcQuery $query)
+	{
+		//@codeCoverageIgnoreStart
+	}
+	//@codeCoverageIgnoreEnd
+	//-----------------------------------------------------------------------------
+
+	/**
+	 * Вызывается после удаления записи из БД
+	 *
+	 * @return void
+	 *
+	 * @since 1.00
+	 */
+	public function afterDelete()
 	{
 		//@codeCoverageIgnoreStart
 	}
