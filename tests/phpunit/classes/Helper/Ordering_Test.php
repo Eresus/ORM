@@ -44,15 +44,38 @@ require_once TESTS_SRC_DIR . '/orm/classes/Helper/Ordering.php';
 class ORM_Helper_Ordering_Test extends PHPUnit_Framework_TestCase
 {
 	/**
-	 * @ covers ORM_Helper_Ordering::moveUp
+	 * @covers ORM_Helper_Ordering::moveUp
 	 */
 	public function test_moveUp()
 	{
 		$helper = $this->getMock('ORM_Helper_Ordering', array('swap'));
 		$plugin = new ORM_Helper_Ordering_Test_Plugin();
 		$entity = new ORM_Helper_Ordering_Test_Plugin_Entity_Foo($plugin);
-		$entity->position = 1;
 		$helper->moveUp($entity);
+		$entity->position = 1;
+		$p_groupBy = new ReflectionProperty('ORM_Helper_Ordering', 'groupBy');
+		$p_groupBy->setAccessible(true);
+		$p_groupBy->setValue($helper, array('foo'));
+		$helper->moveUp($entity);
+		$GLOBALS['ORM_Helper_Ordering_Test_Plugin_Entity_Table_Foo::loadOneFromQuery'] = null;
+		$helper->moveUp($entity);
+	}
+	//-----------------------------------------------------------------------------
+
+	/**
+	 * @covers ORM_Helper_Ordering::moveDown
+	 */
+	public function test_moveDown()
+	{
+		$helper = $this->getMock('ORM_Helper_Ordering', array('swap'));
+		$plugin = new ORM_Helper_Ordering_Test_Plugin();
+		$entity = new ORM_Helper_Ordering_Test_Plugin_Entity_Foo($plugin);
+		$p_groupBy = new ReflectionProperty('ORM_Helper_Ordering', 'groupBy');
+		$p_groupBy->setAccessible(true);
+		$p_groupBy->setValue($helper, array('foo'));
+		$helper->moveDown($entity);
+		$GLOBALS['ORM_Helper_Ordering_Test_Plugin_Entity_Table_Foo::loadOneFromQuery'] = null;
+		$helper->moveDown($entity);
 	}
 	//-----------------------------------------------------------------------------
 }
@@ -70,7 +93,9 @@ class ORM_Helper_Ordering_Test_Plugin_Entity_Table_Foo extends ORM_Table
 	//-----------------------------------------------------------------------------
 	public function loadOneFromQuery(ezcQuerySelect $query)
 	{
-		return new ORM_Helper_Ordering_Test_Plugin_Entity_Foo(new ORM_Helper_Ordering_Test_Plugin);
+		$key = 'ORM_Helper_Ordering_Test_Plugin_Entity_Table_Foo::loadOneFromQuery';
+		return array_key_exists($key, $GLOBALS) ? $GLOBALS[$key] :
+			new ORM_Helper_Ordering_Test_Plugin_Entity_Foo(new ORM_Helper_Ordering_Test_Plugin);
 	}
 	//-----------------------------------------------------------------------------
 }

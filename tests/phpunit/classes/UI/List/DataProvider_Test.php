@@ -34,6 +34,7 @@
 
 
 require_once __DIR__ . '/../../../bootstrap.php';
+require_once TESTS_SRC_DIR . '/orm/classes/UI/List/Item.php';
 require_once TESTS_SRC_DIR . '/orm/classes/UI/List/DataProvider.php';
 
 /**
@@ -64,6 +65,32 @@ class ORM_UI_List_DataProvider_Test extends PHPUnit_Framework_TestCase
 		$provider->filterInclude('bar', 456, '<');
 		$this->assertEquals(array(array('foo', 123, '='), array('bar', 456, '<')),
 			$p_filter->getValue($provider));
+	}
+	//-----------------------------------------------------------------------------
+
+	/**
+	 * @covers ORM_UI_List_DataProvider::getItems
+	 */
+	public function test_getItems()
+	{
+		$provider = $this->getMockBuilder('ORM_UI_List_DataProvider')->disableOriginalConstructor()->
+			setMethods(array('setFilter'))->getMock();
+
+		$p_orderBy = new ReflectionProperty('ORM_UI_List_DataProvider', 'orderBy');
+		$p_orderBy->setAccessible(true);
+		$p_orderBy->setValue($provider, array('foo', 'ASC'));
+
+		$p_table = new ReflectionProperty('ORM_UI_List_DataProvider', 'table');
+		$p_table->setAccessible(true);
+		$table = $this->getMock('stdClass', array('createSelectQuery', 'loadFromQuery'));
+		$table->expects($this->once())->method('createSelectQuery')->
+			will($this->returnValue(new ezcQuerySelect()));
+		$entity = $this->getMockBuilder('ORM_Entity')->disableOriginalConstructor()->getMock();
+		$table->expects($this->once())->method('loadFromQuery')->
+			will($this->returnValue(array($entity)));
+		$p_table->setValue($provider, $table);
+
+		$provider->getItems();
 	}
 	//-----------------------------------------------------------------------------
 

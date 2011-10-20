@@ -32,39 +32,35 @@
  * $Id: bootstrap.php 1849 2011-10-03 17:34:22Z mk $
  */
 
-if (class_exists('PHP_CodeCoverage_Filter', false))
-{
-	PHP_CodeCoverage_Filter::getInstance()->addFileToBlacklist(__FILE__);
-}
-else
-{
-	PHPUnit_Util_Filter::addFileToFilter(__FILE__);
-}
 
-require_once dirname(__FILE__) . '/Driver/AllTests.php';
-require_once dirname(__FILE__) . '/Entity_Test.php';
-require_once dirname(__FILE__) . '/Table_Test.php';
-require_once dirname(__FILE__) . '/Table/AllTests.php';
-require_once dirname(__FILE__) . '/Helper/AllTests.php';
-require_once dirname(__FILE__) . '/UI/AllTests.php';
+require_once __DIR__ . '/../../bootstrap.php';
+require_once TESTS_SRC_DIR . '/orm/classes/Table.php';
+require_once TESTS_SRC_DIR . '/orm/classes/Table/Cached.php';
 
 /**
  * @package ORM
  * @subpackage Tests
  */
-class ORM_Classes_AllTests
+class ORM_Table_Cached_Test extends PHPUnit_Framework_TestCase
 {
-	public static function suite()
+	/**
+	 * @covers ORM_Table_Cached::fillCache
+	 */
+	public function test_fillCache()
 	{
-		$suite = new PHPUnit_Framework_TestSuite('Classes\All Tests');
+		$table = $this->getMockBuilder('ORM_Table_Cached')->disableOriginalConstructor()->
+			setMethods(array('setTableDefinition', 'createSelectQuery', 'loadFromQuery'))->getMock();
+		$table->expects($this->once())->method('createSelectQuery')->
+			will($this->returnValue(new ezcQuerySelect()));
+		$item = new stdClass();
+		$item->id = 0;
+		$table->expects($this->once())->method('loadFromQuery')->will($this->returnValue(array($item)));
 
-		$suite->addTest(      ORM_Classes_Driver_AllTests::suite());
-		$suite->addTestSuite('ORM_Entity_Test');
-		$suite->addTestSuite('ORM_Table_Test');
-		$suite->addTest(      ORM_Classes_Table_AllTests::suite());
-		$suite->addTest(      ORM_Classes_Helper_AllTests::suite());
-		$suite->addTest(      ORM_Classes_UI_AllTests::suite());
+		$m_fillCache = new ReflectionMethod('ORM_Table_Cached', 'fillCache');
+		$m_fillCache->setAccessible(true);
 
-		return $suite;
+		$m_fillCache->invoke($table);
+		$m_fillCache->invoke($table);
 	}
+	//-----------------------------------------------------------------------------
 }
