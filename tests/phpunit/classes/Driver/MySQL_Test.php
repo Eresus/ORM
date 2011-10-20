@@ -84,6 +84,38 @@ class ORM_Driver_MySQL_Test extends PHPUnit_Framework_TestCase
 	//-----------------------------------------------------------------------------
 
 	/**
+	 * @covers ORM_Driver_MySQL::getFieldDefinition
+	 * @expectedException InvalidArgumentException
+	 */
+	public function test_getFieldDefinition_noType()
+	{
+		$driver = new ORM_Driver_MySQL();
+		$driver->getFieldDefinition(array());
+	}
+	//-----------------------------------------------------------------------------
+
+	/**
+	 * @covers ORM_Driver_MySQL::getFieldDefinition
+	 * @expectedException InvalidArgumentException
+	 */
+	public function test_getFieldDefinition_badType()
+	{
+		$driver = new ORM_Driver_MySQL();
+		$driver->getFieldDefinition(array('type' => 'foo'));
+	}
+	//-----------------------------------------------------------------------------
+
+	/**
+	 * @covers ORM_Driver_MySQL::getFieldDefinition
+	 */
+	public function test_getFieldDefinition()
+	{
+		$driver = new ORM_Driver_MySQL();
+		$this->assertEquals('INT(10)', $driver->getFieldDefinition(array('type' => 'integer')));
+	}
+	//-----------------------------------------------------------------------------
+
+	/**
 	 * @covers ORM_Driver_MySQL::getDefinitionFor_DEFAULT
 	 */
 	public function test_getDefinitionFor_DEFAULT()

@@ -69,6 +69,22 @@ class ORM_UI_List_DataProvider_Test extends PHPUnit_Framework_TestCase
 	//-----------------------------------------------------------------------------
 
 	/**
+	 * @covers ORM_UI_List_DataProvider::orderBy
+	 */
+	public function test_orderBy()
+	{
+		$provider = $this->getMockBuilder('ORM_UI_List_DataProvider')->disableOriginalConstructor()->
+			setMethods(array('__none__'))->getMock();
+
+		$provider->orderBy('foo', 'ASC', 'bar');
+
+		$p_orderBy = new ReflectionProperty('ORM_UI_List_DataProvider', 'orderBy');
+		$p_orderBy->setAccessible(true);
+		$this->assertEquals(array('foo', 'ASC', 'bar'),	$p_orderBy->getValue($provider));
+	}
+	//-----------------------------------------------------------------------------
+
+	/**
 	 * @covers ORM_UI_List_DataProvider::getItems
 	 */
 	public function test_getItems()
@@ -91,6 +107,23 @@ class ORM_UI_List_DataProvider_Test extends PHPUnit_Framework_TestCase
 		$p_table->setValue($provider, $table);
 
 		$provider->getItems();
+	}
+	//-----------------------------------------------------------------------------
+
+	/**
+	 * @covers ORM_UI_List_DataProvider::getCount
+	 */
+	public function test_getCount()
+	{
+		$provider = $this->getMockBuilder('ORM_UI_List_DataProvider')->disableOriginalConstructor()->
+			setMethods(array('setFilter'))->getMock();
+		$p_table = new ReflectionProperty('ORM_UI_List_DataProvider', 'table');
+		$p_table->setAccessible(true);
+		$table = $this->getMock('stdClass', array('createCountQuery', 'count'));
+		$table->expects($this->once())->method('createCountQuery')->
+			will($this->returnValue(new ezcQuerySelect()));
+		$p_table->setValue($provider, $table);
+		$provider->getCount();
 	}
 	//-----------------------------------------------------------------------------
 
