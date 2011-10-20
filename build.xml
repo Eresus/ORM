@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
- Сборочный файл для MyPlugin
+ Сборочный файл для ORM
 
  $Id$
  -->
 
-<project name="myplugin" default="build" basedir="./">
+<project name="orm" default="build" basedir="./">
 
 	<property file="build.properties" />
 
