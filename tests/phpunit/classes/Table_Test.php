@@ -532,7 +532,7 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
 		$this->assertEquals(PDO::PARAM_INT, $m_pdoFieldType->invoke($table, 'integer'));
 		$this->assertNull($m_pdoFieldType->invoke($table, 'float'));
 		$this->assertEquals(PDO::PARAM_STR, $m_pdoFieldType->invoke($table, 'string'));
-		$this->assertEquals(PDO::PARAM_STR, $m_pdoFieldType->invoke($table, 'datetime'));
+		$this->assertEquals(PDO::PARAM_STR, $m_pdoFieldType->invoke($table, 'timestamp'));
 		$this->assertEquals(PDO::PARAM_STR, $m_pdoFieldType->invoke($table, 'time'));
 		$this->assertEquals(PDO::PARAM_STR, $m_pdoFieldType->invoke($table, 'date'));
 	}

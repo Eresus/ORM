@@ -591,7 +591,7 @@ abstract class ORM_Table
 			break;
 
 			case 'string':
-			case 'datetime':
+			case 'timestamp':
 			case 'time':
 			case 'date':
 				$type = PDO::PARAM_STR;
@@ -630,11 +630,19 @@ abstract class ORM_Table
 		switch ($ormFieldType)
 		{
 			case 'timestamp':
-				if (!($ormValue instanceof DateTime))
+				$format = 'Y-m-d H:i:s';
+				if (is_integer($ormValue))
+				{
+					$ormValue = date($format, $ormValue);
+				}
+				elseif ($ormValue instanceof DateTime)
+				{
+					$ormValue = $ormValue->format($format);
+				}
+				else
 				{
 					throw new InvalidArgumentException('Value of $ormValue must be a DateTime');
 				}
-				$ormValue = $ormValue->format('Y-m-d H:i:s');
 			break;
 
 			case 'date':
@@ -674,8 +682,8 @@ abstract class ORM_Table
 			switch (@$attrs['type'])
 			{
 				case 'date':
-				case 'datetime':
 				case 'time':
+				case 'timetamp':
 					$values[$name] = new DateTime($values[$name]);
 				break;
 			}
