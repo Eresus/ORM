@@ -121,7 +121,7 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
 		$db->expects($this->once())->method('exec')->with("CREATE TABLE p_foo (f1 INT(10) UNSIGNED " .
 			"AUTO_INCREMENT, f2 VARCHAR(100) DEFAULT '', f3 TEXT DEFAULT NULL, f4 LONGTEXT, f5 BOOL, " .
 			"f6 FLOAT, f7 TIMESTAMP, f8 DATE, f9 TIME, PRIMARY KEY (f1), KEY idx1 (f2, f4)) " .
-			"TYPE InnoDB");
+			"ENGINE InnoDB");
 		$db->options = new stdClass();
 		$db->options->tableNamePrefix = 'p_';
 

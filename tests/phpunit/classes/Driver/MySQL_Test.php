@@ -52,7 +52,7 @@ class ORM_Driver_MySQL_Test extends PHPUnit_Framework_TestCase
 
 		$handler = $this->getMock('stdClass', array('exec'));
 		$handler->expects($this->once())->method('exec')->
-			with('CREATE TABLE prefix_foo (f1 F, PRIMARY KEY (id), KEY idx1 (f1)) TYPE InnoDB');
+			with('CREATE TABLE prefix_foo (f1 F, PRIMARY KEY (id), KEY idx1 (f1)) ENGINE InnoDB');
 		$handler->options = new stdClass;
 		$handler->options->tableNamePrefix = 'prefix_';
 		$db = $this->getMock('stdClass', array('getHandler'));
