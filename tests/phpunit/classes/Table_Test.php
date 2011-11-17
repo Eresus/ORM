@@ -591,6 +591,9 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
 		$datetime = new DateTime('01-02-03 12:34:56');
 		$this->assertEquals('2001-02-03 12:34:56', $m_pdoFieldValue->invoke($table, $datetime,
 			'timestamp'));
+		$timestamp = time();
+		$s = date('Y-m-d H:i:s', $timestamp);
+		$this->assertEquals($s, $m_pdoFieldValue->invoke($table, $timestamp, 'timestamp'));
 		$this->assertEquals('2001-02-03', $m_pdoFieldValue->invoke($table, $datetime, 'date'));
 		$this->assertEquals('12:34:56', $m_pdoFieldValue->invoke($table, $datetime, 'time'));
 		$this->assertNull($m_pdoFieldValue->invoke($table, null, 'time'));
