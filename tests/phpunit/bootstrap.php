@@ -34,8 +34,6 @@
 
 define('TESTS_SRC_DIR', realpath(__DIR__ . '/../../src'));
 
-PHP_CodeCoverage_Filter::getInstance()->addDirectoryToWhitelist(TESTS_SRC_DIR);
-
 /**
  * Универсальная заглушка
  *
