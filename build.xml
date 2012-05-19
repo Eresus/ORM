@@ -147,7 +147,7 @@
 
 		<phpdoc title="ORM ${product.version} API"
 			destdir="${docs.dir}"
-			sourcecode="no"
+			sourcecode="false"
 			parseprivate="false"
 			output="${docs.converter}">
 			<fileset refid="files.sources" />
@@ -180,7 +180,7 @@
 
 		</if>
 
-		<tar destfile="${distr.dir}/${phing.project.name}-${product.version}.tar.bz2" compression="bzip2">
+		<tar destFile="${distr.dir}/${phing.project.name}-${product.version}.tar.bz2" compression="bzip2">
 			<fileset dir="${build.dir}">
 				<include name="**" />
 			</fileset>
