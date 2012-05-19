@@ -95,7 +95,7 @@ abstract class ORM_Table
 	 *
 	 * @param Plugin $plugin
 	 *
-	 * @return void
+	 * @return ORM_Table
 	 *
 	 * @since 1.00
 	 */
@@ -387,6 +387,7 @@ abstract class ORM_Table
 	}
 	//-----------------------------------------------------------------------------
 
+	//@codeCoverageIgnoreStart
 	/**
 	 * Метод должен устанавливать свойства таблицы БД
 	 *
@@ -401,6 +402,7 @@ abstract class ORM_Table
 	 * @since 1.00
 	 */
 	abstract protected function setTableDefinition();
+	//@codeCoverageIgnoreEnd
 	//-----------------------------------------------------------------------------
 
 	/**
@@ -609,6 +611,8 @@ abstract class ORM_Table
 	 *
 	 * @param mixed  $ormValue      значение поля
 	 * @param string $ormFieldType  см. {@link hasColumns()}
+	 *
+	 * @throws InvalidArgumentException
 	 *
 	 * @return mixed
 	 *
