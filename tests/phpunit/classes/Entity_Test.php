@@ -78,4 +78,20 @@ class ORM_Entity_Test extends PHPUnit_Framework_TestCase
 		$entity->bar = 'foo';
 	}
 	//-----------------------------------------------------------------------------
+
+	/**
+	 * @covers ORM_Entity::getTable
+	 */
+	public function test_getTable()
+	{
+		$entity = $this->getMockForAbstractClass('ORM_Entity', array(new Plugin),
+			'ORM_Entity_Test__Entity_GetTable');
+
+		$p_tables = new ReflectionProperty('ORM', 'tables');
+		$p_tables->setAccessible(true);
+		$p_tables->setValue('ORM', array('Plugin_Entity_Table_GetTable' => true));
+
+		$this->assertTrue($entity->getTable());
+	}
+	//-----------------------------------------------------------------------------
 }

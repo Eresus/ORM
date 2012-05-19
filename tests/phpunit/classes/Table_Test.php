@@ -178,7 +178,7 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
 			)
 		));
 
-		$table->persist(new ORM_Entity(new Plugin));
+		$table->persist($this->getMockForAbstractClass('ORM_Entity', array(new Plugin)));
 	}
 	//-----------------------------------------------------------------------------
 
@@ -201,7 +201,7 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
 			)
 		));
 
-		$table->update(new ORM_Entity(new Plugin));
+		$table->update($this->getMockForAbstractClass('ORM_Entity', array(new Plugin)));
 	}
 	//-----------------------------------------------------------------------------
 
@@ -221,7 +221,7 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
 			)
 		));
 
-		$table->delete(new ORM_Entity(new Plugin));
+		$table->delete($this->getMockForAbstractClass('ORM_Entity', array(new Plugin)));
 	}
 	//-----------------------------------------------------------------------------
 

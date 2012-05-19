@@ -38,7 +38,7 @@
  * @package ORM
  * @since 1.00
  */
-class ORM_Entity
+abstract class ORM_Entity
 {
 	/**
 	 * Модуль
@@ -111,14 +111,14 @@ class ORM_Entity
 	 * "Магический" метод для установки свойств объекта
 	 *
 	 * Если есть метод, имя которого состоит из префикса "set" и имени свойства, вызывает этот
-	 * метод для установки значения. В противном случае вызывает {@link setProperty}.
+	 * метод для установки значения. В противном случае вызывает {@link setProperty()}.
 	 *
 	 * @param string $key    Имя поля
 	 * @param mixed  $value  Значение поля
 	 *
 	 * @return void
 	 *
-	 * @uses setProperty
+	 * @uses setProperty()
 	 * @since 1.00
 	 */
 	public function __set($key, $value)
@@ -191,6 +191,7 @@ class ORM_Entity
 	}
 	//-----------------------------------------------------------------------------
 
+	//@codeCoverageIgnoreStart
 	/**
 	 * Вызывается перед изменением в БД
 	 *
@@ -203,11 +204,11 @@ class ORM_Entity
 	 */
 	public function beforeSave(ezcQuery $query)
 	{
-		//@codeCoverageIgnoreStart
 	}
 	//@codeCoverageIgnoreEnd
 	//-----------------------------------------------------------------------------
 
+	//@codeCoverageIgnoreStart
 	/**
 	 * Вызывается после записи изменений в БД
 	 *
@@ -217,11 +218,11 @@ class ORM_Entity
 	 */
 	public function afterSave()
 	{
-		//@codeCoverageIgnoreStart
 	}
 	//@codeCoverageIgnoreEnd
 	//-----------------------------------------------------------------------------
 
+	//@codeCoverageIgnoreStart
 	/**
 	 * Вызывается перед удалением записи из БД
 	 *
@@ -234,11 +235,11 @@ class ORM_Entity
 	 */
 	public function beforeDelete(ezcQuery $query)
 	{
-		//@codeCoverageIgnoreStart
 	}
 	//@codeCoverageIgnoreEnd
 	//-----------------------------------------------------------------------------
 
+	//@codeCoverageIgnoreStart
 	/**
 	 * Вызывается после удаления записи из БД
 	 *
@@ -248,7 +249,6 @@ class ORM_Entity
 	 */
 	public function afterDelete()
 	{
-		//@codeCoverageIgnoreStart
 	}
 	//@codeCoverageIgnoreEnd
 	//-----------------------------------------------------------------------------
