@@ -44,6 +44,20 @@ require_once TESTS_SRC_DIR . '/orm/classes/Helper/Ordering.php';
 class ORM_Helper_Ordering_Test extends PHPUnit_Framework_TestCase
 {
 	/**
+	 * @covers ORM_Helper_Ordering::groupBy
+	 */
+	public function test_groupBy()
+	{
+		$helper = new ORM_Helper_Ordering();
+		$helper->groupBy('foo', 'ASC', 'bar', 'DESC');
+
+		$p_groupBy = new ReflectionProperty('ORM_Helper_Ordering', 'groupBy');
+		$p_groupBy->setAccessible(true);
+		$this->assertEquals(array('foo', 'ASC', 'bar', 'DESC'), $p_groupBy->getValue($helper));
+	}
+	//-----------------------------------------------------------------------------
+
+	/**
 	 * @covers ORM_Helper_Ordering::moveUp
 	 */
 	public function test_moveUp()
