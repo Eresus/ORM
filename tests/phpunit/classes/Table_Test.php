@@ -624,10 +624,15 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
 		$m_entityFactory = new ReflectionMethod('ORM_Table', 'entityFactory');
 		$m_entityFactory->setAccessible(true);
 
-		$entity = $m_entityFactory->invoke($table, array('id' => 123, 'time' => '12:34'));
+		$entity = $m_entityFactory->invoke($table,array(
+			'id' => 123,
+			'time' => '12:34',
+			'timestamp' => '2012-02-03 13:45'
+		));
 		$this->assertInstanceOf('ORM_Entity', $entity);
 		$this->assertInstanceOf('DateTime', $entity->time);
 		$this->assertInstanceOf('DateTime', $entity->timestamp);
+		$this->assertEquals('03.02.12 13:45', $entity->timestamp->format('d.m.y H:i'));
 	}
 	//-----------------------------------------------------------------------------
 }
