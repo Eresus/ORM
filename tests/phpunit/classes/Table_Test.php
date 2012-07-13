@@ -607,8 +607,10 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
 	{
 		$table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
 			setMethods(array('setTableDefinition', 'getEntityClass'))->getMock();
+
 		$table->expects($this->once())->method('getEntityClass')->
 			will($this->returnValue('ORM_Table_Test_Plugin_Entity_Foo'));
+
 		$p_plugin = new ReflectionProperty('ORM_Table', 'plugin');
 		$p_plugin->setAccessible(true);
 		$p_plugin->setValue($table, new Plugin);
@@ -617,6 +619,7 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
 		$p_columns->setValue($table, array(
 			'id' => array('type' => 'integer'),
 			'time' => array('type' => 'time'),
+			'timestamp' => array('type' => 'timestamp'),
 		));
 		$m_entityFactory = new ReflectionMethod('ORM_Table', 'entityFactory');
 		$m_entityFactory->setAccessible(true);
@@ -624,6 +627,7 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
 		$entity = $m_entityFactory->invoke($table, array('id' => 123, 'time' => '12:34'));
 		$this->assertInstanceOf('ORM_Entity', $entity);
 		$this->assertInstanceOf('DateTime', $entity->time);
+		$this->assertInstanceOf('DateTime', $entity->timestamp);
 	}
 	//-----------------------------------------------------------------------------
 }

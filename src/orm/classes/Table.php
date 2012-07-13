@@ -330,8 +330,9 @@ abstract class ORM_Table
 	public function createCountQuery()
 	{
 		$q = DB::getHandler()->createSelectQuery();
-		$q->select($q->alias($q->expr->count('*'), 'record_count'))->from($this->getTableName())->
-			limit(1);
+		$q->select($q->alias($q->expr->count('*'), 'record_count'));
+		$q->from($this->getTableName());
+		$q->limit(1);
 		return $q;
 	}
 	//-----------------------------------------------------------------------------
@@ -641,6 +642,7 @@ abstract class ORM_Table
 				}
 				elseif ($ormValue instanceof DateTime)
 				{
+					/* @var DateTime $ormValue */
 					$ormValue = $ormValue->format($format);
 				}
 				else
@@ -654,6 +656,7 @@ abstract class ORM_Table
 				{
 					throw new InvalidArgumentException('Value of $ormValue must be a DateTime');
 				}
+				/* @var DateTime $ormValue */
 				$ormValue = $ormValue->format('Y-m-d');
 			break;
 
@@ -662,6 +665,7 @@ abstract class ORM_Table
 				{
 					throw new InvalidArgumentException('Value of $ormValue must be a DateTime');
 				}
+				/* @var DateTime $ormValue */
 				$ormValue = $ormValue->format('H:i:s');
 			break;
 		}
@@ -687,7 +691,7 @@ abstract class ORM_Table
 			{
 				case 'date':
 				case 'time':
-				case 'timetamp':
+				case 'timestamp':
 					$values[$name] = new DateTime($values[$name]);
 				break;
 			}

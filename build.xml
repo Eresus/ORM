@@ -180,7 +180,7 @@
 
 		</if>
 
-		<tar destFile="${distr.dir}/${phing.project.name}-${product.version}.tar.bz2" compression="bzip2">
+		<tar destfile="${distr.dir}/${phing.project.name}-${product.version}.tar.bz2" compression="bzip2">
 			<fileset dir="${build.dir}">
 				<include name="**" />
 			</fileset>
