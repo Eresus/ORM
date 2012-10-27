@@ -66,7 +66,8 @@ class ORM_Driver_MySQL
 		{
 			$sql []= 'KEY ' . $name . ' (' . implode(', ', $params['fields']) . ')';
 		}
-		$sql = "CREATE TABLE $tableName (" . implode(', ', $sql) . ') ENGINE InnoDB';
+		$sql = "CREATE TABLE $tableName (" . implode(', ', $sql) .
+			') ENGINE InnoDB DEFAULT CHARSET=utf8';
 		$db->exec($sql);
 	}
 	//-----------------------------------------------------------------------------

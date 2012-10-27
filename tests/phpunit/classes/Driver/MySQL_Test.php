@@ -44,6 +44,8 @@ class ORM_Driver_MySQL_Test extends PHPUnit_Framework_TestCase
 {
 	/**
 	 * @covers ORM_Driver_MySQL::createTable
+	 *
+	 * @see http://bugs.eresus.ru/view.php?id=876
 	 */
 	public function test_createTable()
 	{
@@ -51,8 +53,8 @@ class ORM_Driver_MySQL_Test extends PHPUnit_Framework_TestCase
 		$driver->expects($this->any())->method('getFieldDefinition')->will($this->returnValue('F'));
 
 		$handler = $this->getMock('stdClass', array('exec'));
-		$handler->expects($this->once())->method('exec')->
-			with('CREATE TABLE prefix_foo (f1 F, PRIMARY KEY (id), KEY idx1 (f1)) ENGINE InnoDB');
+		$handler->expects($this->once())->method('exec')->with('CREATE TABLE prefix_foo ' .
+			'(f1 F, PRIMARY KEY (id), KEY idx1 (f1)) ENGINE InnoDB DEFAULT CHARSET=utf8');
 		$handler->options = new stdClass;
 		$handler->options->tableNamePrefix = 'prefix_';
 		$db = $this->getMock('stdClass', array('getHandler'));
@@ -62,7 +64,6 @@ class ORM_Driver_MySQL_Test extends PHPUnit_Framework_TestCase
 		$driver->createTable('foo', array('f1' => array()), 'id',
 			array('idx1' => array('fields' => array('f1'))));
 	}
-	//-----------------------------------------------------------------------------
 
 	/**
 	 * @covers ORM_Driver_MySQL::dropTable
