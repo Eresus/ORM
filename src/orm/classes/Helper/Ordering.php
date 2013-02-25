@@ -27,8 +27,6 @@
  * <http://www.gnu.org/licenses/>
  *
  * @package ORM
- *
- * $Id: Entity.php 1309 2011-10-19 12:59:03Z mk $
  */
 
 

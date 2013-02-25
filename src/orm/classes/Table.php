@@ -27,8 +27,6 @@
  * <http://www.gnu.org/licenses/>
  *
  * @package ORM
- *
- * $Id$
  */
 
 /**
