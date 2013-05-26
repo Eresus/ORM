@@ -1,7 +1,5 @@
 <?php
 /**
- * ORM
- *
  * Помощник ручной сортировки
  *
  * @version ${product.version}
@@ -38,144 +36,141 @@
  */
 class ORM_Helper_Ordering
 {
-	/**
-	 * Поле, хранящее порядковый номер
-	 *
-	 * @var string
-	 */
-	private $fieldName = 'position';
+    /**
+     * Поле, хранящее порядковый номер
+     *
+     * @var string
+     */
+    private $fieldName = 'position';
 
-	/**
-	 * Список полей для группировки
-	 *
-	 * @var array
-	 */
-	private $groupBy = array();
+    /**
+     * Список полей для группировки
+     *
+     * @var array
+     */
+    private $groupBy = array();
 
-	/**
-	 * Задаёт список полей по которым надо выполнять группировку
-	 *
-	 * Считается что записи принадлежат к одной группе, если знаения перечисленных полей у всех
-	 * записей совпадают.
-	 *
-	 * @param string $field1…$fieldN  список полей для группировки
-	 *
-	 * @return void
-	 *
-	 * @since 1.00
-	 */
-	public function groupBy()
-	{
-		$this->groupBy = func_get_args();
-	}
-	//-----------------------------------------------------------------------------
+    /**
+     * Задаёт список полей по которым надо выполнять группировку
+     *
+     * Считается что записи принадлежат к одной группе, если знаения перечисленных полей у всех
+     * записей совпадают.
+     *
+     * @param string $field1  1-е поле для группировки
+     * @param ...
+     *
+     * @return void
+     *
+     * @since 1.00
+     */
+    public function groupBy($field1)
+    {
+        $this->groupBy = func_get_args();
+    }
 
-	/**
-	 * Задаёт имя поля, содержащего порядковый номер
-	 *
-	 * @param string $name
-	 *
-	 * @return void
-	 *
-	 * @since 1.00
-	 */
-	public function setFieldName($name)
-	{
-		$this->fieldName = $name;
-	}
-	//-----------------------------------------------------------------------------
+    /**
+     * Задаёт имя поля, содержащего порядковый номер
+     *
+     * @param string $name
+     *
+     * @return void
+     *
+     * @since 1.00
+     */
+    public function setFieldName($name)
+    {
+        $this->fieldName = $name;
+    }
 
-	/**
-	 * Перемещает запись выше в группе
-	 * @param ORM_Entity $entity
-	 *
-	 * @return void
-	 *
-	 * @since 1.00
-	 */
-	public function moveUp(ORM_Entity $entity)
-	{
-		if (0 == $entity->{$this->fieldName})
-		{
-			// Выше некуда
-			return;
-		}
-		$table = $entity->getTable();
-		$q = $table->createSelectQuery(false);
-		$e = $q->expr;
-		$group = array();
-		foreach ($this->groupBy as $field)
-		{
-			$group []= $e->eq($field, $q->bindValue($entity->$field));
-		}
-		$group []= $e->lt($this->fieldName, $q->bindValue($entity->{$this->fieldName}, null,
-			PDO::PARAM_INT));
-		$q->select('*')->where(call_user_func_array(array($e, 'lAnd'), $group))->
-			orderBy($this->fieldName, ezcQuerySelect::DESC);
-		$swap = $table->loadOneFromQuery($q);
+    /**
+     * Перемещает запись выше в группе
+     * @param ORM_Entity $entity
+     *
+     * @return void
+     *
+     * @since 1.00
+     */
+    public function moveUp(ORM_Entity $entity)
+    {
+        if (0 == $entity->{$this->fieldName})
+        {
+            // Выше некуда
+            return;
+        }
+        $table = $entity->getTable();
+        $q = $table->createSelectQuery(false);
+        $e = $q->expr;
+        $group = array();
+        foreach ($this->groupBy as $field)
+        {
+            $group []= $e->eq($field, $q->bindValue($entity->$field));
+        }
+        $group []= $e->lt($this->fieldName, $q->bindValue($entity->{$this->fieldName}, null,
+            PDO::PARAM_INT));
+        $q->select('*')->where(call_user_func_array(array($e, 'lAnd'), $group))->
+            orderBy($this->fieldName, ezcQuerySelect::DESC);
+        $swap = $table->loadOneFromQuery($q);
 
-		if (!$swap)
-		{
-			// Выше некуда
-			return;
-		}
+        if (!$swap)
+        {
+            // Выше некуда
+            return;
+        }
 
-		$this->swap($table, $entity, $swap);
-	}
-	//-----------------------------------------------------------------------------
+        $this->swap($table, $entity, $swap);
+    }
 
-	/**
-	 * Перемещает запись ниже в группе
-	 * @param ORM_Entity $entity
-	 *
-	 * @return void
-	 *
-	 * @since 1.00
-	 */
-	public function moveDown(ORM_Entity $entity)
-	{
-		$table = $entity->getTable();
-		$q = $table->createSelectQuery(false);
-		$e = $q->expr;
-		$group = array();
-		foreach ($this->groupBy as $field)
-		{
-			$group []= $e->eq($field, $q->bindValue($entity->$field));
-		}
-		$group []= $e->gt($this->fieldName, $q->bindValue($entity->{$this->fieldName}, null,
-			PDO::PARAM_INT));
-		$q->select('*')->where(call_user_func_array(array($e, 'lAnd'), $group))->
-			orderBy($this->fieldName, ezcQuerySelect::ASC);
-		$swap = $table->loadOneFromQuery($q);
+    /**
+     * Перемещает запись ниже в группе
+     * @param ORM_Entity $entity
+     *
+     * @return void
+     *
+     * @since 1.00
+     */
+    public function moveDown(ORM_Entity $entity)
+    {
+        $table = $entity->getTable();
+        $q = $table->createSelectQuery(false);
+        $e = $q->expr;
+        $group = array();
+        foreach ($this->groupBy as $field)
+        {
+            $group []= $e->eq($field, $q->bindValue($entity->$field));
+        }
+        $group []= $e->gt($this->fieldName, $q->bindValue($entity->{$this->fieldName}, null,
+            PDO::PARAM_INT));
+        $q->select('*')->where(call_user_func_array(array($e, 'lAnd'), $group))->
+            orderBy($this->fieldName, ezcQuerySelect::ASC);
+        $swap = $table->loadOneFromQuery($q);
 
-		if (!$swap)
-		{
-			// Ниже некуда
-			return;
-		}
+        if (!$swap)
+        {
+            // Ниже некуда
+            return;
+        }
 
-		$this->swap($table, $entity, $swap);
-	}
-	//-----------------------------------------------------------------------------
+        $this->swap($table, $entity, $swap);
+    }
 
-	/**
-	 * Меняет сущности местами в их группе
-	 *
-	 * @param ORM_Table  $table  таблица
-	 * @param ORM_Entity $ent1   сущность 1
-	 * @param ORM_Entity $ent2   сущность 2
-	 *
-	 * @return void
-	 *
-	 * @since 1.00
-	 */
-	protected function swap(ORM_Table $table = null, ORM_Entity $ent1, ORM_Entity $ent2)
-	{
-		$pos = $ent1->{$this->fieldName};
-		$ent1->{$this->fieldName} = $ent2->{$this->fieldName};
-		$ent2->{$this->fieldName} = $pos;
-		$table->update($ent1);
-		$table->update($ent2);
-	}
-	//-----------------------------------------------------------------------------
+    /**
+     * Меняет сущности местами в их группе
+     *
+     * @param ORM_Table  $table  таблица
+     * @param ORM_Entity $ent1   сущность 1
+     * @param ORM_Entity $ent2   сущность 2
+     *
+     * @return void
+     *
+     * @since 1.00
+     */
+    protected function swap(ORM_Table $table = null, ORM_Entity $ent1, ORM_Entity $ent2)
+    {
+        $pos = $ent1->{$this->fieldName};
+        $ent1->{$this->fieldName} = $ent2->{$this->fieldName};
+        $ent2->{$this->fieldName} = $pos;
+        $table->update($ent1);
+        $table->update($ent2);
+    }
 }
+

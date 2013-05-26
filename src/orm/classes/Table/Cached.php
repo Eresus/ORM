@@ -1,7 +1,5 @@
 <?php
 /**
- * ORM
- *
  * Абстрактная кэшируемая таблица БД
  *
  * @version ${product.version}
@@ -41,46 +39,45 @@
  */
 abstract class ORM_Table_Cached extends ORM_Table
 {
-	/**
-	 * Кэш записей
-	 *
-	 * @var array
-	 */
-	protected $cache = null;
+    /**
+     * Кэш записей
+     *
+     * @var array
+     */
+    protected $cache = null;
 
-	/**
-	 * @see ORM_Table::find()
-	 */
-	public function find($id)
-	{
-		$this->fillCache();
-		if (isset($this->cache[$id]))
-		{
-			return $this->cache[$id];
-		}
-		return null;
-	}
-	//-----------------------------------------------------------------------------
+    /**
+     * @see ORM_Table::find()
+     */
+    public function find($id)
+    {
+        $this->fillCache();
+        if (isset($this->cache[$id]))
+        {
+            return $this->cache[$id];
+        }
+        return null;
+    }
 
-	/**
-	 * Заполняет кэш, если он пуст
-	 *
-	 * @return void
-	 *
-	 * @since 1.00
-	 */
-	protected function fillCache()
-	{
-		if (null === $this->cache)
-		{
-			$q = $this->createSelectQuery();
-			$tmp = $this->loadFromQuery($q);
-			$this->cache = array();
-			foreach ($tmp as $item)
-			{
-				$this->cache[$item->id] = $item;
-			}
-		}
-	}
-	//-----------------------------------------------------------------------------
+    /**
+     * Заполняет кэш, если он пуст
+     *
+     * @return void
+     *
+     * @since 1.00
+     */
+    protected function fillCache()
+    {
+        if (null === $this->cache)
+        {
+            $q = $this->createSelectQuery();
+            $tmp = $this->loadFromQuery($q);
+            $this->cache = array();
+            foreach ($tmp as $item)
+            {
+                $this->cache[$item->id] = $item;
+            }
+        }
+    }
 }
+

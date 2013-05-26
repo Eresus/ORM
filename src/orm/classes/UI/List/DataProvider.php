@@ -1,7 +1,5 @@
 <?php
 /**
- * UI
- *
  * Поставщик данных из таблицы модуля ORM.
  *
  * @version ${product.version}
@@ -87,7 +85,6 @@ class ORM_UI_List_DataProvider implements UI_List_DataProvider_Interface
         $this->plugin = $plugin;
         $this->table = ORM::getTable($plugin, $entityName);
     }
-    //-----------------------------------------------------------------------------
 
     /**
      * Добавляет разрешающее условие фильтрации
@@ -104,9 +101,8 @@ class ORM_UI_List_DataProvider implements UI_List_DataProvider_Interface
     {
         $this->filter []= array($property, $value, $cond);
     }
-    //-----------------------------------------------------------------------------
 
-    /**
+    /* *
      * Добавляет запрос полнотекстового поиска
      *
      * @param array  $properties  имена свойств
@@ -120,26 +116,22 @@ class ORM_UI_List_DataProvider implements UI_List_DataProvider_Interface
     {
         $this->fulltext []= array($properties, $query);
     }*/
-    //-----------------------------------------------------------------------------
 
     /**
      * Задаёт сортировку списка
      *
      * @param string $field1  имя поля
      * @param bool   $desc1   обратное направление (по умолчанию false)
-     * …
-     * @param string $fieldN
-     * @param bool   $descN
+     * @param ...
      *
      * @return void
      *
      * @since 1.00
      */
-    public function orderBy()
+    public function orderBy($field1, $desc1 = false)
     {
         $this->orderBy = func_get_args();
     }
-    //-----------------------------------------------------------------------------
 
     /**
      * Возвращает элементы списка
@@ -171,7 +163,6 @@ class ORM_UI_List_DataProvider implements UI_List_DataProvider_Interface
 
         return $items;
     }
-    //-----------------------------------------------------------------------------
 
     /**
      * Возвращает общее количество записей в списке
@@ -186,7 +177,6 @@ class ORM_UI_List_DataProvider implements UI_List_DataProvider_Interface
         $this->setFilter($query);
         return $this->table->count($query);
     }
-    //-----------------------------------------------------------------------------
 
     /**
      * Применяет фильтр к запросу
@@ -242,9 +232,8 @@ class ORM_UI_List_DataProvider implements UI_List_DataProvider_Interface
             $query->where($where);
         }
     }
-    //-----------------------------------------------------------------------------
 
-    /**
+    /* *
      * Строит запрос полнотекствового поиска
      *
      * @param array $fields  поля
@@ -267,6 +256,5 @@ class ORM_UI_List_DataProvider implements UI_List_DataProvider_Interface
             return '';
         }
     }*/
-    //-----------------------------------------------------------------------------
 }
 

@@ -1,7 +1,5 @@
 <?php
 /**
- * UI
- *
  * Элемент списка {@link UI_List}
  *
  * @version ${product.version}
@@ -36,67 +34,64 @@
  */
 class ORM_UI_List_Item implements UI_List_Item_Interface
 {
-	/**
-	 * Сущность
-	 *
-	 * @var ORM_Entity
-	 * @since 1.00
-	 */
-	private $entity;
+    /**
+     * Сущность
+     *
+     * @var ORM_Entity
+     * @since 1.00
+     */
+    private $entity;
 
-	/**
-	 * Конструктор элемента
-	 *
-	 * @param ORM_Entity $entity  сущность
-	 *
-	 * @return ORM_UI_List_Item
-	 *
-	 * @since 1.00
-	 */
-	public function __construct(ORM_Entity $entity)
-	{
-		$this->entity = $entity;
-	}
-	//-----------------------------------------------------------------------------
+    /**
+     * Конструктор элемента
+     *
+     * @param ORM_Entity $entity  сущность
+     *
+     * @return ORM_UI_List_Item
+     *
+     * @since 1.00
+     */
+    public function __construct(ORM_Entity $entity)
+    {
+        $this->entity = $entity;
+    }
 
-	/**
-	 * Прокси к свойствам сущности
-	 *
-	 * @param string $property  имя свойства
-	 *
-	 * @return mixed
-	 *
-	 * @since 1.00
-	 */
-	public function __get($property)
-	{
-		return $this->entity->$property;
-	}
-	//-----------------------------------------------------------------------------
+    /**
+     * Прокси к свойствам сущности
+     *
+     * @param string $property  имя свойства
+     *
+     * @return mixed
+     *
+     * @since 1.00
+     */
+    public function __get($property)
+    {
+        return $this->entity->$property;
+    }
 
-	/**
-	 * Возвращает идентификатор элемента
-	 *
-	 * @return string
-	 *
-	 * @since 1.00
-	 */
-	public function getId()
-	{
-		return $this->entity->id;
-	}
-	//-----------------------------------------------------------------------------
+    /**
+     * Возвращает идентификатор элемента
+     *
+     * @return string
+     *
+     * @since 1.00
+     */
+    public function getId()
+    {
+        return $this->entity->id;
+    }
 
-	/**
-	 * Возвращает состояние элемента (вкл/выкл)
-	 *
-	 * @return bool
-	 *
-	 * @since 1.00
-	 */
-	public function isEnabled()
-	{
-		return $this->entity->active;
-	}
-	//-----------------------------------------------------------------------------
+    /**
+     * Возвращает состояние элемента (вкл/выкл)
+     *
+     * @return bool
+     *
+     * @since 1.00
+     */
+    public function isEnabled()
+    {
+        return $this->entity->active;
+    }
 }
+
