@@ -38,7 +38,7 @@ class ORM_UI_List_DataProvider implements UI_List_DataProvider_Interface
     /**
      * Основной объект плагина-владельца
      *
-     * @var Plugin
+     * @var Plugin|TPlugin
      */
     private $plugin;
 
@@ -73,14 +73,14 @@ class ORM_UI_List_DataProvider implements UI_List_DataProvider_Interface
     /**
      * Конструктор
      *
-     * @param Plugin $plugin
+     * @param Plugin|TPlugin $plugin
      * @param string $entityName
      *
      * @return ORM_UI_List_DataProvider
      *
      * @since 1.00
      */
-    public function __construct(Plugin $plugin, $entityName)
+    public function __construct($plugin, $entityName)
     {
         $this->plugin = $plugin;
         $this->table = ORM::getTable($plugin, $entityName);

@@ -39,7 +39,7 @@ abstract class ORM_Entity
     /**
      * Модуль
      *
-     * @var Plugin
+     * @var Plugin|TPlugin
      */
     protected $plugin;
 
@@ -60,14 +60,14 @@ abstract class ORM_Entity
     /**
      * Конструктор
      *
-     * @param Plugin $plugin  модуль
-     * @param array  $attrs   исходные значения полей
+     * @param Plugin|TPlugin $plugin  модуль
+     * @param array          $attrs   исходные значения полей
      *
      * @return ORM_Entity
      *
      * @since 1.00
      */
-    public function __construct(Plugin $plugin, array $attrs = array())
+    public function __construct($plugin, array $attrs = array())
     {
         $this->plugin = $plugin;
         $this->attrs = $attrs;

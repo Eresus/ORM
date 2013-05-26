@@ -80,16 +80,28 @@ class ORM extends Plugin
     /**
      * Возвращает объект таблицы для указанной сущности указанного плагина
      *
-     * @param Plugin $plugin      плагин, которому принадлежит сущность
-     * @param string $entityName  имя сущности (без имени плагина и слова «Entity»)
+     * @param Plugin|TPlugin $plugin      плагин, которому принадлежит сущность
+     * @param string         $entityName  имя сущности (без имени плагина и слова «Entity»)
      *
      * @return ORM_Table
      *
+     * @throws InvalidArgumentException
+     *
      * @since 1.00
      */
-    public static function getTable(Plugin $plugin, $entityName)
+    public static function getTable($plugin, $entityName)
     {
-        $className = get_class($plugin) . '_Entity_Table_' . $entityName;
+        if (!($plugin instanceof Plugin) && !($plugin instanceof TPlugin))
+        {
+            throw new InvalidArgumentException('$plugin must be Plugin or TPlugin instance.');
+        }
+        $className = get_class($plugin);
+        if ($plugin instanceof TPlugin)
+        {
+            // Удаляем букву «T» из начала имени класса
+            $className = substr($className, 1);
+        }
+        $className .= '_Entity_Table_' . $entityName;
         if (!isset(self::$tables[$className]))
         {
             self::$tables[$className] = new $className($plugin);

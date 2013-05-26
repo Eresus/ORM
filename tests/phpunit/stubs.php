@@ -32,6 +32,16 @@ class Plugin extends Eresus_Plugin
 }
 
 /**
+ * Заглушка для класса TPlugin
+ *
+ * @package Eresus
+ * @subpackage Tests
+ */
+class TPlugin extends UniversalStub
+{
+}
+
+/**
  * Заглушка для класса Eresus_Kernel
  *
  * @package Eresus

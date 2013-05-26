@@ -38,7 +38,7 @@ abstract class ORM_Table
     /**
      * Модуль
      *
-     * @var Plugin
+     * @var Plugin|TPlugin
      */
     protected $plugin;
 
@@ -89,13 +89,13 @@ abstract class ORM_Table
     /**
      * Конструктор
      *
-     * @param Plugin $plugin
+     * @param Plugin|TPlugin $plugin
      *
      * @return ORM_Table
      *
      * @since 1.00
      */
-    public function __construct(Plugin $plugin)
+    public function __construct($plugin)
     {
         $this->plugin = $plugin;
         $this->setTableDefinition();
