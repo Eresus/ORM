@@ -43,24 +43,24 @@ require_once TESTS_SRC_DIR . '/orm/classes/Table/Cached.php';
  */
 class ORM_Table_Cached_Test extends PHPUnit_Framework_TestCase
 {
-	/**
-	 * @covers ORM_Table_Cached::fillCache
-	 */
-	public function test_fillCache()
-	{
-		$table = $this->getMockBuilder('ORM_Table_Cached')->disableOriginalConstructor()->
-			setMethods(array('setTableDefinition', 'createSelectQuery', 'loadFromQuery'))->getMock();
-		$table->expects($this->once())->method('createSelectQuery')->
-			will($this->returnValue(new ezcQuerySelect()));
-		$item = new stdClass();
-		$item->id = 0;
-		$table->expects($this->once())->method('loadFromQuery')->will($this->returnValue(array($item)));
+    /**
+     * @covers ORM_Table_Cached::fillCache
+     */
+    public function testFillCache()
+    {
+        $table = $this->getMockBuilder('ORM_Table_Cached')->disableOriginalConstructor()->
+            setMethods(array('setTableDefinition', 'createSelectQuery', 'loadFromQuery'))->getMock();
+        $table->expects($this->once())->method('createSelectQuery')->
+            will($this->returnValue(new ezcQuerySelect()));
+        $item = new stdClass();
+        $item->id = 0;
+        $table->expects($this->once())->method('loadFromQuery')->will($this->returnValue(array($item)));
 
-		$m_fillCache = new ReflectionMethod('ORM_Table_Cached', 'fillCache');
-		$m_fillCache->setAccessible(true);
+        $m_fillCache = new ReflectionMethod('ORM_Table_Cached', 'fillCache');
+        $m_fillCache->setAccessible(true);
 
-		$m_fillCache->invoke($table);
-		$m_fillCache->invoke($table);
-	}
-	//-----------------------------------------------------------------------------
+        $m_fillCache->invoke($table);
+        $m_fillCache->invoke($table);
+    }
 }
+

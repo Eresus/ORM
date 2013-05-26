@@ -114,6 +114,7 @@ class ORM_Driver_MySQL
         return $sql;
     }
 
+    /** @noinspection PhpUnusedPrivateMethodInspection */
     /**
      * Возвращает SQL-объявление поля типа boolean
      *
@@ -132,6 +133,7 @@ class ORM_Driver_MySQL
         return $sql;
     }
 
+    /** @noinspection PhpUnusedPrivateMethodInspection */
     /**
      * Возвращает SQL-объявление поля типа date
      *
@@ -150,6 +152,7 @@ class ORM_Driver_MySQL
         return $sql;
     }
 
+    /** @noinspection PhpUnusedPrivateMethodInspection */
     /**
      * Возвращает SQL-объявление поля типа float
      *
@@ -175,6 +178,7 @@ class ORM_Driver_MySQL
         return $sql;
     }
 
+    /** @noinspection PhpUnusedPrivateMethodInspection */
     /**
      * Возвращает SQL-объявление поля типа integer
      *
@@ -203,6 +207,7 @@ class ORM_Driver_MySQL
         return $sql;
     }
 
+    /** @noinspection PhpUnusedPrivateMethodInspection */
     /**
      * Возвращает SQL-объявление поля типа string
      *
@@ -232,6 +237,7 @@ class ORM_Driver_MySQL
         return $sql;
     }
 
+    /** @noinspection PhpUnusedPrivateMethodInspection */
     /**
      * Возвращает SQL-объявление поля типа time
      *
@@ -250,6 +256,7 @@ class ORM_Driver_MySQL
         return $sql;
     }
 
+    /** @noinspection PhpUnusedPrivateMethodInspection */
     /**
      * Возвращает SQL-объявление поля типа timestamp
      *
@@ -268,6 +275,7 @@ class ORM_Driver_MySQL
         return $sql;
     }
 
+    /** @noinspection PhpUnusedPrivateMethodInspection */
     /**
      * Возвращает SQL-объявление значения по умолчанию для поля
      *
@@ -290,6 +298,10 @@ class ORM_Driver_MySQL
             elseif (in_array($attrs['type'], array('date', 'string', 'time', 'timestamp')))
             {
                 $sql .= '\'' . $attrs['default'] . '\'';
+            }
+            elseif (in_array($attrs['type'], array('boolean')))
+            {
+                $sql .= $attrs['default'] ? '1' : '0';
             }
             else
             {

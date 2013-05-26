@@ -119,10 +119,22 @@ class ORM_Driver_MySQL_Test extends PHPUnit_Framework_TestCase
 
         $this->assertEquals('', $method->invoke($driver, array()));
         $this->assertEquals(' DEFAULT NULL', $method->invoke($driver, array('default' => null)));
-        $this->assertEquals(' DEFAULT \'foo\'', $method->invoke($driver, array('default' => 'foo',
-            'type' => 'string')));
-        $this->assertEquals(' DEFAULT 123', $method->invoke($driver, array('default' => 123,
-            'type' => 'int')));
+        $this->assertEquals(' DEFAULT \'foo\'', $method->invoke($driver, array(
+            'type' => 'string',
+            'default' => 'foo'
+        )));
+        $this->assertEquals(' DEFAULT 123', $method->invoke($driver, array(
+            'type' => 'int',
+            'default' => 123
+        )));
+        $this->assertEquals(' DEFAULT 0', $method->invoke($driver, array(
+            'type' => 'boolean',
+            'default' => false
+        )));
+        $this->assertEquals(' DEFAULT 1', $method->invoke($driver, array(
+            'type' => 'boolean',
+            'default' => true
+        )));
     }
 
     /**
@@ -134,7 +146,7 @@ class ORM_Driver_MySQL_Test extends PHPUnit_Framework_TestCase
         $method->setAccessible(true);
         $driver = new ORM_Driver_MySQL();
 
-        $this->assertEquals('BOOL', $method->invoke($driver, array()));
+        $this->assertEquals('BOOL', $method->invoke($driver, array('type' => 'boolean')));
     }
 
     /**
