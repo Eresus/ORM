@@ -108,7 +108,7 @@ class ORM_Driver_MySQL
             throw new InvalidArgumentException('Invalid type "' . $attrs['type'] . '"');
         }
 
-        $method = 'getDefinitionFor_' . $attrs['type'];
+        $method = 'getDefinitionFor' . $attrs['type'];
         $sql = $this->$method($attrs);
 
         return $sql;
@@ -125,10 +125,10 @@ class ORM_Driver_MySQL
      *
      * @SuppressWarnings(PHPMD.UnusedPrivateMethod)
      */
-    private function getDefinitionFor_boolean(array $attrs)
+    private function getDefinitionForBoolean(array $attrs)
     {
         $sql = 'BOOL';
-        $sql .= $this->getDefinitionFor_DEFAULT($attrs);
+        $sql .= $this->getDefinitionForDefault($attrs);
         return $sql;
     }
 
@@ -143,10 +143,10 @@ class ORM_Driver_MySQL
      *
      * @SuppressWarnings(PHPMD.UnusedPrivateMethod)
      */
-    private function getDefinitionFor_date(array $attrs)
+    private function getDefinitionForDate(array $attrs)
     {
         $sql = 'DATE';
-        $sql .= $this->getDefinitionFor_DEFAULT($attrs);
+        $sql .= $this->getDefinitionForDefault($attrs);
         return $sql;
     }
 
@@ -161,7 +161,7 @@ class ORM_Driver_MySQL
      *
      * @SuppressWarnings(PHPMD.UnusedPrivateMethod)
      */
-    private function getDefinitionFor_float(array $attrs)
+    private function getDefinitionForFloat(array $attrs)
     {
         if (isset($attrs['length']) && 2147483647 == $attrs['length'])
         {
@@ -171,7 +171,7 @@ class ORM_Driver_MySQL
         {
             $sql = 'FLOAT';
         }
-        $sql .= $this->getDefinitionFor_DEFAULT($attrs);
+        $sql .= $this->getDefinitionForDefault($attrs);
         return $sql;
     }
 
@@ -186,7 +186,7 @@ class ORM_Driver_MySQL
      *
      * @SuppressWarnings(PHPMD.UnusedPrivateMethod)
      */
-    private function getDefinitionFor_integer(array $attrs)
+    private function getDefinitionForInteger(array $attrs)
     {
         $sql = 'INT';
         $length = isset($attrs['length']) ? $attrs['length'] : 10;
@@ -199,7 +199,7 @@ class ORM_Driver_MySQL
         {
             $sql .= ' AUTO_INCREMENT';
         }
-        $sql .= $this->getDefinitionFor_DEFAULT($attrs);
+        $sql .= $this->getDefinitionForDefault($attrs);
         return $sql;
     }
 
@@ -214,7 +214,7 @@ class ORM_Driver_MySQL
      *
      * @SuppressWarnings(PHPMD.UnusedPrivateMethod)
      */
-    private function getDefinitionFor_string(array $attrs)
+    private function getDefinitionForString(array $attrs)
     {
         if (isset($attrs['length']) && 255 >= $attrs['length'])
         {
@@ -228,7 +228,7 @@ class ORM_Driver_MySQL
         {
             $sql = 'LONGTEXT';
         }
-        $sql .= $this->getDefinitionFor_DEFAULT($attrs);
+        $sql .= $this->getDefinitionForDefault($attrs);
         return $sql;
     }
 
@@ -243,10 +243,10 @@ class ORM_Driver_MySQL
      *
      * @SuppressWarnings(PHPMD.UnusedPrivateMethod)
      */
-    private function getDefinitionFor_time(array $attrs)
+    private function getDefinitionForTime(array $attrs)
     {
         $sql = 'TIME';
-        $sql .= $this->getDefinitionFor_DEFAULT($attrs);
+        $sql .= $this->getDefinitionForDefault($attrs);
         return $sql;
     }
 
@@ -261,10 +261,10 @@ class ORM_Driver_MySQL
      *
      * @SuppressWarnings(PHPMD.UnusedPrivateMethod)
      */
-    private function getDefinitionFor_timestamp(array $attrs)
+    private function getDefinitionForTimestamp(array $attrs)
     {
         $sql = 'TIMESTAMP';
-        $sql .= $this->getDefinitionFor_DEFAULT($attrs);
+        $sql .= $this->getDefinitionForDefault($attrs);
         return $sql;
     }
 
@@ -277,7 +277,7 @@ class ORM_Driver_MySQL
      *
      * @since 1.00
      */
-    private function getDefinitionFor_DEFAULT(array $attrs)
+    private function getDefinitionForDefault(array $attrs)
     {
         $sql = '';
         if (array_key_exists('default', $attrs))
