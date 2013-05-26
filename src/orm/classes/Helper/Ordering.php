@@ -164,7 +164,7 @@ class ORM_Helper_Ordering
      *
      * @since 1.00
      */
-    protected function swap(ORM_Table $table = null, ORM_Entity $ent1, ORM_Entity $ent2)
+    protected function swap(ORM_Table $table, ORM_Entity $ent1, ORM_Entity $ent2)
     {
         $pos = $ent1->{$this->fieldName};
         $ent1->{$this->fieldName} = $ent2->{$this->fieldName};
