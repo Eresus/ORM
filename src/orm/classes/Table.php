@@ -152,7 +152,7 @@ abstract class ORM_Table
 	 */
 	public function persist(ORM_Entity $entity)
 	{
-		$q = DB::createInsertQuery();
+		$q = DB::getHandler()->createInsertQuery();
 		$q->insertInto($this->getTableName());
 		foreach ($this->columns as $name => $attrs)
 		{
@@ -188,7 +188,7 @@ abstract class ORM_Table
 	public function update(ORM_Entity $entity)
 	{
 		$pKey = $this->getPrimaryKey();
-		$q = DB::createUpdateQuery();
+		$q = DB::getHandler()->createUpdateQuery();
 		$q->update($this->getTableName())->
 			where($q->expr->eq($pKey,
 				$q->bindValue($entity->$pKey, null, $this->pdoFieldType(@$this->columns[$pKey]['type']))
@@ -217,7 +217,7 @@ abstract class ORM_Table
 	public function delete(ORM_Entity $entity)
 	{
 		$pKey = $this->getPrimaryKey();
-		$q = DB::createDeleteQuery();
+		$q = DB::getHandler()->createDeleteQuery();
 		$q->deleteFrom($this->getTableName())->
 			where($q->expr->eq($pKey,
 				$q->bindValue($entity->$pKey, null, $this->pdoFieldType(@$this->columns[$pKey]['type']))

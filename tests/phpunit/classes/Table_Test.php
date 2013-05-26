@@ -180,9 +180,12 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
 			)
 		));
 
-        $DB = $this->getMock('stdClass', array('createInsertQuery'));
-        $DB->expects($this->any())->method('createInsertQuery')
-            ->will($this->returnValue(new ezcQuery()));
+        $handler = $this->getMock('Mekras\TestDoubles\UniversalStub', array('createInsertQuery'));
+        $handler->expects($this->any())->method('createInsertQuery')
+            ->will($this->returnValue($this->getMockForAbstractClass('ezcQuery')));
+        $DB = $this->getMock('stdClass', array('getHandler'));
+        $DB->expects($this->any())->method('getHandler')
+            ->will($this->returnValue($handler));
         DB::setMock($DB);
 
 		$table->persist($this->getMockForAbstractClass('ORM_Entity', array(new Plugin)));
@@ -208,9 +211,12 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
 			)
 		));
 
-        $DB = $this->getMock('stdClass', array('createUpdateQuery'));
-        $DB->expects($this->any())->method('createUpdateQuery')
-            ->will($this->returnValue(new ezcQuery()));
+        $handler = $this->getMock('Mekras\TestDoubles\UniversalStub', array('createUpdateQuery'));
+        $handler->expects($this->any())->method('createUpdateQuery')
+            ->will($this->returnValue($this->getMockForAbstractClass('ezcQuery')));
+        $DB = $this->getMock('stdClass', array('getHandler'));
+        $DB->expects($this->any())->method('getHandler')
+            ->will($this->returnValue($handler));
         DB::setMock($DB);
 
 		$table->update($this->getMockForAbstractClass('ORM_Entity', array(new Plugin)));
@@ -233,9 +239,12 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
 			)
 		));
 
-        $DB = $this->getMock('stdClass', array('createDeleteQuery'));
-        $DB->expects($this->any())->method('createDeleteQuery')
-            ->will($this->returnValue(new ezcQuery()));
+        $handler = $this->getMock('Mekras\TestDoubles\UniversalStub', array('createDeleteQuery'));
+        $handler->expects($this->any())->method('createDeleteQuery')
+            ->will($this->returnValue($this->getMockForAbstractClass('ezcQuery')));
+        $DB = $this->getMock('stdClass', array('getHandler'));
+        $DB->expects($this->any())->method('getHandler')
+            ->will($this->returnValue($handler));
         DB::setMock($DB);
 
 		$table->delete($this->getMockForAbstractClass('ORM_Entity', array(new Plugin)));
@@ -271,7 +280,7 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
 		$table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
 			setMethods(array('setTableDefinition', 'createSelectQuery', 'loadFromQuery'))->getMock();
 
-		$q = new ezcQuerySelect();
+		$q = new ezcQuerySelect(null);
 		$table->expects($this->once())->method('createSelectQuery')->with(true)->
 			will($this->returnValue($q));
 		$table->expects($this->once())->method('loadFromQuery')->with($q, null, 0)->
@@ -310,7 +319,7 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
 		$table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
 			setMethods(array('setTableDefinition'))->getMock();
 
-		$q = new ezcQuerySelect();
+		$q = new ezcQuerySelect(null);
 		$handler = $this->getMock('stdClass', array('createSelectQuery'));
 		$handler->expects($this->exactly(2))->method('createSelectQuery')->will($this->returnValue($q));
 		$db = $this->getMock('stdClass', array('getHandler'));
