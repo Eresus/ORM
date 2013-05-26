@@ -180,6 +180,11 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
 			)
 		));
 
+        $DB = $this->getMock('stdClass', array('createInsertQuery'));
+        $DB->expects($this->any())->method('createInsertQuery')
+            ->will($this->returnValue(new ezcQuery()));
+        DB::setMock($DB);
+
 		$table->persist($this->getMockForAbstractClass('ORM_Entity', array(new Plugin)));
 	}
 	//-----------------------------------------------------------------------------
@@ -203,6 +208,11 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
 			)
 		));
 
+        $DB = $this->getMock('stdClass', array('createUpdateQuery'));
+        $DB->expects($this->any())->method('createUpdateQuery')
+            ->will($this->returnValue(new ezcQuery()));
+        DB::setMock($DB);
+
 		$table->update($this->getMockForAbstractClass('ORM_Entity', array(new Plugin)));
 	}
 	//-----------------------------------------------------------------------------
@@ -222,6 +232,11 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
 				'autoincrement' => true,
 			)
 		));
+
+        $DB = $this->getMock('stdClass', array('createDeleteQuery'));
+        $DB->expects($this->any())->method('createDeleteQuery')
+            ->will($this->returnValue(new ezcQuery()));
+        DB::setMock($DB);
 
 		$table->delete($this->getMockForAbstractClass('ORM_Entity', array(new Plugin)));
 	}
