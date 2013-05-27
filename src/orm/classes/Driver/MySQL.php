@@ -33,7 +33,7 @@
  * @package ORM
  * @since 1.00
  */
-class ORM_Driver_MySQL
+class ORM_Driver_MySQL extends ORM_Driver_Abstract
 {
     /**
      * Создаёт таблицу
@@ -96,7 +96,7 @@ class ORM_Driver_MySQL
      *
      * @since 1.00
      */
-    public function getFieldDefinition(array $attrs)
+    private function getFieldDefinition(array $attrs)
     {
         if (!array_key_exists('type', $attrs))
         {

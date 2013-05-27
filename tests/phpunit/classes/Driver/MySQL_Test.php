@@ -30,6 +30,7 @@
 
 
 require_once __DIR__ . '/../../bootstrap.php';
+require_once TESTS_SRC_DIR . '/orm/classes/Driver/Abstract.php';
 require_once TESTS_SRC_DIR . '/orm/classes/Driver/MySQL.php';
 
 /**
@@ -50,14 +51,15 @@ class ORM_Driver_MySQL_Test extends PHPUnit_Framework_TestCase
 
         $handler = $this->getMock('stdClass', array('exec'));
         $handler->expects($this->once())->method('exec')->with('CREATE TABLE prefix_foo ' .
-            '(f1 F, PRIMARY KEY (id), KEY idx1 (f1)) ENGINE InnoDB DEFAULT CHARSET=utf8');
+            '(f1 INT(10), PRIMARY KEY (id), KEY idx1 (f1)) ENGINE InnoDB DEFAULT CHARSET=utf8');
         $handler->options = new stdClass;
         $handler->options->tableNamePrefix = 'prefix_';
         $db = $this->getMock('stdClass', array('getHandler'));
         $db->expects($this->once())->method('getHandler')->will($this->returnValue($handler));
         DB::setMock($db);
 
-        $driver->createTable('foo', array('f1' => array()), 'id',
+        /** @var ORM_Driver_MySQL $driver */
+        $driver->createTable('foo', array('f1' => array('type' => 'integer')), 'id',
             array('idx1' => array('fields' => array('f1'))));
     }
 
@@ -86,7 +88,9 @@ class ORM_Driver_MySQL_Test extends PHPUnit_Framework_TestCase
     public function testGetFieldDefinitionNoType()
     {
         $driver = new ORM_Driver_MySQL();
-        $driver->getFieldDefinition(array());
+        $getFieldDefinition = new ReflectionMethod('ORM_Driver_MySQL', 'getFieldDefinition');
+        $getFieldDefinition->setAccessible(true);
+        $getFieldDefinition->invoke($driver, array());
     }
 
     /**
@@ -96,7 +100,9 @@ class ORM_Driver_MySQL_Test extends PHPUnit_Framework_TestCase
     public function testGetFieldDefinitionBadType()
     {
         $driver = new ORM_Driver_MySQL();
-        $driver->getFieldDefinition(array('type' => 'foo'));
+        $getFieldDefinition = new ReflectionMethod('ORM_Driver_MySQL', 'getFieldDefinition');
+        $getFieldDefinition->setAccessible(true);
+        $getFieldDefinition->invoke($driver, array('type' => 'foo'));
     }
 
     /**
@@ -105,7 +111,10 @@ class ORM_Driver_MySQL_Test extends PHPUnit_Framework_TestCase
     public function testGetFieldDefinition()
     {
         $driver = new ORM_Driver_MySQL();
-        $this->assertEquals('INT(10)', $driver->getFieldDefinition(array('type' => 'integer')));
+        $getFieldDefinition = new ReflectionMethod('ORM_Driver_MySQL', 'getFieldDefinition');
+        $getFieldDefinition->setAccessible(true);
+        $this->assertEquals('INT(10)',
+            $getFieldDefinition->invoke($driver, array('type' => 'integer')));
     }
 
     /**
