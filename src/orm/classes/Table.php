@@ -160,12 +160,7 @@ abstract class ORM_Table
     {
         $q = DB::getHandler()->createInsertQuery();
         $q->insertInto($this->getTableName());
-        foreach ($this->columns as $name => $attrs)
-        {
-            $type = $this->pdoFieldType(@$attrs['type']);
-            $value = $this->pdoFieldValue($entity->getProperty($name), @$attrs['type']);
-            $q->set($name, $q->bindValue($value, null, $type));
-        }
+        $this->bindValuesToQuery($entity, $q);
         $entity->beforeSave($q);
         DB::execute($q);
         if (@$this->columns[$this->primaryKey]['autoincrement'])
@@ -198,12 +193,7 @@ abstract class ORM_Table
             where($q->expr->eq($pKey,
                 $q->bindValue($entity->$pKey, null, $this->pdoFieldType(@$this->columns[$pKey]['type']))
             ));
-        foreach ($this->columns as $name => $attrs)
-        {
-            $type = $this->pdoFieldType(@$attrs['type']);
-            $value = $this->pdoFieldValue($entity->getProperty($name), @$attrs['type']);
-            $q->set($name, $q->bindValue($value, null, $type));
-        }
+        $this->bindValuesToQuery($entity, $q);
         $entity->beforeSave($q);
         DB::execute($q);
         $entity->afterSave();
@@ -636,6 +626,23 @@ abstract class ORM_Table
         }
         $entity = new $entityClass($this->plugin, $values);
         return $entity;
+    }
+
+    /**
+     * Привязывает значения свойств объекта к запросу
+     *
+     * @param ORM_Entity $entity  объект
+     * @param ezcQuery   $query   запрос
+     */
+    private function bindValuesToQuery(ORM_Entity $entity, ezcQuery $query)
+    {
+        /** @var ezcQueryInsert|ezcQueryUpdate $query */
+        foreach ($this->columns as $name => $attrs)
+        {
+            $type = $this->pdoFieldType(@$attrs['type']);
+            $value = $this->pdoFieldValue($entity->getProperty($name), @$attrs['type']);
+            $query->set($name, $query->bindValue($value, ":$name", $type));
+        }
     }
 }
 
