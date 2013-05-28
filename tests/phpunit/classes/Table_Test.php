@@ -52,11 +52,12 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
     /**
      * @covers ORM_Table::__construct
      */
-    public function test_construct()
+    public function testConstruct()
     {
         $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
             setMethods(array('setTableDefinition'))->getMock();
         $table->expects($this->once())->method('setTableDefinition');
+        /** @var ORM_Table $table */
         $table->__construct(new Plugin());
     }
 
@@ -65,16 +66,18 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
      *
      * @see http://bugs.eresus.ru/view.php?id=876
      */
-    public function test_create()
+    public function testCreate()
     {
         $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
             setMethods(array('setTableDefinition'))->getMock();
-        $p_tableName = new ReflectionProperty('ORM_Table', 'tableName');
-        $p_tableName->setAccessible(true);
-        $p_tableName->setValue($table, 'foo');
-        $m_hasColumns = new ReflectionMethod('ORM_Table', 'hasColumns');
-        $m_hasColumns->setAccessible(true);
-        $m_hasColumns->invoke($table, array(
+        /** @var ORM_Table $table */
+        $table->__construct(new Plugin);
+        $tableName = new ReflectionProperty('ORM_Table', 'tableName');
+        $tableName->setAccessible(true);
+        $tableName->setValue($table, 'foo');
+        $hasColumns = new ReflectionMethod('ORM_Table', 'hasColumns');
+        $hasColumns->setAccessible(true);
+        $hasColumns->invoke($table, array(
             'f1' => array(
                 'type' => 'integer',
                 'autoincrement' => true,
@@ -110,15 +113,16 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
             ),
         ));
 
-        $m_index = new ReflectionMethod('ORM_Table', 'index');
-        $m_index->setAccessible(true);
-        $m_index->invoke($table, 'idx1', array('fields' => array('f2', 'f4')));
+        $index = new ReflectionMethod('ORM_Table', 'index');
+        $index->setAccessible(true);
+        $index->invoke($table, 'idx1', array('fields' => array('f2', 'f4')));
 
         $db = $this->getMock('stdClass', array('exec'));
         $db->expects($this->once())->method('exec')->with("CREATE TABLE p_foo (f1 INT(10) UNSIGNED " .
             "AUTO_INCREMENT, f2 VARCHAR(100) DEFAULT '', f3 TEXT DEFAULT NULL, f4 LONGTEXT, f5 BOOL, " .
             "f6 FLOAT, f7 TIMESTAMP, f8 DATE, f9 TIME, PRIMARY KEY (f1), KEY idx1 (f2, f4)) " .
             "ENGINE InnoDB DEFAULT CHARSET=utf8");
+        /** @var ezcDbHandler $db */
         $db->options = new stdClass();
         $db->options->tableNamePrefix = 'p_';
 
@@ -133,16 +137,19 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
     /**
      * @covers ORM_Table::drop
      */
-    public function test_drop()
+    public function testDrop()
     {
         $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
             setMethods(array('setTableDefinition'))->getMock();
-        $p_tableName = new ReflectionProperty('ORM_Table', 'tableName');
-        $p_tableName->setAccessible(true);
-        $p_tableName->setValue($table, 'foo');
+        /** @var ORM_Table $table */
+        $table->__construct(new Plugin);
+        $tableName = new ReflectionProperty('ORM_Table', 'tableName');
+        $tableName->setAccessible(true);
+        $tableName->setValue($table, 'foo');
 
         $db = $this->getMock('stdClass', array('exec'));
         $db->expects($this->once())->method('exec')->with("DROP TABLE p_foo");
+        /** @var ezcDbHandler $db */
         $db->options = new stdClass();
         $db->options->tableNamePrefix = 'p_';
 
@@ -157,13 +164,13 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
     /**
      * @covers ORM_Table::persist
      */
-    public function test_persist()
+    public function testPersist()
     {
         $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
             setMethods(array('setTableDefinition'))->getMock();
-        $m_hasColumns = new ReflectionMethod('ORM_Table', 'hasColumns');
-        $m_hasColumns->setAccessible(true);
-        $m_hasColumns->invoke($table, array(
+        $hasColumns = new ReflectionMethod('ORM_Table', 'hasColumns');
+        $hasColumns->setAccessible(true);
+        $hasColumns->invoke($table, array(
             'id' => array(
                 'type' => 'integer',
                 'autoincrement' => true,
@@ -187,13 +194,13 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
     /**
      * @covers ORM_Table::update
      */
-    public function test_update()
+    public function testUpdate()
     {
         $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
             setMethods(array('setTableDefinition'))->getMock();
-        $m_hasColumns = new ReflectionMethod('ORM_Table', 'hasColumns');
-        $m_hasColumns->setAccessible(true);
-        $m_hasColumns->invoke($table, array(
+        $hasColumns = new ReflectionMethod('ORM_Table', 'hasColumns');
+        $hasColumns->setAccessible(true);
+        $hasColumns->invoke($table, array(
             'id' => array(
                 'type' => 'integer',
                 'autoincrement' => true,
@@ -217,13 +224,13 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
     /**
      * @covers ORM_Table::delete
      */
-    public function test_delete()
+    public function testDelete()
     {
         $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
             setMethods(array('setTableDefinition'))->getMock();
-        $m_hasColumns = new ReflectionMethod('ORM_Table', 'hasColumns');
-        $m_hasColumns->setAccessible(true);
-        $m_hasColumns->invoke($table, array(
+        $hasColumns = new ReflectionMethod('ORM_Table', 'hasColumns');
+        $hasColumns->setAccessible(true);
+        $hasColumns->invoke($table, array(
             'id' => array(
                 'type' => 'integer',
                 'autoincrement' => true,
@@ -244,7 +251,7 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
     /**
      * @covers ORM_Table::count
      */
-    public function test_count()
+    public function testCount()
     {
         $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
             setMethods(array('setTableDefinition', 'createCountQuery'))->getMock();
@@ -264,7 +271,7 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
     /**
      * @covers ORM_Table::findAll
      */
-    public function test_findAll()
+    public function testFindAll()
     {
         $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
             setMethods(array('setTableDefinition', 'createSelectQuery', 'loadFromQuery'))->getMock();
@@ -281,7 +288,7 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
     /**
      * @covers ORM_Table::find
      */
-    public function test_find()
+    public function testFind()
     {
         $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
             setMethods(array('setTableDefinition', 'getPrimaryKey', 'createSelectQuery',
@@ -301,7 +308,7 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
     /**
      * @covers ORM_Table::createSelectQuery
      */
-    public function test_createSelectQuery()
+    public function testCreateSelectQuery()
     {
         $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
             setMethods(array('setTableDefinition'))->getMock();
@@ -328,7 +335,7 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
     /**
      * @covers ORM_Table::createCountQuery
      */
-    public function test_createCountQuery()
+    public function testCreateCountQuery()
     {
         $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
             setMethods(array('setTableDefinition', 'getTableName'))->getMock();
@@ -350,7 +357,7 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
     /**
      * @covers ORM_Table::loadFromQuery
      */
-    public function test_loadFromQuery()
+    public function testLoadFromQuery()
     {
         $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
             setMethods(array('setTableDefinition', 'entityFactory'))->getMock();
@@ -377,7 +384,7 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
     /**
      * @covers ORM_Table::loadOneFromQuery
      */
-    public function test_loadOneFromQuery()
+    public function testLoadOneFromQuery()
     {
         $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
             setMethods(array('setTableDefinition', 'entityFactory'))->getMock();
@@ -407,7 +414,7 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
      * @covers ORM_Table::setTableName
      * @covers ORM_Table::getTableName
      */
-    public function test_setgetTableName()
+    public function testSetGetTableName()
     {
         $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
             setMethods(array('setTableDefinition'))->getMock();
@@ -424,7 +431,7 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
      * @covers ORM_Table::hasColumns
      * @covers ORM_Table::getPrimaryKey
      */
-    public function test_hasColumns()
+    public function testHasColumns()
     {
         $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
             setMethods(array('setTableDefinition'))->getMock();
@@ -452,7 +459,7 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
     /**
      * @covers ORM_Table::index
      */
-    public function test_index()
+    public function testIndex()
     {
         $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
             setMethods(array('setTableDefinition'))->getMock();
@@ -464,7 +471,7 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
     /**
      * @covers ORM_Table::getEntityClass
      */
-    public function test_getEntityClass()
+    public function testGetEntityClass()
     {
         $uid = 'A' . uniqid();
         $table = $this->getMockBuilder('ORM_Table')->setMockClassName($uid . '_Table_Foo')->
@@ -478,7 +485,7 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
     /**
      * @covers ORM_Table::setOrdering
      */
-    public function test_setOrdering()
+    public function testSetOrdering()
     {
         $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
             setMethods(array('setTableDefinition'))->getMock();
@@ -496,7 +503,7 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
      * @covers ORM_Table::pdoFieldType
      * @expectedException InvalidArgumentException
      */
-    public function test_pdoFieldType_not_string()
+    public function testPdoFieldTypeNotString()
     {
         $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
             setMethods(array('setTableDefinition'))->getMock();
@@ -510,7 +517,7 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
      * @covers ORM_Table::pdoFieldType
      * @expectedException InvalidArgumentException
      */
-    public function test_pdoFieldType_invalid()
+    public function testPdoFieldTypeInvalid()
     {
         $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
             setMethods(array('setTableDefinition'))->getMock();
@@ -523,7 +530,7 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
     /**
      * @covers ORM_Table::pdoFieldType
      */
-    public function test_pdoFieldType()
+    public function testPdoFieldType()
     {
         $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
             setMethods(array('setTableDefinition'))->getMock();
@@ -543,7 +550,7 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
      * @covers ORM_Table::pdoFieldValue
      * @expectedException InvalidArgumentException
      */
-    public function test_pdoFieldValue_not_string()
+    public function testPdoFieldValueNotString()
     {
         $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
             setMethods(array('setTableDefinition'))->getMock();
@@ -558,7 +565,7 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
      * @expectedException InvalidArgumentException
      * @dataProvider test_pdoFieldValue_invalid_dataProvider
      */
-    public function test_pdoFieldValue_invalid($type)
+    public function testPdoFieldValueInvalid($type)
     {
         $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
             setMethods(array('setTableDefinition'))->getMock();
@@ -579,7 +586,7 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
     /**
      * @covers ORM_Table::pdoFieldValue
      */
-    public function test_pdoFieldValue()
+    public function testPdoFieldValue()
     {
         $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
             setMethods(array('setTableDefinition'))->getMock();
@@ -600,7 +607,7 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
     /**
      * @covers ORM_Table::entityFactory
      */
-    public function test_entityFactory()
+    public function testEntityFactory()
     {
         $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
             setMethods(array('setTableDefinition', 'getEntityClass'))->getMock();
@@ -633,5 +640,7 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
     }
 }
 
-class ORM_Table_Test_Plugin_Entity_Foo extends ORM_Entity {}
+class ORM_Table_Test_Plugin_Entity_Foo extends ORM_Entity
+{
+}
 

@@ -43,6 +43,13 @@ abstract class ORM_Table
     protected $plugin;
 
     /**
+     * Драйвер СУБД
+     * @var ORM_Driver_Abstract
+     * @since 2.01
+     */
+    private $driver;
+
+    /**
      * Имя таблицы
      *
      * @var string
@@ -89,15 +96,21 @@ abstract class ORM_Table
     /**
      * Конструктор
      *
-     * @param Plugin|TPlugin $plugin
+     * @param Plugin|TPlugin      $plugin
+     * @param ORM_Driver_Abstract $driver
      *
      * @return ORM_Table
      *
      * @since 1.00
      */
-    public function __construct($plugin)
+    public function __construct($plugin, ORM_Driver_Abstract $driver = null)
     {
         $this->plugin = $plugin;
+        if (null === $driver)
+        {
+            $driver = new ORM_Driver_MySQL();
+        }
+        $this->driver = $driver;
         $this->setTableDefinition();
     }
 
@@ -110,8 +123,7 @@ abstract class ORM_Table
      */
     public function create()
     {
-        $driver = new ORM_Driver_MySQL();
-        $driver->createTable($this->getTableName(), $this->columns, $this->getPrimaryKey(),
+        $this->driver->createTable($this->getTableName(), $this->columns, $this->getPrimaryKey(),
             $this->indexes);
     }
 
@@ -124,8 +136,7 @@ abstract class ORM_Table
      */
     public function drop()
     {
-        $driver = new ORM_Driver_MySQL();
-        $driver->dropTable($this->getTableName());
+        $this->driver->dropTable($this->getTableName());
     }
 
     /**
