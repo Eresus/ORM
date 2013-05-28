@@ -116,6 +116,7 @@ class ORM_Driver_MySQL_Test extends PHPUnit_Framework_TestCase
         $this->assertEquals($s, $driver->pdoFieldValue($timestamp, 'timestamp'));
         $this->assertEquals('2001-02-03', $driver->pdoFieldValue($datetime, 'date'));
         $this->assertEquals('12:34:56', $driver->pdoFieldValue($datetime, 'time'));
+        $this->assertSame(0, $driver->pdoFieldValue(false, 'boolean'));
         $this->assertNull($driver->pdoFieldValue(null, 'time'));
     }
 

@@ -105,6 +105,9 @@ class ORM_Driver_MySQL extends ORM_Driver_Abstract
 
         switch ($ormFieldType)
         {
+            case 'boolean':
+                $ormValue = intval($ormValue);
+                break;
             case 'date':
                 if (!($ormValue instanceof DateTime))
                 {
