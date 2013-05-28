@@ -85,6 +85,63 @@ class ORM_Driver_MySQL extends ORM_Driver_Abstract
     }
 
     /**
+     * Преобразует значение поля ORM в значение PDO
+     *
+     * @param mixed  $ormValue      значение поля
+     * @param string $ormFieldType  тип поля
+     *
+     * @throws InvalidArgumentException
+     *
+     * @return mixed
+     *
+     * @since 2.01
+     */
+    public function pdoFieldValue($ormValue, $ormFieldType)
+    {
+        if (is_null($ormValue))
+        {
+            return null;
+        }
+
+        switch ($ormFieldType)
+        {
+            case 'date':
+                if (!($ormValue instanceof DateTime))
+                {
+                    throw new InvalidArgumentException('Value of $ormValue must be a DateTime');
+                }
+                /* @var DateTime $ormValue */
+                $ormValue = $ormValue->format('Y-m-d');
+                break;
+            case 'time':
+                if (!($ormValue instanceof DateTime))
+                {
+                    throw new InvalidArgumentException('Value of $ormValue must be a DateTime');
+                }
+                /* @var DateTime $ormValue */
+                $ormValue = $ormValue->format('H:i:s');
+                break;
+            case 'timestamp':
+                $format = 'Y-m-d H:i:s';
+                if (is_integer($ormValue))
+                {
+                    $ormValue = date($format, $ormValue);
+                }
+                elseif ($ormValue instanceof DateTime)
+                {
+                    /* @var DateTime $ormValue */
+                    $ormValue = $ormValue->format($format);
+                }
+                else
+                {
+                    throw new InvalidArgumentException('Value of $ormValue must be a DateTime');
+                }
+                break;
+        }
+        return $ormValue;
+    }
+
+    /**
      * Возвращает объявление поля
      *
      * @param array $attrs  атрибуты поля

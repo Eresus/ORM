@@ -59,5 +59,17 @@ abstract class ORM_Driver_Abstract
      * @since 2.01
      */
     abstract public function dropTable($tableName);
+
+    /**
+     * Преобразует значение поля ORM в значение PDO
+     *
+     * @param mixed  $ormValue      значение поля
+     * @param string $ormFieldType  тип поля
+     *
+     * @return mixed
+     *
+     * @since 2.01
+     */
+    abstract public function pdoFieldValue($ormValue, $ormFieldType);
 }
 

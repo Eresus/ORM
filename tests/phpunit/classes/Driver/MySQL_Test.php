@@ -52,6 +52,7 @@ class ORM_Driver_MySQL_Test extends PHPUnit_Framework_TestCase
         $handler = $this->getMock('stdClass', array('exec'));
         $handler->expects($this->once())->method('exec')->with('CREATE TABLE prefix_foo ' .
             '(f1 INT(10), PRIMARY KEY (id), KEY idx1 (f1)) ENGINE InnoDB DEFAULT CHARSET=utf8');
+        /** @var ezcDbHandler $handler */
         $handler->options = new stdClass;
         $handler->options->tableNamePrefix = 'prefix_';
         $db = $this->getMock('stdClass', array('getHandler'));
@@ -72,6 +73,7 @@ class ORM_Driver_MySQL_Test extends PHPUnit_Framework_TestCase
 
         $handler = $this->getMock('stdClass', array('exec'));
         $handler->expects($this->once())->method('exec')->with('DROP TABLE prefix_foo');
+        /** @var ezcDbHandler $handler */
         $handler->options = new stdClass;
         $handler->options->tableNamePrefix = 'prefix_';
         $db = $this->getMock('stdClass', array('getHandler'));
@@ -79,6 +81,42 @@ class ORM_Driver_MySQL_Test extends PHPUnit_Framework_TestCase
         DB::setMock($db);
 
         $driver->dropTable('foo');
+    }
+
+    /**
+     * @covers ORM_Driver_MySQL::pdoFieldValue
+     * @expectedException InvalidArgumentException
+     * @dataProvider pdoFieldValueInvalidDataProvider
+     */
+    public function testPdoFieldValueInvalid($type)
+    {
+        $driver = new ORM_Driver_MySQL;
+        $driver->pdoFieldValue(true, $type);
+    }
+
+    /**
+     * Поставщик данных для {@link testPdoFieldValueInvalid()}
+     */
+    public function pdoFieldValueInvalidDataProvider()
+    {
+        return array(array('timestamp'), array('date'), array('time'));
+    }
+
+    /**
+     * @covers ORM_Table::pdoFieldValue
+     */
+    public function testPdoFieldValue()
+    {
+        $driver = new ORM_Driver_MySQL;
+
+        $datetime = new DateTime('01-02-03 12:34:56');
+        $this->assertEquals('2001-02-03 12:34:56', $driver->pdoFieldValue($datetime, 'timestamp'));
+        $timestamp = time();
+        $s = date('Y-m-d H:i:s', $timestamp);
+        $this->assertEquals($s, $driver->pdoFieldValue($timestamp, 'timestamp'));
+        $this->assertEquals('2001-02-03', $driver->pdoFieldValue($datetime, 'date'));
+        $this->assertEquals('12:34:56', $driver->pdoFieldValue($datetime, 'time'));
+        $this->assertNull($driver->pdoFieldValue(null, 'time'));
     }
 
     /**

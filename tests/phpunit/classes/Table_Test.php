@@ -168,6 +168,8 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
     {
         $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
             setMethods(array('setTableDefinition'))->getMock();
+        /** @var ORM_Table $table */
+        $table->__construct(new Plugin);
         $hasColumns = new ReflectionMethod('ORM_Table', 'hasColumns');
         $hasColumns->setAccessible(true);
         $hasColumns->invoke($table, array(
@@ -198,6 +200,8 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
     {
         $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
             setMethods(array('setTableDefinition'))->getMock();
+        /** @var ORM_Table $table */
+        $table->__construct(new Plugin);
         $hasColumns = new ReflectionMethod('ORM_Table', 'hasColumns');
         $hasColumns->setAccessible(true);
         $hasColumns->invoke($table, array(
@@ -521,10 +525,10 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
     {
         $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
             setMethods(array('setTableDefinition'))->getMock();
-        $m_pdoFieldType = new ReflectionMethod('ORM_Table', 'pdoFieldType');
-        $m_pdoFieldType->setAccessible(true);
+        $pdoFieldType = new ReflectionMethod('ORM_Table', 'pdoFieldType');
+        $pdoFieldType->setAccessible(true);
 
-        $m_pdoFieldType->invoke($table, 'invalid');
+        $pdoFieldType->invoke($table, 'invalid');
     }
 
     /**
@@ -554,54 +558,10 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
     {
         $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
             setMethods(array('setTableDefinition'))->getMock();
-        $m_pdoFieldValue = new ReflectionMethod('ORM_Table', 'pdoFieldValue');
-        $m_pdoFieldValue->setAccessible(true);
+        $pdoFieldValue = new ReflectionMethod('ORM_Table', 'pdoFieldValue');
+        $pdoFieldValue->setAccessible(true);
 
-        $m_pdoFieldValue->invoke($table, null, null);
-    }
-
-    /**
-     * @covers ORM_Table::pdoFieldValue
-     * @expectedException InvalidArgumentException
-     * @dataProvider test_pdoFieldValue_invalid_dataProvider
-     */
-    public function testPdoFieldValueInvalid($type)
-    {
-        $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
-            setMethods(array('setTableDefinition'))->getMock();
-        $m_pdoFieldValue = new ReflectionMethod('ORM_Table', 'pdoFieldValue');
-        $m_pdoFieldValue->setAccessible(true);
-
-        $m_pdoFieldValue->invoke($table, true, $type);
-    }
-
-    /**
-     * Поставщик данных для {@link test_pdoFieldValue_invalid()}
-     */
-    public function test_pdoFieldValue_invalid_dataProvider()
-    {
-        return array(array('timestamp'), array('date'), array('time'));
-    }
-
-    /**
-     * @covers ORM_Table::pdoFieldValue
-     */
-    public function testPdoFieldValue()
-    {
-        $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
-            setMethods(array('setTableDefinition'))->getMock();
-        $m_pdoFieldValue = new ReflectionMethod('ORM_Table', 'pdoFieldValue');
-        $m_pdoFieldValue->setAccessible(true);
-
-        $datetime = new DateTime('01-02-03 12:34:56');
-        $this->assertEquals('2001-02-03 12:34:56', $m_pdoFieldValue->invoke($table, $datetime,
-            'timestamp'));
-        $timestamp = time();
-        $s = date('Y-m-d H:i:s', $timestamp);
-        $this->assertEquals($s, $m_pdoFieldValue->invoke($table, $timestamp, 'timestamp'));
-        $this->assertEquals('2001-02-03', $m_pdoFieldValue->invoke($table, $datetime, 'date'));
-        $this->assertEquals('12:34:56', $m_pdoFieldValue->invoke($table, $datetime, 'time'));
-        $this->assertNull($m_pdoFieldValue->invoke($table, null, 'time'));
+        $pdoFieldValue->invoke($table, null, null);
     }
 
     /**

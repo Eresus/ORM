@@ -608,47 +608,7 @@ abstract class ORM_Table
                 gettype($ormFieldType) . ' given');
         }
 
-        if (is_null($ormValue))
-        {
-            return null;
-        }
-
-        switch ($ormFieldType)
-        {
-            case 'timestamp':
-                $format = 'Y-m-d H:i:s';
-                if (is_integer($ormValue))
-                {
-                    $ormValue = date($format, $ormValue);
-                }
-                elseif ($ormValue instanceof DateTime)
-                {
-                    /* @var DateTime $ormValue */
-                    $ormValue = $ormValue->format($format);
-                }
-                else
-                {
-                    throw new InvalidArgumentException('Value of $ormValue must be a DateTime');
-                }
-                break;
-            case 'date':
-                if (!($ormValue instanceof DateTime))
-                {
-                    throw new InvalidArgumentException('Value of $ormValue must be a DateTime');
-                }
-                /* @var DateTime $ormValue */
-                $ormValue = $ormValue->format('Y-m-d');
-                break;
-            case 'time':
-                if (!($ormValue instanceof DateTime))
-                {
-                    throw new InvalidArgumentException('Value of $ormValue must be a DateTime');
-                }
-                /* @var DateTime $ormValue */
-                $ormValue = $ormValue->format('H:i:s');
-                break;
-        }
-        return $ormValue;
+        return $this->driver->pdoFieldValue($ormValue, $ormFieldType);
     }
 
     /**
