@@ -38,7 +38,7 @@ class ORM_UI_List_DataProvider implements UI_List_DataProvider_Interface
     /**
      * Основной объект плагина-владельца
      *
-     * @var Plugin|TPlugin
+     * @var Eresus_Plugin|TPlugin
      */
     private $plugin;
 
@@ -73,7 +73,7 @@ class ORM_UI_List_DataProvider implements UI_List_DataProvider_Interface
     /**
      * Конструктор
      *
-     * @param Plugin|TPlugin $plugin
+     * @param Eresus_Plugin|TPlugin $plugin
      * @param string $entityName
      *
      * @return ORM_UI_List_DataProvider
