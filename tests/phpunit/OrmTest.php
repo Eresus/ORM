@@ -1,10 +1,10 @@
 <?php
 /**
- * Абстрактная кэшируемая таблица БД
+ * Модульные тесты
  *
  * @version ${product.version}
  *
- * @copyright 2011, Михаил Красильников <m.krasilnikov@yandex.ru>
+ * @copyright 2013, Михаил Красильников <m.krasilnikov@yandex.ru>
  * @license http://www.gnu.org/licenses/gpl.txt	GPL License 3
  * @author Михаил Красильников <m.krasilnikov@yandex.ru>
  *
@@ -25,59 +25,50 @@
  * <http://www.gnu.org/licenses/>
  *
  * @package ORM
+ * @subpackage Tests
  */
 
+require_once __DIR__ . '/bootstrap.php';
+require_once TESTS_SRC_DIR . '/orm.php';
+require_once TESTS_SRC_DIR . '/orm/classes/Table.php';
 
 /**
- * Абстрактная кэшируемая таблица БД
- *
- * Можно использовать для таблиц небольшого размера, записи которых часто нужны. Все записи читаются
- * разом и помещаются в кэш, откуда потом и выдаются по запросу.
- *
  * @package ORM
- * @since 1.00
+ * @subpackage Tests
  */
-abstract class ORM_Table_Cached extends ORM_Table
+class OrmTest extends PHPUnit_Framework_TestCase
 {
     /**
-     * Кэш записей
-     *
-     * @var array
+     * @covers ORM::getTable
+     * @expectedException InvalidArgumentException
      */
-    protected $cache = null;
-
-    /**
-     * @see ORM_Table::find()
-     */
-    public function find($id)
+    public function testGetTableInvalidPlugin()
     {
-        $this->fillCache();
-        if (isset($this->cache[$id]))
-        {
-            return $this->cache[$id];
-        }
-        return null;
+        ORM::getTable(null, 'Foo');
     }
 
     /**
-     * Заполняет кэш, если он пуст
-     *
-     * @return void
-     *
-     * @since 1.00
+     * @covers ORM::getTable
      */
-    protected function fillCache()
+    public function testGetTablePlugin()
     {
-        if (null === $this->cache)
-        {
-            $q = $this->createSelectQuery();
-            $tmp = $this->loadFromQuery($q);
-            $this->cache = array();
-            foreach ($tmp as $item)
-            {
-                $this->cache[$item->id] = $item;
-            }
-        }
+        $uid = uniqid();
+        $this->getMockBuilder('ORM_Table')->setMockClassName("Plugin_Entity_Table_{$uid}")
+            ->setMethods(array('setTableDefinition'))->disableOriginalConstructor()->getMock();
+        $plugin = new Plugin();
+        $this->assertInstanceOf("Plugin_Entity_Table_{$uid}", ORM::getTable($plugin, $uid));
+    }
+
+    /**
+     * @covers ORM::getTable
+     */
+    public function testGetTableTPlugin()
+    {
+        $uid = uniqid();
+        $this->getMockBuilder('ORM_Table')->setMockClassName("Plugin_Entity_Table_{$uid}")
+            ->setMethods(array('setTableDefinition'))->disableOriginalConstructor()->getMock();
+        $plugin = new TPlugin();
+        $this->assertInstanceOf("Plugin_Entity_Table_{$uid}", ORM::getTable($plugin, $uid));
     }
 }
 

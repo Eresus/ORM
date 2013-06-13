@@ -1,14 +1,12 @@
 <?php
 /**
- * ORM
- *
  * Модульные тесты
  *
  * @version ${product.version}
  *
- * @copyright 2011, Михаил Красильников <mihalych@vsepofigu.ru>
+ * @copyright 2011, Михаил Красильников <m.krasilnikov@yandex.ru>
  * @license http://www.gnu.org/licenses/gpl.txt	GPL License 3
- * @author Михаил Красильников <mihalych@vsepofigu.ru>
+ * @author Михаил Красильников <m.krasilnikov@yandex.ru>
  *
  * Данная программа является свободным программным обеспечением. Вы
  * вправе распространять ее и/или модифицировать в соответствии с
@@ -28,12 +26,11 @@
  *
  * @package ORM
  * @subpackage Tests
- *
- * $Id: bootstrap.php 1849 2011-10-03 17:34:22Z mk $
  */
 
 
 require_once __DIR__ . '/../../bootstrap.php';
+require_once TESTS_SRC_DIR . '/orm/classes/Driver/Abstract.php';
 require_once TESTS_SRC_DIR . '/orm/classes/Driver/MySQL.php';
 
 /**
@@ -42,197 +39,245 @@ require_once TESTS_SRC_DIR . '/orm/classes/Driver/MySQL.php';
  */
 class ORM_Driver_MySQL_Test extends PHPUnit_Framework_TestCase
 {
-	/**
-	 * @covers ORM_Driver_MySQL::createTable
-	 *
-	 * @see http://bugs.eresus.ru/view.php?id=876
-	 */
-	public function test_createTable()
-	{
-		$driver = $this->getMock('ORM_Driver_MySQL', array('getFieldDefinition'));
-		$driver->expects($this->any())->method('getFieldDefinition')->will($this->returnValue('F'));
+    /**
+     * @covers ORM_Driver_MySQL::createTable
+     *
+     * @see http://bugs.eresus.ru/view.php?id=876
+     */
+    public function testCreateTable()
+    {
+        $driver = $this->getMock('ORM_Driver_MySQL', array('getFieldDefinition'));
+        $driver->expects($this->any())->method('getFieldDefinition')->will($this->returnValue('F'));
 
-		$handler = $this->getMock('stdClass', array('exec'));
-		$handler->expects($this->once())->method('exec')->with('CREATE TABLE prefix_foo ' .
-			'(f1 F, PRIMARY KEY (id), KEY idx1 (f1)) ENGINE InnoDB DEFAULT CHARSET=utf8');
-		$handler->options = new stdClass;
-		$handler->options->tableNamePrefix = 'prefix_';
-		$db = $this->getMock('stdClass', array('getHandler'));
-		$db->expects($this->once())->method('getHandler')->will($this->returnValue($handler));
-		DB::setMock($db);
+        $handler = $this->getMock('stdClass', array('exec'));
+        $handler->expects($this->once())->method('exec')->with('CREATE TABLE prefix_foo ' .
+            '(f1 INT(10), PRIMARY KEY (id), KEY idx1 (f1)) ENGINE InnoDB DEFAULT CHARSET=utf8');
+        /** @var ezcDbHandler $handler */
+        $handler->options = new stdClass;
+        $handler->options->tableNamePrefix = 'prefix_';
+        $db = $this->getMock('stdClass', array('getHandler'));
+        $db->expects($this->once())->method('getHandler')->will($this->returnValue($handler));
+        DB::setMock($db);
 
-		$driver->createTable('foo', array('f1' => array()), 'id',
-			array('idx1' => array('fields' => array('f1'))));
-	}
+        /** @var ORM_Driver_MySQL $driver */
+        $driver->createTable('foo', array('f1' => array('type' => 'integer')), 'id',
+            array('idx1' => array('fields' => array('f1'))));
+    }
 
-	/**
-	 * @covers ORM_Driver_MySQL::dropTable
-	 */
-	public function test_dropTable()
-	{
-		$driver = new ORM_Driver_MySQL();
+    /**
+     * @covers ORM_Driver_MySQL::dropTable
+     */
+    public function testDropTable()
+    {
+        $driver = new ORM_Driver_MySQL();
 
-		$handler = $this->getMock('stdClass', array('exec'));
-		$handler->expects($this->once())->method('exec')->with('DROP TABLE prefix_foo');
-		$handler->options = new stdClass;
-		$handler->options->tableNamePrefix = 'prefix_';
-		$db = $this->getMock('stdClass', array('getHandler'));
-		$db->expects($this->once())->method('getHandler')->will($this->returnValue($handler));
-		DB::setMock($db);
+        $handler = $this->getMock('stdClass', array('exec'));
+        $handler->expects($this->once())->method('exec')->with('DROP TABLE prefix_foo');
+        /** @var ezcDbHandler $handler */
+        $handler->options = new stdClass;
+        $handler->options->tableNamePrefix = 'prefix_';
+        $db = $this->getMock('stdClass', array('getHandler'));
+        $db->expects($this->once())->method('getHandler')->will($this->returnValue($handler));
+        DB::setMock($db);
 
-		$driver->dropTable('foo');
-	}
-	//-----------------------------------------------------------------------------
+        $driver->dropTable('foo');
+    }
 
-	/**
-	 * @covers ORM_Driver_MySQL::getFieldDefinition
-	 * @expectedException InvalidArgumentException
-	 */
-	public function test_getFieldDefinition_noType()
-	{
-		$driver = new ORM_Driver_MySQL();
-		$driver->getFieldDefinition(array());
-	}
-	//-----------------------------------------------------------------------------
+    /**
+     * @covers ORM_Driver_MySQL::pdoFieldValue
+     * @expectedException InvalidArgumentException
+     * @dataProvider pdoFieldValueInvalidDataProvider
+     */
+    public function testPdoFieldValueInvalid($type)
+    {
+        $driver = new ORM_Driver_MySQL;
+        $driver->pdoFieldValue(true, $type);
+    }
 
-	/**
-	 * @covers ORM_Driver_MySQL::getFieldDefinition
-	 * @expectedException InvalidArgumentException
-	 */
-	public function test_getFieldDefinition_badType()
-	{
-		$driver = new ORM_Driver_MySQL();
-		$driver->getFieldDefinition(array('type' => 'foo'));
-	}
-	//-----------------------------------------------------------------------------
+    /**
+     * Поставщик данных для {@link testPdoFieldValueInvalid()}
+     */
+    public function pdoFieldValueInvalidDataProvider()
+    {
+        return array(array('timestamp'), array('date'), array('time'));
+    }
 
-	/**
-	 * @covers ORM_Driver_MySQL::getFieldDefinition
-	 */
-	public function test_getFieldDefinition()
-	{
-		$driver = new ORM_Driver_MySQL();
-		$this->assertEquals('INT(10)', $driver->getFieldDefinition(array('type' => 'integer')));
-	}
-	//-----------------------------------------------------------------------------
+    /**
+     * @covers ORM_Table::pdoFieldValue
+     */
+    public function testPdoFieldValue()
+    {
+        $driver = new ORM_Driver_MySQL;
 
-	/**
-	 * @covers ORM_Driver_MySQL::getDefinitionFor_DEFAULT
-	 */
-	public function test_getDefinitionFor_DEFAULT()
-	{
-		$method = new ReflectionMethod('ORM_Driver_MySQL', 'getDefinitionFor_DEFAULT');
-		$method->setAccessible(true);
-		$driver = new ORM_Driver_MySQL();
+        $datetime = new DateTime('01-02-03 12:34:56');
+        $this->assertEquals('2001-02-03 12:34:56', $driver->pdoFieldValue($datetime, 'timestamp'));
+        $timestamp = time();
+        $s = date('Y-m-d H:i:s', $timestamp);
+        $this->assertEquals($s, $driver->pdoFieldValue($timestamp, 'timestamp'));
+        $this->assertEquals('2001-02-03', $driver->pdoFieldValue($datetime, 'date'));
+        $this->assertEquals('12:34:56', $driver->pdoFieldValue($datetime, 'time'));
+        $this->assertSame(0, $driver->pdoFieldValue(false, 'boolean'));
+        $this->assertNull($driver->pdoFieldValue(null, 'time'));
+    }
 
-		$this->assertEquals('', $method->invoke($driver, array()));
-		$this->assertEquals(' DEFAULT NULL', $method->invoke($driver, array('default' => null)));
-		$this->assertEquals(' DEFAULT \'foo\'', $method->invoke($driver, array('default' => 'foo',
-			'type' => 'string')));
-		$this->assertEquals(' DEFAULT 123', $method->invoke($driver, array('default' => 123,
-			'type' => 'int')));
-	}
-	//-----------------------------------------------------------------------------
+    /**
+     * @covers ORM_Driver_MySQL::getFieldDefinition
+     * @expectedException InvalidArgumentException
+     */
+    public function testGetFieldDefinitionNoType()
+    {
+        $driver = new ORM_Driver_MySQL();
+        $getFieldDefinition = new ReflectionMethod('ORM_Driver_MySQL', 'getFieldDefinition');
+        $getFieldDefinition->setAccessible(true);
+        $getFieldDefinition->invoke($driver, array());
+    }
 
-	/**
-	 * @covers ORM_Driver_MySQL::getDefinitionFor_boolean
-	 */
-	public function test_getDefinitionFor_boolean()
-	{
-		$method = new ReflectionMethod('ORM_Driver_MySQL', 'getDefinitionFor_boolean');
-		$method->setAccessible(true);
-		$driver = new ORM_Driver_MySQL();
+    /**
+     * @covers ORM_Driver_MySQL::getFieldDefinition
+     * @expectedException InvalidArgumentException
+     */
+    public function testGetFieldDefinitionBadType()
+    {
+        $driver = new ORM_Driver_MySQL();
+        $getFieldDefinition = new ReflectionMethod('ORM_Driver_MySQL', 'getFieldDefinition');
+        $getFieldDefinition->setAccessible(true);
+        $getFieldDefinition->invoke($driver, array('type' => 'foo'));
+    }
 
-		$this->assertEquals('BOOL', $method->invoke($driver, array()));
-	}
-	//-----------------------------------------------------------------------------
+    /**
+     * @covers ORM_Driver_MySQL::getFieldDefinition
+     */
+    public function testGetFieldDefinition()
+    {
+        $driver = new ORM_Driver_MySQL();
+        $getFieldDefinition = new ReflectionMethod('ORM_Driver_MySQL', 'getFieldDefinition');
+        $getFieldDefinition->setAccessible(true);
+        $this->assertEquals('INT(10)',
+            $getFieldDefinition->invoke($driver, array('type' => 'integer')));
+    }
 
-	/**
-	 * @covers ORM_Driver_MySQL::getDefinitionFor_date
-	 */
-	public function test_getDefinitionFor_date()
-	{
-		$method = new ReflectionMethod('ORM_Driver_MySQL', 'getDefinitionFor_date');
-		$method->setAccessible(true);
-		$driver = new ORM_Driver_MySQL();
+    /**
+     * @covers ORM_Driver_MySQL::getDefinitionForDefault
+     */
+    public function testGetDefinitionForDefault()
+    {
+        $method = new ReflectionMethod('ORM_Driver_MySQL', 'getDefinitionForDefault');
+        $method->setAccessible(true);
+        $driver = new ORM_Driver_MySQL();
 
-		$this->assertEquals('DATE', $method->invoke($driver, array()));
-	}
-	//-----------------------------------------------------------------------------
+        $this->assertEquals('', $method->invoke($driver, array()));
+        $this->assertEquals(' DEFAULT NULL', $method->invoke($driver, array('default' => null)));
+        $this->assertEquals(' DEFAULT \'foo\'', $method->invoke($driver, array(
+            'type' => 'string',
+            'default' => 'foo'
+        )));
+        $this->assertEquals(' DEFAULT 123', $method->invoke($driver, array(
+            'type' => 'int',
+            'default' => 123
+        )));
+        $this->assertEquals(' DEFAULT 0', $method->invoke($driver, array(
+            'type' => 'boolean',
+            'default' => false
+        )));
+        $this->assertEquals(' DEFAULT 1', $method->invoke($driver, array(
+            'type' => 'boolean',
+            'default' => true
+        )));
+    }
 
-	/**
-	 * @covers ORM_Driver_MySQL::getDefinitionFor_float
-	 */
-	public function test_getDefinitionFor_float()
-	{
-		$method = new ReflectionMethod('ORM_Driver_MySQL', 'getDefinitionFor_float');
-		$method->setAccessible(true);
-		$driver = new ORM_Driver_MySQL();
+    /**
+     * @covers ORM_Driver_MySQL::getDefinitionForBoolean
+     */
+    public function testGetDefinitionForBoolean()
+    {
+        $method = new ReflectionMethod('ORM_Driver_MySQL', 'getDefinitionForBoolean');
+        $method->setAccessible(true);
+        $driver = new ORM_Driver_MySQL();
 
-		$this->assertEquals('FLOAT', $method->invoke($driver, array()));
-		$this->assertEquals('DOUBLE', $method->invoke($driver, array('length' => 2147483647)));
-	}
-	//-----------------------------------------------------------------------------
+        $this->assertEquals('BOOL', $method->invoke($driver, array('type' => 'boolean')));
+    }
 
-	/**
-	 * @covers ORM_Driver_MySQL::getDefinitionFor_integer
-	 */
-	public function test_getDefinitionFor_integer()
-	{
-		$method = new ReflectionMethod('ORM_Driver_MySQL', 'getDefinitionFor_integer');
-		$method->setAccessible(true);
-		$driver = new ORM_Driver_MySQL();
+    /**
+     * @covers ORM_Driver_MySQL::getDefinitionForDate
+     */
+    public function testGetDefinitionForDate()
+    {
+        $method = new ReflectionMethod('ORM_Driver_MySQL', 'getDefinitionForDate');
+        $method->setAccessible(true);
+        $driver = new ORM_Driver_MySQL();
 
-		$this->assertEquals('INT(10)', $method->invoke($driver, array()));
-		$this->assertEquals('INT(20)', $method->invoke($driver, array('length' => 20)));
-		$this->assertEquals('INT(10) AUTO_INCREMENT',
-			$method->invoke($driver, array('autoincrement' => true)));
-		$this->assertEquals('INT(10) UNSIGNED',
-			$method->invoke($driver, array('unsigned' => true)));
-		$this->assertEquals('INT(10) UNSIGNED AUTO_INCREMENT',
-			$method->invoke($driver, array('autoincrement' => true, 'unsigned' => true)));
-	}
-	//-----------------------------------------------------------------------------
+        $this->assertEquals('DATE', $method->invoke($driver, array()));
+    }
 
-	/**
-	 * @covers ORM_Driver_MySQL::getDefinitionFor_string
-	 */
-	public function test_getDefinitionFor_string()
-	{
-		$method = new ReflectionMethod('ORM_Driver_MySQL', 'getDefinitionFor_string');
-		$method->setAccessible(true);
-		$driver = new ORM_Driver_MySQL();
+    /**
+     * @covers ORM_Driver_MySQL::getDefinitionForFloat
+     */
+    public function testGetDefinitionForFloat()
+    {
+        $method = new ReflectionMethod('ORM_Driver_MySQL', 'getDefinitionForFloat');
+        $method->setAccessible(true);
+        $driver = new ORM_Driver_MySQL();
 
-		$this->assertEquals('TEXT', $method->invoke($driver, array()));
-		$this->assertEquals('VARCHAR(255)', $method->invoke($driver, array('length' => 255)));
-		$this->assertEquals('TEXT',	$method->invoke($driver, array('length' => 65535)));
-		$this->assertEquals('LONGTEXT',	$method->invoke($driver, array('length' => 65536)));
-	}
-	//-----------------------------------------------------------------------------
+        $this->assertEquals('FLOAT', $method->invoke($driver, array()));
+        $this->assertEquals('DOUBLE', $method->invoke($driver, array('length' => 2147483647)));
+    }
 
-	/**
-	 * @covers ORM_Driver_MySQL::getDefinitionFor_time
-	 */
-	public function test_getDefinitionFor_time()
-	{
-		$method = new ReflectionMethod('ORM_Driver_MySQL', 'getDefinitionFor_time');
-		$method->setAccessible(true);
-		$driver = new ORM_Driver_MySQL();
+    /**
+     * @covers ORM_Driver_MySQL::getDefinitionForInteger
+     */
+    public function testGetDefinitionForInteger()
+    {
+        $method = new ReflectionMethod('ORM_Driver_MySQL', 'getDefinitionForInteger');
+        $method->setAccessible(true);
+        $driver = new ORM_Driver_MySQL();
 
-		$this->assertEquals('TIME', $method->invoke($driver, array()));
-	}
-	//-----------------------------------------------------------------------------
+        $this->assertEquals('INT(10)', $method->invoke($driver, array()));
+        $this->assertEquals('INT(20)', $method->invoke($driver, array('length' => 20)));
+        $this->assertEquals('INT(10) AUTO_INCREMENT',
+            $method->invoke($driver, array('autoincrement' => true)));
+        $this->assertEquals('INT(10) UNSIGNED',
+            $method->invoke($driver, array('unsigned' => true)));
+        $this->assertEquals('INT(10) UNSIGNED AUTO_INCREMENT',
+            $method->invoke($driver, array('autoincrement' => true, 'unsigned' => true)));
+    }
 
-	/**
-	 * @covers ORM_Driver_MySQL::getDefinitionFor_timestamp
-	 */
-	public function test_getDefinitionFor_timestamp()
-	{
-		$method = new ReflectionMethod('ORM_Driver_MySQL', 'getDefinitionFor_timestamp');
-		$method->setAccessible(true);
-		$driver = new ORM_Driver_MySQL();
+    /**
+     * @covers ORM_Driver_MySQL::getDefinitionForString
+     */
+    public function testGetDefinitionForString()
+    {
+        $method = new ReflectionMethod('ORM_Driver_MySQL', 'getDefinitionForString');
+        $method->setAccessible(true);
+        $driver = new ORM_Driver_MySQL();
 
-		$this->assertEquals('TIMESTAMP', $method->invoke($driver, array()));
-	}
-	//-----------------------------------------------------------------------------
+        $this->assertEquals('TEXT', $method->invoke($driver, array()));
+        $this->assertEquals('VARCHAR(255)', $method->invoke($driver, array('length' => 255)));
+        $this->assertEquals('TEXT',	$method->invoke($driver, array('length' => 65535)));
+        $this->assertEquals('LONGTEXT',	$method->invoke($driver, array('length' => 65536)));
+    }
+
+    /**
+     * @covers ORM_Driver_MySQL::getDefinitionForTime
+     */
+    public function testGetDefinitionForTime()
+    {
+        $method = new ReflectionMethod('ORM_Driver_MySQL', 'getDefinitionForTime');
+        $method->setAccessible(true);
+        $driver = new ORM_Driver_MySQL();
+
+        $this->assertEquals('TIME', $method->invoke($driver, array()));
+    }
+
+    /**
+     * @covers ORM_Driver_MySQL::getDefinitionForTimestamp
+     */
+    public function testGetDefinitionForTimestamp()
+    {
+        $method = new ReflectionMethod('ORM_Driver_MySQL', 'getDefinitionForTimestamp');
+        $method->setAccessible(true);
+        $driver = new ORM_Driver_MySQL();
+
+        $this->assertEquals('TIMESTAMP', $method->invoke($driver, array()));
+    }
 }
+

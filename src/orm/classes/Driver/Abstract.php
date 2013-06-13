@@ -1,10 +1,10 @@
 <?php
 /**
- * Абстрактная кэшируемая таблица БД
+ * Абстрактный драйвер СУБД
  *
  * @version ${product.version}
  *
- * @copyright 2011, Михаил Красильников <m.krasilnikov@yandex.ru>
+ * @copyright 2013, Михаил Красильников <m.krasilnikov@yandex.ru>
  * @license http://www.gnu.org/licenses/gpl.txt	GPL License 3
  * @author Михаил Красильников <m.krasilnikov@yandex.ru>
  *
@@ -27,57 +27,49 @@
  * @package ORM
  */
 
-
 /**
- * Абстрактная кэшируемая таблица БД
- *
- * Можно использовать для таблиц небольшого размера, записи которых часто нужны. Все записи читаются
- * разом и помещаются в кэш, откуда потом и выдаются по запросу.
+ * Абстрактный драйвер СУБД
  *
  * @package ORM
- * @since 1.00
+ * @since 2.01
  */
-abstract class ORM_Table_Cached extends ORM_Table
+abstract class ORM_Driver_Abstract
 {
     /**
-     * Кэш записей
+     * Создаёт таблицу
      *
-     * @var array
-     */
-    protected $cache = null;
-
-    /**
-     * @see ORM_Table::find()
-     */
-    public function find($id)
-    {
-        $this->fillCache();
-        if (isset($this->cache[$id]))
-        {
-            return $this->cache[$id];
-        }
-        return null;
-    }
-
-    /**
-     * Заполняет кэш, если он пуст
+     * @param string $tableName   имя таблицы
+     * @param array  $columns     описание столбцов
+     * @param string $primaryKey  первичный ключ
+     * @param array  $indexes     описание индексов
      *
      * @return void
      *
-     * @since 1.00
+     * @since 2.01
      */
-    protected function fillCache()
-    {
-        if (null === $this->cache)
-        {
-            $q = $this->createSelectQuery();
-            $tmp = $this->loadFromQuery($q);
-            $this->cache = array();
-            foreach ($tmp as $item)
-            {
-                $this->cache[$item->id] = $item;
-            }
-        }
-    }
+    abstract public function createTable($tableName, array $columns, $primaryKey, array $indexes);
+
+    /**
+     * Удаляет таблицу
+     *
+     * @param string $tableName  имя таблицы
+     *
+     * @return void
+     *
+     * @since 2.01
+     */
+    abstract public function dropTable($tableName);
+
+    /**
+     * Преобразует значение поля ORM в значение PDO
+     *
+     * @param mixed  $ormValue      значение поля
+     * @param string $ormFieldType  тип поля
+     *
+     * @return mixed
+     *
+     * @since 2.01
+     */
+    abstract public function pdoFieldValue($ormValue, $ormFieldType);
 }
 

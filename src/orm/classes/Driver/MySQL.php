@@ -1,14 +1,12 @@
 <?php
 /**
- * ORM
- *
  * Драйвер MySQL
  *
  * @version ${product.version}
  *
- * @copyright 2011, Михаил Красильников <mihalych@vsepofigu.ru>
+ * @copyright 2011, Михаил Красильников <m.krasilnikov@yandex.ru>
  * @license http://www.gnu.org/licenses/gpl.txt	GPL License 3
- * @author Михаил Красильников <mihalych@vsepofigu.ru>
+ * @author Михаил Красильников <m.krasilnikov@yandex.ru>
  *
  * Данная программа является свободным программным обеспечением. Вы
  * вправе распространять ее и/или модифицировать в соответствии с
@@ -35,280 +33,342 @@
  * @package ORM
  * @since 1.00
  */
-class ORM_Driver_MySQL
+class ORM_Driver_MySQL extends ORM_Driver_Abstract
 {
-	/**
-	 * Создаёт таблицу
-	 *
-	 * @param string $tableName   имя таблицы
-	 * @param array  $columns     описание столбцов
-	 * @param string $primaryKey  первичный ключ
-	 * @param array  $indexes     описание индексов
-	 *
-	 * @return void
-	 *
-	 * @since 1.00
-	 */
-	public function createTable($tableName, array $columns, $primaryKey, array $indexes)
-	{
-		$db = DB::getHandler();
-		$tableName = $db->options->tableNamePrefix . $tableName;
+    /**
+     * Создаёт таблицу
+     *
+     * @param string $tableName   имя таблицы
+     * @param array  $columns     описание столбцов
+     * @param string $primaryKey  первичный ключ
+     * @param array  $indexes     описание индексов
+     *
+     * @return void
+     *
+     * @since 1.00
+     */
+    public function createTable($tableName, array $columns, $primaryKey, array $indexes)
+    {
+        $db = DB::getHandler();
+        $tableName = $db->options->tableNamePrefix . $tableName;
 
-		$sql = array();
-		foreach ($columns as $name => $attrs)
-		{
-			$sql []= $name . ' ' . $this->getFieldDefinition($attrs);
-		}
-		$sql []= 'PRIMARY KEY (' . $primaryKey . ')';
-		foreach ($indexes as $name => $params)
-		{
-			$sql []= 'KEY ' . $name . ' (' . implode(', ', $params['fields']) . ')';
-		}
-		$sql = "CREATE TABLE $tableName (" . implode(', ', $sql) .
-			') ENGINE InnoDB DEFAULT CHARSET=utf8';
-		$db->exec($sql);
-	}
-	//-----------------------------------------------------------------------------
+        $sql = array();
+        foreach ($columns as $name => $attrs)
+        {
+            $sql []= $name . ' ' . $this->getFieldDefinition($attrs);
+        }
+        $sql []= 'PRIMARY KEY (' . $primaryKey . ')';
+        foreach ($indexes as $name => $params)
+        {
+            $sql []= 'KEY ' . $name . ' (' . implode(', ', $params['fields']) . ')';
+        }
+        $sql = "CREATE TABLE $tableName (" . implode(', ', $sql) .
+            ') ENGINE InnoDB DEFAULT CHARSET=utf8';
+        $db->exec($sql);
+    }
 
-	/**
-	 * Удаляет таблицу
-	 *
-	 * @param string $tableName  имя таблицы
-	 *
-	 * @return void
-	 *
-	 * @since 1.00
-	 */
-	public function dropTable($tableName)
-	{
-		$db = DB::getHandler();
-		$tableName = $db->options->tableNamePrefix . $tableName;
-		$sql = "DROP TABLE $tableName";
-		$db->exec($sql);
-	}
-	//-----------------------------------------------------------------------------
+    /**
+     * Удаляет таблицу
+     *
+     * @param string $tableName  имя таблицы
+     *
+     * @return void
+     *
+     * @since 1.00
+     */
+    public function dropTable($tableName)
+    {
+        $db = DB::getHandler();
+        $tableName = $db->options->tableNamePrefix . $tableName;
+        $sql = "DROP TABLE $tableName";
+        $db->exec($sql);
+    }
 
-	/**
-	 * Возвращает объявление поля
-	 *
-	 * @param array $attrs  атрибуты поля
-	 *
-	 * @throws InvalidArgumentException  в случае если в $attrs нет нужных элементов или их значения
-	 *                                   неверны
-	 *
-	 * @return string
-	 *
-	 * @since 1.00
-	 */
-	public function getFieldDefinition(array $attrs)
-	{
-		if (!array_key_exists('type', $attrs))
-		{
-			throw new InvalidArgumentException('No type specified for field');
-		}
+    /**
+     * Преобразует значение поля ORM в значение PDO
+     *
+     * @param mixed  $ormValue      значение поля
+     * @param string $ormFieldType  тип поля
+     *
+     * @throws InvalidArgumentException
+     *
+     * @return mixed
+     *
+     * @since 2.01
+     */
+    public function pdoFieldValue($ormValue, $ormFieldType)
+    {
+        if (is_null($ormValue))
+        {
+            return null;
+        }
 
-		if (!in_array($attrs['type'], ORM::fieldTypes()))
-		{
-			throw new InvalidArgumentException('Invalid type "' . $attrs['type'] . '"');
-		}
+        switch ($ormFieldType)
+        {
+            case 'boolean':
+                $ormValue = intval($ormValue);
+                break;
+            case 'date':
+                if (!($ormValue instanceof DateTime))
+                {
+                    throw new InvalidArgumentException('Value of $ormValue must be a DateTime');
+                }
+                /* @var DateTime $ormValue */
+                $ormValue = $ormValue->format('Y-m-d');
+                break;
+            case 'time':
+                if (!($ormValue instanceof DateTime))
+                {
+                    throw new InvalidArgumentException('Value of $ormValue must be a DateTime');
+                }
+                /* @var DateTime $ormValue */
+                $ormValue = $ormValue->format('H:i:s');
+                break;
+            case 'timestamp':
+                $format = 'Y-m-d H:i:s';
+                if (is_integer($ormValue))
+                {
+                    $ormValue = date($format, $ormValue);
+                }
+                elseif ($ormValue instanceof DateTime)
+                {
+                    /* @var DateTime $ormValue */
+                    $ormValue = $ormValue->format($format);
+                }
+                else
+                {
+                    throw new InvalidArgumentException('Value of $ormValue must be a DateTime');
+                }
+                break;
+        }
+        return $ormValue;
+    }
 
-		$method = 'getDefinitionFor_' . $attrs['type'];
-		$sql = $this->$method($attrs);
+    /**
+     * Возвращает объявление поля
+     *
+     * @param array $attrs  атрибуты поля
+     *
+     * @throws InvalidArgumentException  в случае если в $attrs нет нужных элементов или их значения
+     *                                   неверны
+     *
+     * @return string
+     *
+     * @since 1.00
+     */
+    private function getFieldDefinition(array $attrs)
+    {
+        if (!array_key_exists('type', $attrs))
+        {
+            throw new InvalidArgumentException('No type specified for field');
+        }
 
-		return $sql;
-	}
-	//-----------------------------------------------------------------------------
+        if (!in_array($attrs['type'], ORM::fieldTypes()))
+        {
+            throw new InvalidArgumentException('Invalid type "' . $attrs['type'] . '"');
+        }
 
-	/**
-	 * Возвращает SQL-объявление поля типа boolean
-	 *
-	 * @param array $attrs  атрибуты поля
-	 *
-	 * @return string  SQL
-	 *
-	 * @since 1.00
-	 *
-	 * @SuppressWarnings(PHPMD.UnusedPrivateMethod)
-	 */
-	private function getDefinitionFor_boolean(array $attrs)
-	{
-		$sql = 'BOOL';
-		$sql .= $this->getDefinitionFor_DEFAULT($attrs);
-		return $sql;
-	}
-	//-----------------------------------------------------------------------------
+        $method = 'getDefinitionFor' . $attrs['type'];
+        $sql = $this->$method($attrs);
 
-	/**
-	 * Возвращает SQL-объявление поля типа date
-	 *
-	 * @param array $attrs  атрибуты поля
-	 *
-	 * @return string  SQL
-	 *
-	 * @since 1.00
-	 *
-	 * @SuppressWarnings(PHPMD.UnusedPrivateMethod)
-	 */
-	private function getDefinitionFor_date(array $attrs)
-	{
-		$sql = 'DATE';
-		$sql .= $this->getDefinitionFor_DEFAULT($attrs);
-		return $sql;
-	}
-	//-----------------------------------------------------------------------------
+        return $sql;
+    }
 
-	/**
-	 * Возвращает SQL-объявление поля типа float
-	 *
-	 * @param array $attrs  атрибуты поля
-	 *
-	 * @return string  SQL
-	 *
-	 * @since 1.00
-	 *
-	 * @SuppressWarnings(PHPMD.UnusedPrivateMethod)
-	 */
-	private function getDefinitionFor_float(array $attrs)
-	{
-		if (isset($attrs['length']) && 2147483647 == $attrs['length'])
-		{
-			$sql = 'DOUBLE';
-		}
-		else
-		{
-			$sql = 'FLOAT';
-		}
-		$sql .= $this->getDefinitionFor_DEFAULT($attrs);
-		return $sql;
-	}
-	//-----------------------------------------------------------------------------
+    /** @noinspection PhpUnusedPrivateMethodInspection */
+    /**
+     * Возвращает SQL-объявление поля типа boolean
+     *
+     * @param array $attrs  атрибуты поля
+     *
+     * @return string  SQL
+     *
+     * @since 1.00
+     *
+     * @SuppressWarnings(PHPMD.UnusedPrivateMethod)
+     */
+    private function getDefinitionForBoolean(array $attrs)
+    {
+        $sql = 'BOOL';
+        $sql .= $this->getDefinitionForDefault($attrs);
+        return $sql;
+    }
 
-	/**
-	 * Возвращает SQL-объявление поля типа integer
-	 *
-	 * @param array $attrs  атрибуты поля
-	 *
-	 * @return string  SQL
-	 *
-	 * @since 1.00
-	 *
-	 * @SuppressWarnings(PHPMD.UnusedPrivateMethod)
-	 */
-	private function getDefinitionFor_integer(array $attrs)
-	{
-		$sql = 'INT';
-		$length = isset($attrs['length']) ? $attrs['length'] : 10;
-		$sql .= '(' . $length . ')';
-		if (@$attrs['unsigned'])
-		{
-			$sql .= ' UNSIGNED';
-		}
-		if (@$attrs['autoincrement'])
-		{
-			$sql .= ' AUTO_INCREMENT';
-		}
-		$sql .= $this->getDefinitionFor_DEFAULT($attrs);
-		return $sql;
-	}
-	//-----------------------------------------------------------------------------
+    /** @noinspection PhpUnusedPrivateMethodInspection */
+    /**
+     * Возвращает SQL-объявление поля типа date
+     *
+     * @param array $attrs  атрибуты поля
+     *
+     * @return string  SQL
+     *
+     * @since 1.00
+     *
+     * @SuppressWarnings(PHPMD.UnusedPrivateMethod)
+     */
+    private function getDefinitionForDate(array $attrs)
+    {
+        $sql = 'DATE';
+        $sql .= $this->getDefinitionForDefault($attrs);
+        return $sql;
+    }
 
-	/**
-	 * Возвращает SQL-объявление поля типа string
-	 *
-	 * @param array $attrs  атрибуты поля
-	 *
-	 * @return string  SQL
-	 *
-	 * @since 1.00
-	 *
-	 * @SuppressWarnings(PHPMD.UnusedPrivateMethod)
-	 */
-	private function getDefinitionFor_string(array $attrs)
-	{
-		if (isset($attrs['length']) && 255 >= $attrs['length'])
-		{
-			$sql = 'VARCHAR(' . $attrs['length'] . ')';
-		}
-		elseif (!isset($attrs['length']) || 65535 >= $attrs['length'])
-		{
-			$sql = 'TEXT';
-		}
-		else
-		{
-			$sql = 'LONGTEXT';
-		}
-		$sql .= $this->getDefinitionFor_DEFAULT($attrs);
-		return $sql;
-	}
-	//-----------------------------------------------------------------------------
+    /** @noinspection PhpUnusedPrivateMethodInspection */
+    /**
+     * Возвращает SQL-объявление поля типа float
+     *
+     * @param array $attrs  атрибуты поля
+     *
+     * @return string  SQL
+     *
+     * @since 1.00
+     *
+     * @SuppressWarnings(PHPMD.UnusedPrivateMethod)
+     */
+    private function getDefinitionForFloat(array $attrs)
+    {
+        if (isset($attrs['length']) && 2147483647 == $attrs['length'])
+        {
+            $sql = 'DOUBLE';
+        }
+        else
+        {
+            $sql = 'FLOAT';
+        }
+        $sql .= $this->getDefinitionForDefault($attrs);
+        return $sql;
+    }
 
-	/**
-	 * Возвращает SQL-объявление поля типа time
-	 *
-	 * @param array $attrs  атрибуты поля
-	 *
-	 * @return string  SQL
-	 *
-	 * @since 1.00
-	 *
-	 * @SuppressWarnings(PHPMD.UnusedPrivateMethod)
-	 */
-	private function getDefinitionFor_time(array $attrs)
-	{
-		$sql = 'TIME';
-		$sql .= $this->getDefinitionFor_DEFAULT($attrs);
-		return $sql;
-	}
-	//-----------------------------------------------------------------------------
+    /** @noinspection PhpUnusedPrivateMethodInspection */
+    /**
+     * Возвращает SQL-объявление поля типа integer
+     *
+     * @param array $attrs  атрибуты поля
+     *
+     * @return string  SQL
+     *
+     * @since 1.00
+     *
+     * @SuppressWarnings(PHPMD.UnusedPrivateMethod)
+     */
+    private function getDefinitionForInteger(array $attrs)
+    {
+        $sql = 'INT';
+        $length = isset($attrs['length']) ? $attrs['length'] : 10;
+        $sql .= '(' . $length . ')';
+        if (@$attrs['unsigned'])
+        {
+            $sql .= ' UNSIGNED';
+        }
+        if (@$attrs['autoincrement'])
+        {
+            $sql .= ' AUTO_INCREMENT';
+        }
+        $sql .= $this->getDefinitionForDefault($attrs);
+        return $sql;
+    }
 
-	/**
-	 * Возвращает SQL-объявление поля типа timestamp
-	 *
-	 * @param array $attrs  атрибуты поля
-	 *
-	 * @return string  SQL
-	 *
-	 * @since 1.00
-	 *
-	 * @SuppressWarnings(PHPMD.UnusedPrivateMethod)
-	 */
-	private function getDefinitionFor_timestamp(array $attrs)
-	{
-		$sql = 'TIMESTAMP';
-		$sql .= $this->getDefinitionFor_DEFAULT($attrs);
-		return $sql;
-	}
-	//-----------------------------------------------------------------------------
+    /** @noinspection PhpUnusedPrivateMethodInspection */
+    /**
+     * Возвращает SQL-объявление поля типа string
+     *
+     * @param array $attrs  атрибуты поля
+     *
+     * @return string  SQL
+     *
+     * @since 1.00
+     *
+     * @SuppressWarnings(PHPMD.UnusedPrivateMethod)
+     */
+    private function getDefinitionForString(array $attrs)
+    {
+        if (isset($attrs['length']) && 255 >= $attrs['length'])
+        {
+            $sql = 'VARCHAR(' . $attrs['length'] . ')';
+        }
+        elseif (!isset($attrs['length']) || 65535 >= $attrs['length'])
+        {
+            $sql = 'TEXT';
+        }
+        else
+        {
+            $sql = 'LONGTEXT';
+        }
+        $sql .= $this->getDefinitionForDefault($attrs);
+        return $sql;
+    }
 
-	/**
-	 * Возвращает SQL-объявление значения по умолчанию для поля
-	 *
-	 * @param array $attrs  атрибуты поля
-	 *
-	 * @return string  SQL
-	 *
-	 * @since 1.00
-	 */
-	private function getDefinitionFor_DEFAULT(array $attrs)
-	{
-		$sql = '';
-		if (array_key_exists('default', $attrs))
-		{
-			$sql .= ' DEFAULT ';
-			if (is_null($attrs['default']))
-			{
-				$sql .= 'NULL';
-			}
-			elseif (in_array($attrs['type'], array('date', 'string', 'time', 'timestamp')))
-			{
-				$sql .= '\'' . $attrs['default'] . '\'';
-			}
-			else
-			{
-				$sql .= $attrs['default'];
-			}
-		}
-		return $sql;
-	}
-	//-----------------------------------------------------------------------------
+    /** @noinspection PhpUnusedPrivateMethodInspection */
+    /**
+     * Возвращает SQL-объявление поля типа time
+     *
+     * @param array $attrs  атрибуты поля
+     *
+     * @return string  SQL
+     *
+     * @since 1.00
+     *
+     * @SuppressWarnings(PHPMD.UnusedPrivateMethod)
+     */
+    private function getDefinitionForTime(array $attrs)
+    {
+        $sql = 'TIME';
+        $sql .= $this->getDefinitionForDefault($attrs);
+        return $sql;
+    }
+
+    /** @noinspection PhpUnusedPrivateMethodInspection */
+    /**
+     * Возвращает SQL-объявление поля типа timestamp
+     *
+     * @param array $attrs  атрибуты поля
+     *
+     * @return string  SQL
+     *
+     * @since 1.00
+     *
+     * @SuppressWarnings(PHPMD.UnusedPrivateMethod)
+     */
+    private function getDefinitionForTimestamp(array $attrs)
+    {
+        $sql = 'TIMESTAMP';
+        $sql .= $this->getDefinitionForDefault($attrs);
+        return $sql;
+    }
+
+    /** @noinspection PhpUnusedPrivateMethodInspection */
+    /**
+     * Возвращает SQL-объявление значения по умолчанию для поля
+     *
+     * @param array $attrs  атрибуты поля
+     *
+     * @return string  SQL
+     *
+     * @since 1.00
+     */
+    private function getDefinitionForDefault(array $attrs)
+    {
+        $sql = '';
+        if (array_key_exists('default', $attrs))
+        {
+            $sql .= ' DEFAULT ';
+            if (is_null($attrs['default']))
+            {
+                $sql .= 'NULL';
+            }
+            elseif (in_array($attrs['type'], array('date', 'string', 'time', 'timestamp')))
+            {
+                $sql .= '\'' . $attrs['default'] . '\'';
+            }
+            elseif (in_array($attrs['type'], array('boolean')))
+            {
+                $sql .= $attrs['default'] ? '1' : '0';
+            }
+            else
+            {
+                $sql .= $attrs['default'];
+            }
+        }
+        return $sql;
+    }
 }
+
