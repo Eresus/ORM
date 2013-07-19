@@ -201,7 +201,7 @@ abstract class ORM_Table
     public function create()
     {
         $this->getDriver()->createTable($this->getTableName(), $this->getColumns(),
-            $this->getPrimaryKey(), $this->indexes);
+            $this->getPrimaryKey(), $this->getIndexes());
     }
 
     /**
