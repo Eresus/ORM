@@ -75,7 +75,7 @@ abstract class ORM_Table
      *
      * @var string
      */
-    private $primaryKey = null;
+    private $primaryKey = 'id';
 
     /**
      * Порядок сортировки
@@ -92,6 +92,15 @@ abstract class ORM_Table
      * @var array
      */
     private $indexes = array();
+
+    /**
+     * Реестр объектов
+     *
+     * @var ORM_Entity[]
+     *
+     * @since 2.02
+     */
+    private $registry = array();
 
     /**
      * Конструктор
@@ -647,12 +656,25 @@ abstract class ORM_Table
      *
      * @param array $values
      *
+     * @throws InvalidArgumentException
+     *
      * @return ORM_Entity
      *
      * @since 1.00
      */
     protected function entityFactory(array $values)
     {
+        if (!array_key_exists($this->getPrimaryKey(), $values))
+        {
+            throw new InvalidArgumentException('Primary key value not found $values argument.');
+        }
+
+        $id = $values[$this->getPrimaryKey()];
+        if (array_key_exists($id, $this->registry))
+        {
+            return $this->registry[$id];
+        }
+
         $entityClass = $this->getEntityClass();
         foreach ($this->getColumns() as $name => $attrs)
         {
@@ -666,6 +688,7 @@ abstract class ORM_Table
             }
         }
         $entity = new $entityClass($this->plugin, $values);
+        $this->registry[$id] = $entity;
         return $entity;
     }
 

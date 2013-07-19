@@ -598,6 +598,25 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
         $this->assertInstanceOf('DateTime', $entity->timestamp);
         $this->assertEquals('03.02.12 13:45', $entity->timestamp->format('d.m.y H:i'));
     }
+
+    /**
+     * @covers ORM_Table::entityFactory
+     * @see https://github.com/Eresus/ORM/issues/5
+     */
+    public function testEntityFactorySingletons()
+    {
+        $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
+            setMethods(array('setTableDefinition', 'getEntityClass', 'getColumns'))->getMock();
+        $table->expects($this->any())->method('getEntityClass')->
+            will($this->returnValue('ORM_Table_Test_Plugin_Entity_Foo'));
+        $table->expects($this->any())->method('getColumns')->
+            will($this->returnValue(array('id' => array('type' => 'integer'))));
+        $entityFactory = new ReflectionMethod('ORM_Table', 'entityFactory');
+        $entityFactory->setAccessible(true);
+
+        $entity = $entityFactory->invoke($table, array('id' => 123));
+        $this->assertSame($entity, $entityFactory->invoke($table, array('id' => 123)));
+    }
 }
 
 class ORM_Table_Test_Plugin_Entity_Foo extends ORM_Entity
