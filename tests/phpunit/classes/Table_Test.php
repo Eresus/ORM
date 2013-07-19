@@ -168,8 +168,9 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
     {
         $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
             setMethods(array('setTableDefinition'))->getMock();
+        $EresusPlugin = 'Eresus_Plugin'; // Обманываем IDEA
         /** @var ORM_Table $table */
-        $table->__construct(new Plugin);
+        $table->__construct(new $EresusPlugin);
         $hasColumns = new ReflectionMethod('ORM_Table', 'hasColumns');
         $hasColumns->setAccessible(true);
         $hasColumns->invoke($table, array(
@@ -190,7 +191,12 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
             ->will($this->returnValue($handler));
         DB::setMock($DB);
 
-        $table->persist($this->getMockForAbstractClass('ORM_Entity', array(new Plugin)));
+        $entity = $this->getMockBuilder('ORM_Entity')->disableOriginalConstructor()
+            ->setMethods(array('getTable'))->getMock();
+        $entity->expects($this->any())->method('getTable')
+            ->will($this->returnValue(new \Mekras\TestDoubles\UniversalStub()));
+        /** @var ORM_Entity $entity */
+        $table->persist($entity);
     }
 
     /**
@@ -432,13 +438,12 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
     {
         $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
             setMethods(array('setTableDefinition'))->getMock();
-        $m_setTableName = new ReflectionMethod('ORM_Table', 'setTableName');
-        $m_setTableName->setAccessible(true);
-        $m_getTableName = new ReflectionMethod('ORM_Table', 'getTableName');
-        $m_getTableName->setAccessible(true);
+        $setTableName = new ReflectionMethod('ORM_Table', 'setTableName');
+        $setTableName->setAccessible(true);
 
-        $m_setTableName->invoke($table, 'foo');
-        $this->assertEquals('foo', $m_getTableName->invoke($table));
+        $setTableName->invoke($table, 'foo');
+        /** @var ORM_Table $table */
+        $this->assertEquals('foo', $table->getTableName());
     }
 
     /**
@@ -465,9 +470,8 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
         $p_columns->setAccessible(true);
         $this->assertEquals(2, count($p_columns->getValue($table)));
 
-        $m_getPrimaryKey = new ReflectionMethod('ORM_Table', 'getPrimaryKey');
-        $m_getPrimaryKey->setAccessible(true);
-        $this->assertEquals('id', $m_getPrimaryKey->invoke($table));
+        /** @var ORM_Table $table */
+        $this->assertEquals('id', $table->getPrimaryKey());
     }
 
     /**
@@ -490,10 +494,8 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
         $uid = 'A' . uniqid();
         $table = $this->getMockBuilder('ORM_Table')->setMockClassName($uid . '_Table_Foo')->
             disableOriginalConstructor()->setMethods(array('setTableDefinition'))->getMock();
-        $m_getEntityClass = new ReflectionMethod('ORM_Table', 'getEntityClass');
-        $m_getEntityClass->setAccessible(true);
-
-        $this->assertEquals($uid . '_Foo', $m_getEntityClass->invoke($table));
+        /** @var ORM_Table $table */
+        $this->assertEquals($uid . '_Foo', $table->getEntityClass());
     }
 
     /**
@@ -579,26 +581,26 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
      */
     public function testEntityFactory()
     {
-        $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
-            setMethods(array('setTableDefinition', 'getEntityClass'))->getMock();
+        $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()
+            ->setMethods(array('setTableDefinition', 'getEntityClass', 'getColumns'))->getMock();
 
         $table->expects($this->once())->method('getEntityClass')->
             will($this->returnValue('ORM_Table_Test_Plugin_Entity_Foo'));
-
-        $p_plugin = new ReflectionProperty('ORM_Table', 'plugin');
-        $p_plugin->setAccessible(true);
-        $p_plugin->setValue($table, new Plugin);
-        $p_columns = new ReflectionProperty('ORM_Table', 'columns');
-        $p_columns->setAccessible(true);
-        $p_columns->setValue($table, array(
+        $table->expects($this->once())->method('getColumns')->
+            will($this->returnValue(array(
             'id' => array('type' => 'integer'),
             'time' => array('type' => 'time'),
             'timestamp' => array('type' => 'timestamp'),
-        ));
-        $m_entityFactory = new ReflectionMethod('ORM_Table', 'entityFactory');
-        $m_entityFactory->setAccessible(true);
+        )));
+        $plugin = new ReflectionProperty('ORM_Table', 'plugin');
+        $plugin->setAccessible(true);
+        $EresusPlugin = 'Eresus_Plugin';
+        $plugin->setValue($table, new $EresusPlugin);
 
-        $entity = $m_entityFactory->invoke($table,array(
+        $entityFactory = new ReflectionMethod('ORM_Table', 'entityFactory');
+        $entityFactory->setAccessible(true);
+
+        $entity = $entityFactory->invoke($table, array(
             'id' => 123,
             'time' => '12:34',
             'timestamp' => '2012-02-03 13:45'
@@ -631,5 +633,9 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
 
 class ORM_Table_Test_Plugin_Entity_Foo extends ORM_Entity
 {
+    public function getTable()
+    {
+        return new \Mekras\TestDoubles\UniversalStub();
+    }
 }
 

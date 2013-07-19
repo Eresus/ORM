@@ -209,8 +209,19 @@ abstract class ORM_Table
      */
     public function create()
     {
-        $this->getDriver()->createTable($this->getTableName(), $this->getColumns(),
-            $this->getPrimaryKey(), $this->getIndexes());
+        $columns = $this->getColumns();
+        foreach ($columns as &$attrs)
+        {
+            switch (@$attrs['type'])
+            {
+                case 'entity':
+                    $attrs['type'] = 'integer';
+                    $attrs['unsigned'] = true;
+                    break;
+            }
+        }
+        $this->getDriver()->createTable($this->getTableName(), $columns, $this->getPrimaryKey(),
+            $this->getIndexes());
     }
 
     /**
@@ -622,6 +633,7 @@ abstract class ORM_Table
                 $type = PDO::PARAM_BOOL;
                 break;
             case 'integer':
+            case 'entity':
                 $type = PDO::PARAM_INT;
                 break;
             case 'float':
@@ -657,6 +669,16 @@ abstract class ORM_Table
         {
             throw new InvalidArgumentException('$ormFieldType must be of type string, ' .
                 gettype($ormFieldType) . ' given');
+        }
+
+        switch ($ormFieldType)
+        {
+            case 'entity':
+                $ormFieldType = 'integer';
+                if (is_object($ormValue))
+                {
+                    $ormValue = $ormValue->{$this->getPrimaryKey()};
+                }
         }
 
         return $this->getDriver()->pdoFieldValue($ormValue, $ormFieldType);

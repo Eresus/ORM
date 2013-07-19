@@ -49,14 +49,19 @@ class ORM_Entity_Test extends PHPUnit_Framework_TestCase
      * @covers ORM_Entity::__get
      * @covers ORM_Entity::__set
      */
-    public function test_overview()
+    public function testOverview()
     {
         $entity = $this->getMockBuilder('ORM_Entity')->disableOriginalConstructor()->
-            setMethods(array('getFoo', 'setFoo'))->getMock();
+            setMethods(array('getFoo', 'setFoo', 'getTable'))->getMock();
         $entity->expects($this->once())->method('getFoo')->will($this->returnValue('baz'));
         $entity->expects($this->once())->method('setFoo')->with('baz');
-        $plugin = new Plugin;
+        $entity->expects($this->any())->method('getTable')
+            ->will($this->returnValue(new \Mekras\TestDoubles\UniversalStub()));
+        $EresusPlugin = 'Eresus_Plugin'; // Обманываем IDEA
+        $plugin = new $EresusPlugin;
         $attrs = array('foo' => 'bar');
+
+        /** @var ORM_Entity $entity */
         $entity->__construct($plugin, $attrs);
 
         $p_plugin = new ReflectionProperty('ORM_Entity', 'plugin');
@@ -77,12 +82,11 @@ class ORM_Entity_Test extends PHPUnit_Framework_TestCase
         $this->assertEquals('foo', $entity->bar);
         $entity->bar = 'foo';
     }
-    //-----------------------------------------------------------------------------
 
     /**
      * @covers ORM_Entity::getTable
      */
-    public function test_getTable()
+    public function testGetTable()
     {
         $entity = $this->getMockForAbstractClass('ORM_Entity', array(new Plugin),
             'ORM_Entity_Test__Entity_GetTable');
@@ -93,6 +97,75 @@ class ORM_Entity_Test extends PHPUnit_Framework_TestCase
 
         $this->assertTrue($entity->getTable());
     }
-    //-----------------------------------------------------------------------------
+
+    /**
+     * @covers ORM_Entity::getProperty
+     */
+    public function testGetProperty()
+    {
+        $table = $this->getMock('stdClass', array('getColumns', 'find'));
+        $table->expects($this->any())->method('getColumns')
+            ->will($this->returnValue(array(
+                'foo' => array('type' => 'entity', 'class' => 'stdClass'),
+            )));
+        $table->expects($this->once())->method('find')->will($this->returnValue('object'));
+        $entity = $this->getMockBuilder('ORM_Entity')->disableOriginalConstructor()
+            ->setMethods(array('getTable'))->getMock();
+        $entity->expects($this->any())->method('getTable')->will($this->returnValue($table));
+        $Eresus_Plugin = 'Eresus_Plugin'; // Обманываем IDEA
+        $plugin = new $Eresus_Plugin;
+        $attrs = array('foo' => 123);
+
+        /** @var ORM_Entity $entity */
+        $entity->__construct($plugin, $attrs);
+
+        $attrsProperty = new ReflectionProperty('ORM_Entity', 'attrs');
+        $attrsProperty->setAccessible(true);
+        $this->assertEquals($attrs, $attrsProperty->getValue($entity));
+
+        $legacyKernel = new stdClass();
+        $legacyKernel->plugins = $this->getMock('stdClass', array('load'));
+        $legacyKernel->plugins->expects($this->any())->method('load')
+            ->will($this->returnValue(new $Eresus_Plugin));
+        $app = $this->getMock('stdClass', array('getLegacyKernel'));
+        $app->expects($this->any())->method('getLegacyKernel')
+            ->will($this->returnValue($legacyKernel));
+        $kernel = $this->getMock('stdClass', array('app'));
+        $kernel->expects($this->any())->method('app')->will($this->returnValue($app));
+        Eresus_Kernel::setMock($kernel);
+
+        $tables = new ReflectionProperty('ORM', 'tables');
+        $tables->setAccessible(true);
+        $tables->setValue(array(
+            'Eresus_Plugin_Entity_Table_tdClass' => $table,
+        ));
+
+        $this->assertEquals('object', $entity->getProperty('foo'));
+    }
+
+    /**
+     * @covers ORM_Entity::setProperty
+     */
+    public function testSetProperty()
+    {
+        $table = $this->getMock('stdClass', array('getColumns', 'getPrimaryKey'));
+        $table->expects($this->any())->method('getColumns')
+            ->will($this->returnValue(array(
+                'foo' => array('type' => 'entity', 'class' => 'stdClass'),
+            )));
+        $table->expects($this->any())->method('getPrimaryKey')->will($this->returnValue('id'));
+        $entity = $this->getMockBuilder('ORM_Entity')->disableOriginalConstructor()
+            ->setMethods(array('getTable'))->getMock();
+        $entity->expects($this->any())->method('getTable')->will($this->returnValue($table));
+
+        $attrsProperty = new ReflectionProperty('ORM_Entity', 'attrs');
+        $attrsProperty->setAccessible(true);
+
+        $obj = new stdClass();
+        $obj->id = 123;
+        /** @var ORM_Entity $entity */
+        $entity->setProperty('foo', $obj);
+        $this->assertEquals(array('foo' => 123), $attrsProperty->getValue($entity));
+    }
 }
 

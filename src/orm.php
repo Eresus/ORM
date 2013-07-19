@@ -75,7 +75,7 @@ class ORM extends Eresus_Plugin
      * @since 1.00
      */
     private static $filedTypes = array('boolean', 'date', 'float', 'integer', 'string', 'time',
-        'timestamp');
+        'timestamp', 'entity');
 
     /**
      * Возвращает объект таблицы для указанной сущности указанного плагина

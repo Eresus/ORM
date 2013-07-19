@@ -157,6 +157,20 @@ abstract class ORM_Entity
      */
     public function setProperty($key, $value)
     {
+        $columns = $this->getTable()->getColumns();
+        if (array_key_exists($key, $columns))
+        {
+            $column = $columns[$key];
+            switch (@$column['type'])
+            {
+                case 'entity':
+                    if (is_object($value))
+                    {
+                        $primaryKey = $this->getTable()->getPrimaryKey();
+                        $value = $value->{$primaryKey};
+                    }
+            }
+        }
         $this->attrs[$key] = $value;
     }
 
@@ -175,7 +189,27 @@ abstract class ORM_Entity
     {
         if (isset($this->attrs[$key]))
         {
-            return $this->attrs[$key];
+            $value = $this->attrs[$key];
+            $table = $this->getTable();
+            $columns = $table->getColumns();
+            if (array_key_exists($key, $columns))
+            {
+                $column = $columns[$key];
+                switch (@$column['type'])
+                {
+                    case 'entity':
+                        $entityPluginName
+                            = substr(@$column['class'], 0, strpos(@$column['class'], '_'));
+                        $entityPluginName = strtolower($entityPluginName);
+                        $plugin = Eresus_Kernel::app()->getLegacyKernel()->plugins
+                            ->load($entityPluginName);
+                        $entityName
+                            = substr(@$column['class'], strrpos(@$column['class'], '_') + 1);
+                        $table = ORM::getTable($plugin, $entityName);
+                        $value = $table->find($value);
+                }
+            }
+            return $value;
         }
 
         return null;
