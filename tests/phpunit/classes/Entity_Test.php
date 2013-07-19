@@ -42,56 +42,57 @@ require_once TESTS_SRC_DIR . '/orm/classes/Entity.php';
  */
 class ORM_Entity_Test extends PHPUnit_Framework_TestCase
 {
-	/**
-	 * @covers ORM_Entity::__construct
-	 * @covers ORM_Entity::getProperty
-	 * @covers ORM_Entity::setProperty
-	 * @covers ORM_Entity::__get
-	 * @covers ORM_Entity::__set
-	 */
-	public function test_overview()
-	{
-		$entity = $this->getMockBuilder('ORM_Entity')->disableOriginalConstructor()->
-			setMethods(array('getFoo', 'setFoo'))->getMock();
-		$entity->expects($this->once())->method('getFoo')->will($this->returnValue('baz'));
-		$entity->expects($this->once())->method('setFoo')->with('baz');
-		$plugin = new Plugin;
-		$attrs = array('foo' => 'bar');
-		$entity->__construct($plugin, $attrs);
+    /**
+     * @covers ORM_Entity::__construct
+     * @covers ORM_Entity::getProperty
+     * @covers ORM_Entity::setProperty
+     * @covers ORM_Entity::__get
+     * @covers ORM_Entity::__set
+     */
+    public function test_overview()
+    {
+        $entity = $this->getMockBuilder('ORM_Entity')->disableOriginalConstructor()->
+            setMethods(array('getFoo', 'setFoo'))->getMock();
+        $entity->expects($this->once())->method('getFoo')->will($this->returnValue('baz'));
+        $entity->expects($this->once())->method('setFoo')->with('baz');
+        $plugin = new Plugin;
+        $attrs = array('foo' => 'bar');
+        $entity->__construct($plugin, $attrs);
 
-		$p_plugin = new ReflectionProperty('ORM_Entity', 'plugin');
-		$p_plugin->setAccessible(true);
-		$this->assertSame($plugin, $p_plugin->getValue($entity));
+        $p_plugin = new ReflectionProperty('ORM_Entity', 'plugin');
+        $p_plugin->setAccessible(true);
+        $this->assertSame($plugin, $p_plugin->getValue($entity));
 
-		$p_attrs = new ReflectionProperty('ORM_Entity', 'attrs');
-		$p_attrs->setAccessible(true);
-		$this->assertEquals($attrs, $p_attrs->getValue($entity));
+        $p_attrs = new ReflectionProperty('ORM_Entity', 'attrs');
+        $p_attrs->setAccessible(true);
+        $this->assertEquals($attrs, $p_attrs->getValue($entity));
 
-		$this->assertEquals('bar', $entity->getProperty('foo'));
-		$this->assertNull($entity->getProperty('bar'));
-		$entity->setProperty('bar', 'foo');
-		$this->assertEquals('foo', $entity->getProperty('bar'));
+        $this->assertEquals('bar', $entity->getProperty('foo'));
+        $this->assertNull($entity->getProperty('bar'));
+        $entity->setProperty('bar', 'foo');
+        $this->assertEquals('foo', $entity->getProperty('bar'));
 
-		$this->assertEquals('baz', $entity->foo);
-		$entity->foo = 'baz';
-		$this->assertEquals('foo', $entity->bar);
-		$entity->bar = 'foo';
-	}
-	//-----------------------------------------------------------------------------
+        $this->assertEquals('baz', $entity->foo);
+        $entity->foo = 'baz';
+        $this->assertEquals('foo', $entity->bar);
+        $entity->bar = 'foo';
+    }
+    //-----------------------------------------------------------------------------
 
-	/**
-	 * @covers ORM_Entity::getTable
-	 */
-	public function test_getTable()
-	{
-		$entity = $this->getMockForAbstractClass('ORM_Entity', array(new Plugin),
-			'ORM_Entity_Test__Entity_GetTable');
+    /**
+     * @covers ORM_Entity::getTable
+     */
+    public function test_getTable()
+    {
+        $entity = $this->getMockForAbstractClass('ORM_Entity', array(new Plugin),
+            'ORM_Entity_Test__Entity_GetTable');
 
-		$p_tables = new ReflectionProperty('ORM', 'tables');
-		$p_tables->setAccessible(true);
-		$p_tables->setValue('ORM', array('Plugin_Entity_Table_GetTable' => true));
+        $p_tables = new ReflectionProperty('ORM', 'tables');
+        $p_tables->setAccessible(true);
+        $p_tables->setValue('ORM', array('Plugin_Entity_Table_GetTable' => true));
 
-		$this->assertTrue($entity->getTable());
-	}
-	//-----------------------------------------------------------------------------
+        $this->assertTrue($entity->getTable());
+    }
+    //-----------------------------------------------------------------------------
 }
+
