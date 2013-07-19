@@ -115,6 +115,83 @@ abstract class ORM_Table
     }
 
     /**
+     * Возвращает драйвер СУБД
+     *
+     * @return ORM_Driver_Abstract
+     *
+     * @since 2.02
+     */
+    public function getDriver()
+    {
+        return $this->driver;
+    }
+
+    /**
+     * Возвращает имя таблицы
+     *
+     * @return string
+     *
+     * @since 1.00, публичный с 2.02
+     */
+    public function getTableName()
+    {
+        return $this->tableName;
+    }
+
+    /**
+     * Возвращает имя класса сущности
+     *
+     * @return string
+     *
+     * @since 1.00, публичный с 2.02
+     */
+    public function getEntityClass()
+    {
+        if (is_null($this->entityClass))
+        {
+            $thisClass = get_class($this);
+            $this->entityClass = str_replace('_Table_', '_', $thisClass);
+        }
+        return $this->entityClass;
+    }
+
+    /**
+     * Возвращает поля таблицы
+     *
+     * @return array
+     *
+     * @since 2.02
+     */
+    public function getColumns()
+    {
+        return $this->columns;
+    }
+
+    /**
+     * Возвращает имя основного ключа
+     *
+     * @return string
+     *
+     * @since 1.00, публичный с 2.02
+     */
+    public function getPrimaryKey()
+    {
+        return $this->primaryKey;
+    }
+
+    /**
+     * Возвращает индексы
+     *
+     * @return array
+     *
+     * @since 2.02
+     */
+    public function getIndexes()
+    {
+        return $this->indexes;
+    }
+
+    /**
      * Создаёт таблицу в БД
      *
      * @return void
@@ -404,18 +481,6 @@ abstract class ORM_Table
     }
 
     /**
-     * Возвращает имя таблицы
-     *
-     * @return string
-     *
-     * @since 1.00
-     */
-    protected function getTableName()
-    {
-        return $this->tableName;
-    }
-
-    /**
      * Устанавливает описания столбцов
      *
      * Аргумент $columns должен быть ассоциативным массивом, где каждый элемент соответствует
@@ -466,35 +531,6 @@ abstract class ORM_Table
     protected function index($name, array $params)
     {
         $this->indexes[$name] = $params;
-    }
-
-    /**
-     * Возвращает имя класса сущности
-     *
-     * @return string
-     *
-     * @since 1.00
-     */
-    protected function getEntityClass()
-    {
-        if (is_null($this->entityClass))
-        {
-            $thisClass = get_class($this);
-            $this->entityClass = str_replace('_Table_', '_', $thisClass);
-        }
-        return $this->entityClass;
-    }
-
-    /**
-     * Возвращает имя основного ключа
-     *
-     * @return string
-     *
-     * @since 1.00
-     */
-    protected function getPrimaryKey()
-    {
-        return $this->primaryKey;
     }
 
     /**
