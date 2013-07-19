@@ -241,9 +241,9 @@ abstract class ORM_Table
         $entity->beforeSave($q);
         DB::execute($q);
         $columns = $this->getColumns();
-        if (@$columns[$this->primaryKey]['autoincrement'])
+        if (@$columns[$this->getPrimaryKey()]['autoincrement'])
         {
-            $entity->{$this->primaryKey} = DB::getHandler()->lastInsertId();
+            $entity->{$this->getPrimaryKey()} = DB::getHandler()->lastInsertId();
         }
         $entity->afterSave();
     }
