@@ -200,8 +200,8 @@ abstract class ORM_Table
      */
     public function create()
     {
-        $this->driver->createTable($this->getTableName(), $this->columns, $this->getPrimaryKey(),
-            $this->indexes);
+        $this->getDriver()->createTable($this->getTableName(), $this->columns,
+            $this->getPrimaryKey(), $this->indexes);
     }
 
     /**
@@ -213,7 +213,7 @@ abstract class ORM_Table
      */
     public function drop()
     {
-        $this->driver->dropTable($this->getTableName());
+        $this->getDriver()->dropTable($this->getTableName());
     }
 
     /**
@@ -634,7 +634,7 @@ abstract class ORM_Table
                 gettype($ormFieldType) . ' given');
         }
 
-        return $this->driver->pdoFieldValue($ormValue, $ormFieldType);
+        return $this->getDriver()->pdoFieldValue($ormValue, $ormFieldType);
     }
 
     /**
