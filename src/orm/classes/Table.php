@@ -200,7 +200,7 @@ abstract class ORM_Table
      */
     public function create()
     {
-        $this->getDriver()->createTable($this->getTableName(), $this->columns,
+        $this->getDriver()->createTable($this->getTableName(), $this->getColumns(),
             $this->getPrimaryKey(), $this->indexes);
     }
 
@@ -240,7 +240,8 @@ abstract class ORM_Table
         $this->bindValuesToQuery($entity, $q);
         $entity->beforeSave($q);
         DB::execute($q);
-        if (@$this->columns[$this->primaryKey]['autoincrement'])
+        $columns = $this->getColumns();
+        if (@$columns[$this->primaryKey]['autoincrement'])
         {
             $entity->{$this->primaryKey} = DB::getHandler()->lastInsertId();
         }
@@ -265,10 +266,11 @@ abstract class ORM_Table
     public function update(ORM_Entity $entity)
     {
         $pKey = $this->getPrimaryKey();
+        $columns = $this->getColumns();
         $q = DB::getHandler()->createUpdateQuery();
         $q->update($this->getTableName())->
             where($q->expr->eq($pKey,
-                $q->bindValue($entity->$pKey, null, $this->pdoFieldType(@$this->columns[$pKey]['type']))
+                $q->bindValue($entity->$pKey, null, $this->pdoFieldType(@$columns[$pKey]['type']))
             ));
         $this->bindValuesToQuery($entity, $q);
         $entity->beforeSave($q);
@@ -288,10 +290,11 @@ abstract class ORM_Table
     public function delete(ORM_Entity $entity)
     {
         $pKey = $this->getPrimaryKey();
+        $columns = $this->getColumns();
         $q = DB::getHandler()->createDeleteQuery();
         $q->deleteFrom($this->getTableName())->
             where($q->expr->eq($pKey,
-                $q->bindValue($entity->$pKey, null, $this->pdoFieldType(@$this->columns[$pKey]['type']))
+                $q->bindValue($entity->$pKey, null, $this->pdoFieldType(@$columns[$pKey]['type']))
             ));
         $entity->beforeDelete($q);
         DB::execute($q);
@@ -347,9 +350,10 @@ abstract class ORM_Table
     public function find($id)
     {
         $pKey = $this->getPrimaryKey();
+        $columns = $this->getColumns();
         $q = $this->createSelectQuery();
         $q->where($q->expr->eq($pKey,
-            $q->bindValue($id, null, $this->pdoFieldType(@$this->columns[$pKey]['type']))));
+            $q->bindValue($id, null, $this->pdoFieldType(@$columns[$pKey]['type']))));
         return $this->loadOneFromQuery($q);
     }
 
@@ -368,6 +372,7 @@ abstract class ORM_Table
         $q->from($this->getTableName());
         if ($fill)
         {
+            $columns = $this->getColumns();
             $q->select('*');
             if (count($this->ordering))
             {
@@ -376,7 +381,7 @@ abstract class ORM_Table
                     call_user_func_array(array($q, 'orderBy'), $orderBy);
                 }
             }
-            elseif (isset($this->columns['position']))
+            elseif (isset($columns['position']))
             {
                 $q->orderBy('position');
             }
@@ -649,7 +654,7 @@ abstract class ORM_Table
     protected function entityFactory(array $values)
     {
         $entityClass = $this->getEntityClass();
-        foreach ($this->columns as $name => $attrs)
+        foreach ($this->getColumns() as $name => $attrs)
         {
             switch (@$attrs['type'])
             {
@@ -673,7 +678,7 @@ abstract class ORM_Table
     private function bindValuesToQuery(ORM_Entity $entity, ezcQuery $query)
     {
         /** @var ezcQueryInsert|ezcQueryUpdate $query */
-        foreach ($this->columns as $name => $attrs)
+        foreach ($this->getColumns() as $name => $attrs)
         {
             $type = $this->pdoFieldType(@$attrs['type']);
             $value = $this->pdoFieldValue($entity->getProperty($name), @$attrs['type']);
