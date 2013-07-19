@@ -358,12 +358,23 @@ abstract class ORM_Table
      */
     public function find($id)
     {
+        if (array_key_exists($id, $this->registry))
+        {
+            return $this->registry[$id];
+        }
+
         $pKey = $this->getPrimaryKey();
         $columns = $this->getColumns();
         $q = $this->createSelectQuery();
         $q->where($q->expr->eq($pKey,
             $q->bindValue($id, null, $this->pdoFieldType(@$columns[$pKey]['type']))));
-        return $this->loadOneFromQuery($q);
+        $entity = $this->loadOneFromQuery($q);
+
+        if (null !== $entity)
+        {
+            $this->registry[$id] = $entity;
+        }
+        return $entity;
     }
 
     /**

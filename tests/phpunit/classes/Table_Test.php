@@ -295,18 +295,28 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
     public function testFind()
     {
         $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
-            setMethods(array('setTableDefinition', 'getPrimaryKey', 'createSelectQuery',
-                'pdoFieldType', 'loadOneFromQuery'))->getMock();
+            setMethods(array('setTableDefinition', 'createSelectQuery', 'pdoFieldType',
+                'loadOneFromQuery'))->getMock();
 
-        $table->expects($this->once())->method('getPrimaryKey')->will($this->returnValue('id'));
         $q = $this->getMock('ezcQuerySelect', array('where'));
-        $q->expects($this->once())->method('where');
-        $table->expects($this->once())->method('createSelectQuery')->with(true)->
+        $q->expects($this->any())->method('where');
+        $table->expects($this->any())->method('createSelectQuery')->with(true)->
             will($this->returnValue($q));
-        $table->expects($this->once())->method('loadOneFromQuery')->with($q)->
-            will($this->returnValue('foo'));
+        $table->expects($this->any())->method('loadOneFromQuery')->with($q)->
+            will($this->returnCallback(
+                function ()
+                {
+                    $entity = new stdClass();
+                    $entity->id = 123;
+                    return $entity;
+                }
+            ));
 
-        $this->assertEquals('foo', $table->find(123));
+        /** @var ORM_Table $table */
+        $entity1 = $table->find(123);
+        $this->assertEquals(123, $entity1->id);
+        $entity2 = $table->find(123);
+        $this->assertSame($entity2, $entity1);
     }
 
     /**
