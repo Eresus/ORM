@@ -143,6 +143,18 @@ abstract class ORM_Entity
     }
 
     /**
+     * Возвращает значение основного ключа для этого объкта
+     *
+     * @return mixed
+     *
+     * @since 2.02
+     */
+    public function getPrimaryKey()
+    {
+        return $this->{$this->getTable()->getPrimaryKey()};
+    }
+
+    /**
      * Устанавливает значение свойства
      *
      * Метод не инициирует вызов сеттеров, но обрабатывает значение фильтрами
@@ -274,6 +286,8 @@ abstract class ORM_Entity
      * @throws InvalidArgumentException
      *
      * @return ORM_Table
+     *
+     * @since 2.02
      */
     protected function getTableByEntityClass($entityClass)
     {

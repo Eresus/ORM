@@ -34,6 +34,7 @@
 
 
 require_once __DIR__ . '/../bootstrap.php';
+require_once TESTS_SRC_DIR . '/orm.php';
 require_once TESTS_SRC_DIR . '/orm/classes/Entity.php';
 
 /**
@@ -166,6 +167,44 @@ class ORM_Entity_Test extends PHPUnit_Framework_TestCase
         /** @var ORM_Entity $entity */
         $entity->setProperty('foo', $obj);
         $this->assertEquals(array('foo' => 123), $attrsProperty->getValue($entity));
+    }
+
+    /**
+     * @covers ORM_Entity::getPrimaryKey
+     */
+    public function testGetPrimaryKey()
+    {
+        $plugin = $this->getMockBuilder('Eresus_Plugin')->disableOriginalConstructor()
+            ->setMockClassName('testGetPrimaryKey')->getMock();
+        $entity = $this->getMockBuilder('ORM_Entity')->setMethods(array('_'))
+            ->setMockClassName('testGetPrimaryKey_Entity_Bar')
+            ->setConstructorArgs(array($plugin))->getMock();
+        $attrs = new ReflectionProperty('ORM_Entity', 'attrs');
+        $attrs->setAccessible(true);
+        $attrs->setValue($entity, array('id' => 123));
+
+        $legacyKernel = new stdClass();
+        $legacyKernel->plugins = $this->getMock('stdClass', array('load'));
+        $legacyKernel->plugins->expects($this->any())->method('load')
+            ->will($this->returnValue($plugin));
+        $app = $this->getMock('stdClass', array('getLegacyKernel'));
+        $app->expects($this->any())->method('getLegacyKernel')
+            ->will($this->returnValue($legacyKernel));
+        $kernel = $this->getMock('stdClass', array('app'));
+        $kernel->expects($this->any())->method('app')->will($this->returnValue($app));
+        Eresus_Kernel::setMock($kernel);
+
+        $table = $this->getMockBuilder('stdClass')
+            ->setMethods(array('getPrimaryKey', 'getColumns'))
+            ->setMockClassName('testGetPrimaryKey_Entity_Table_Bar')->getMock();
+        $table->expects($this->any())->method('getPrimaryKey')->will($this->returnValue('id'));
+        $table->expects($this->any())->method('getColumns')->will($this->returnValue(array()));
+        $tables = new ReflectionProperty('ORM', 'tables');
+        $tables->setAccessible(true);
+        $tables->setValue(array('testGetPrimaryKey_Entity_Table_Bar' => $table));
+
+        /** @var ORM_Entity $entity */
+        $this->assertEquals(123, $entity->getPrimaryKey());
     }
 
     /**
