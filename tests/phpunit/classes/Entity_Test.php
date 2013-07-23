@@ -167,5 +167,33 @@ class ORM_Entity_Test extends PHPUnit_Framework_TestCase
         $entity->setProperty('foo', $obj);
         $this->assertEquals(array('foo' => 123), $attrsProperty->getValue($entity));
     }
+
+    /**
+     * @covers ORM_Entity::getTableByEntityClass
+     */
+    public function testGetTableByEntityClass()
+    {
+        $getTableByEntityClass = new ReflectionMethod('ORM_Entity', 'getTableByEntityClass');
+        $getTableByEntityClass->setAccessible(true);
+
+        $entity = $this->getMockBuilder('ORM_Entity')->disableOriginalConstructor()->getMock();
+
+        $plugin = $this->getMockBuilder('Eresus_Plugin')->disableOriginalConstructor()
+            ->setMockClassName('Foo')->getMock();
+        $legacyKernel = new stdClass();
+        $legacyKernel->plugins = $this->getMock('stdClass', array('load'));
+        $legacyKernel->plugins->expects($this->any())->method('load')
+            ->will($this->returnValue($plugin));
+        $app = $this->getMock('stdClass', array('getLegacyKernel'));
+        $app->expects($this->any())->method('getLegacyKernel')
+            ->will($this->returnValue($legacyKernel));
+        $kernel = $this->getMock('stdClass', array('app'));
+        $kernel->expects($this->any())->method('app')->will($this->returnValue($app));
+        Eresus_Kernel::setMock($kernel);
+
+        $this->getMockBuilder('stdClass')->setMockClassName('Foo_Entity_Table_Bar')->getMock();
+        $this->assertInstanceOf('Foo_Entity_Table_Bar',
+            $getTableByEntityClass->invoke($entity, 'Foo_Entity_Bar'));
+    }
 }
 

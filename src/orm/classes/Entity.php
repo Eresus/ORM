@@ -198,14 +198,7 @@ abstract class ORM_Entity
                 switch (@$column['type'])
                 {
                     case 'entity':
-                        $entityPluginName
-                            = substr(@$column['class'], 0, strpos(@$column['class'], '_'));
-                        $entityPluginName = strtolower($entityPluginName);
-                        $plugin = Eresus_Kernel::app()->getLegacyKernel()->plugins
-                            ->load($entityPluginName);
-                        $entityName
-                            = substr(@$column['class'], strrpos(@$column['class'], '_') + 1);
-                        $table = ORM::getTable($plugin, $entityName);
+                        $table = $this->getTableByEntityClass(@$column['class']);
                         $value = $table->find($value);
                 }
             }
@@ -272,5 +265,29 @@ abstract class ORM_Entity
     {
     }
     //@codeCoverageIgnoreEnd
+
+    /**
+     * Возвращает таблицу по имени класса сущности
+     *
+     * @param string $entityClass
+     *
+     * @throws InvalidArgumentException
+     *
+     * @return ORM_Table
+     */
+    protected function getTableByEntityClass($entityClass)
+    {
+        if ('' === strval($entityClass))
+        {
+            throw new InvalidArgumentException('$entityClass can not be blank');
+        }
+        $entityPluginName = substr($entityClass, 0, strpos($entityClass, '_'));
+        $entityPluginName = strtolower($entityPluginName);
+        $plugin = Eresus_Kernel::app()->getLegacyKernel()->plugins
+            ->load($entityPluginName);
+        $entityName = substr($entityClass, strrpos($entityClass, '_') + 1);
+        $table = ORM::getTable($plugin, $entityName);
+        return $table;
+    }
 }
 
