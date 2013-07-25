@@ -711,7 +711,7 @@ abstract class ORM_Table
     {
         if (!array_key_exists($this->getPrimaryKey(), $values))
         {
-            throw new InvalidArgumentException('Primary key value not found $values argument.');
+            throw new InvalidArgumentException('Primary key value not found in $values argument.');
         }
 
         $id = $values[$this->getPrimaryKey()];
