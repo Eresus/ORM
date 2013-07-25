@@ -189,6 +189,18 @@ abstract class ORM_Table
     }
 
     /**
+     * Возвращает сортировку
+     *
+     * @return array
+     *
+     * @since 2.02
+     */
+    public function getOrdering()
+    {
+        return $this->ordering;
+    }
+
+    /**
      * Возвращает индексы
      *
      * @return array
