@@ -50,13 +50,13 @@ abstract class ORM_Table
      */
     protected static $orm2pdoTypeMap = array(
         'boolean' => PDO::PARAM_BOOL,
-        'integer' => PDO::PARAM_INT,
+        'date' => PDO::PARAM_STR,
         'entity' => PDO::PARAM_INT,
         'float' => null,
+        'integer' => PDO::PARAM_INT,
         'string' => PDO::PARAM_STR,
-        'timestamp' => PDO::PARAM_STR,
         'time' => PDO::PARAM_STR,
-        'date' => PDO::PARAM_STR,
+        'timestamp' => PDO::PARAM_STR,
     );
 
     /**
@@ -868,7 +868,7 @@ abstract class ORM_Table
         /** @var ezcQueryInsert|ezcQueryUpdate $query */
         foreach ($this->getColumns() as $name => $attrs)
         {
-            if ('bindings' == @$attrs['type'])
+            if (in_array(@$attrs['type'], array('bindings', 'entities')))
             {
                 continue;
             }

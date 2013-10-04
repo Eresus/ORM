@@ -81,8 +81,8 @@ class ORM extends Plugin
      * @var array
      * @since 1.00
      */
-    private static $filedTypes = array('boolean', 'date', 'datetime', 'float', 'integer', 'string',
-        'time', 'timestamp', 'entity');
+    private static $filedTypes = array('boolean', 'date', 'datetime', 'entity', 'entities', 'float',
+        'integer', 'string', 'time', 'timestamp');
 
     /**
      * Задаёт используемый драйвер СУБД

@@ -61,6 +61,9 @@ class ORM_Driver_MySQL extends ORM_Driver_Abstract
                 case 'bindings':
                     $this->createBindingTable($table, $name);
                     break;
+                case 'entities':
+                    // Для этого типа поле в таблице не нужно
+                    break;
                 default:
                     $sql []= $name . ' ' . $this->getFieldDefinition($attrs);
             }
