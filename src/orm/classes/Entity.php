@@ -126,7 +126,7 @@ abstract class ORM_Entity
         {
             $this->setProperty($key, $value);
         }
-        $this->gettersCache[$key] = $value;
+        unset($this->gettersCache[$key]);
     }
 
     /**
