@@ -209,59 +209,27 @@ abstract class ORM_Entity
      */
     public function getProperty($key)
     {
-        if (isset($this->attrs[$key]))
+        $value = isset($this->attrs[$key]) ? $this->attrs[$key] : null;
+
+        $table = $this->getTable();
+        $columns = $table->getColumns();
+        if (array_key_exists($key, $columns))
         {
-            $value = $this->attrs[$key];
-            $table = $this->getTable();
-            $columns = $table->getColumns();
-            if (array_key_exists($key, $columns))
+            $column = $columns[$key];
+            switch (@$column['type'])
             {
-                $column = $columns[$key];
-                switch (@$column['type'])
-                {
-                    case 'bindings':
-                        if (null === $value && $this->getPrimaryKey())
-                        {
-                            $q = DB::getHandler()->createSelectQuery();
-                            $q->select($key);
-                            $q->from($this->getTable()->getBindingsTableName($key));
-                            $q->where(
-                                $q->expr->eq(
-                                    preg_replace('/^.*?_/', '', $this->getTable()->getName()),
-                                    $q->bindValue($this->getPrimaryKey())
-                                ));
-                            $bindings = DB::fetchAll($q);
-                            $value = array();
-                            foreach ($bindings as $binding)
-                            {
-                                $value []= $binding[$key];
-                            }
-                        }
-
-                        if (null === $value)
-                        {
-                            $value = new SplObjectStorage();
-                        }
-                        else
-                        {
-                            $targetTable = $this->getTableByEntityClass(@$column['class']);
-                            $collection = new SplObjectStorage();
-                            foreach ($value as $item)
-                            {
-                                $collection->attach($targetTable->find($item));
-                            }
-                            $value = $collection;
-                        }
-                        break;
-                    case 'entity':
-                        $table = $this->getTableByEntityClass(@$column['class']);
-                        $value = $table->find($value);
-                }
+                case 'bindings':
+                    $value = $this->getBindedEntities($key, $column);
+                    break;
+                case 'entities':
+                    $value = $this->getEntities($column);
+                    break;
+                case 'entity':
+                    $table = $this->getTableByEntityClass(@$column['class']);
+                    $value = $table->find($value);
             }
-            return $value;
         }
-
-        return null;
+        return $value;
     }
 
     //@codeCoverageIgnoreStart
@@ -398,6 +366,67 @@ abstract class ORM_Entity
         $entityName = substr($entityClass, strrpos($entityClass, '_') + 1);
         $table = ORM::getTable($plugin, $entityName);
         return $table;
+    }
+
+    /**
+     * Возвращает объекты-значения указанного поля
+     *
+     * @param array  $column
+     *
+     * @return SplObjectStorage
+     */
+    protected function getEntities(array $column)
+    {
+        if ($this->getPrimaryKey())
+        {
+            $table = $this->getTableByEntityClass(@$column['class']);
+            return $table->findAllBy(array(@$column['reference'] => $this->getPrimaryKey()));
+        }
+        else
+        {
+            return new SplObjectStorage();
+        }
+    }
+
+    /**
+     * Возвращает объекты, привязанные к указанному полю
+     *
+     * @param string $key
+     * @param array  $column
+     *
+     * @return SplObjectStorage
+     */
+    protected function getBindedEntities($key, array $column)
+    {
+        if ($this->getPrimaryKey())
+        {
+            $q = DB::getHandler()->createSelectQuery();
+            $q->select($key);
+            $q->from($this->getTable()->getBindingsTableName($key));
+            $q->where(
+                $q->expr->eq(
+                    preg_replace('/^.*?_/', '', $this->getTable()->getName()),
+                    $q->bindValue($this->getPrimaryKey())
+                ));
+            $bindings = DB::fetchAll($q);
+            $value = array();
+            foreach ($bindings as $binding)
+            {
+                $value [] = $binding[$key];
+            }
+            $targetTable = $this->getTableByEntityClass(@$column['class']);
+            $collection = new SplObjectStorage();
+            foreach ($value as $item)
+            {
+                $collection->attach($targetTable->find($item));
+            }
+            $value = $collection;
+            return $value;
+        }
+        else
+        {
+            return new SplObjectStorage();
+        }
     }
 }
 

@@ -351,7 +351,8 @@ abstract class ORM_Table
         $q = DB::getHandler()->createDeleteQuery();
         $q->deleteFrom($this->getName())->
             where($q->expr->eq($pKey,
-                $q->bindValue($entity->$pKey, null, $this->pdoFieldType(@$columns[$pKey]['type']))
+                $q->bindValue($entity->getPrimaryKey(), null,
+                    $this->pdoFieldType(@$columns[$pKey]['type']))
             ));
         $entity->beforeDelete($q);
         DB::execute($q);
@@ -513,7 +514,7 @@ abstract class ORM_Table
      * @param int            $limit   максимум элементов, который следует вернуть
      * @param int            $offset  сколько элементов пропустить
      *
-     * @return array
+     * @return SplObjectStorage
      *
      * @since 1.00
      */
@@ -524,12 +525,12 @@ abstract class ORM_Table
             $query->limit($limit, $offset);
         }
         $raw = DB::fetchAll($query);
-        $items = array();
+        $items = new SplObjectStorage();
         if ($raw)
         {
             foreach ($raw as $attrs)
             {
-                $items []= $this->entityFactory($attrs);
+                $items->attach($this->entityFactory($attrs));
             }
         }
         return $items;
@@ -869,7 +870,7 @@ abstract class ORM_Table
         /** @var ezcQueryInsert|ezcQueryUpdate $query */
         foreach ($this->getColumns() as $name => $attrs)
         {
-            if ('bindings' == @$attrs['type'])
+            if (in_array(@$attrs['type'], array('bindings', 'entities')))
             {
                 continue;
             }

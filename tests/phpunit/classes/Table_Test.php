@@ -32,6 +32,7 @@
 require_once __DIR__ . '/../bootstrap.php';
 require_once TESTS_SRC_DIR . '/orm.php';
 require_once TESTS_SRC_DIR . '/orm/classes/Entity.php';
+require_once TESTS_SRC_DIR . '/orm/classes/Driver/Abstract.php';
 require_once TESTS_SRC_DIR . '/orm/classes/Driver/MySQL.php';
 require_once TESTS_SRC_DIR . '/orm/classes/Table.php';
 
@@ -163,7 +164,12 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
             ->will($this->returnValue($handler));
         DB::setMock($DB);
 
-        $table->delete($this->getMockForAbstractClass('ORM_Entity', array(new Plugin)));
+        $entity = $this->getMockBuilder('ORM_Entity')->disableOriginalConstructor()
+            ->setMethods(array('getPrimaryKey'))->getMock();
+        $entity->expects($this->any())->method('getPrimaryKey')->will($this->returnValue(123));
+        /** @var ORM_Table $table */
+        /** @var ORM_Entity $entity */
+        $table->delete($entity);
     }
 
     /**
@@ -292,6 +298,7 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
 
         $q = $this->getMock('ezcQuerySelect', array('limit'));
         $q->expects($this->never())->method('limit');
+        /** @var ORM_Table $table */
         $table->loadFromQuery($q);
 
         $q = $this->getMock('ezcQuerySelect', array('limit'));
@@ -302,11 +309,13 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
         $db->expects($this->once())->method('fetchAll')->will($this->
             returnValue(array(array(1), array(1), array(1))));
         DB::setMock($db);
+        /** @var PHPUnit_Framework_MockObject_MockObject $table */
         $table->expects($this->exactly(3))->method('entityFactory')->with(array(1))->
-            will($this->returnValue('foo'));
+            will($this->returnCallback(function () { return new stdClass(); }));
         $q = $this->getMock('ezcQuerySelect');
-        $this->assertEquals(array('foo', 'foo', 'foo'), $table->loadFromQuery($q));
-
+        /** @var ORM_Table $table */
+        $result = $table->loadFromQuery($q);
+        $this->assertCount(3, $result);
     }
 
     /**

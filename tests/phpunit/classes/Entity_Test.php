@@ -1,7 +1,5 @@
 <?php
 /**
- * ORM
- *
  * Модульные тесты
  *
  * @version ${product.version}
@@ -28,10 +26,9 @@
  *
  * @package ORM
  * @subpackage Tests
- *
- * $Id: bootstrap.php 1849 2011-10-03 17:34:22Z mk $
  */
 
+use Mekras\TestDoubles\UniversalStub;
 
 require_once __DIR__ . '/../bootstrap.php';
 require_once TESTS_SRC_DIR . '/orm.php';
@@ -248,6 +245,83 @@ class ORM_Entity_Test extends PHPUnit_Framework_TestCase
         $this->assertEquals('bar', $entity->foo);
         $entity->foo = 'baz';
         $this->assertEquals('bar', $entity->foo);
+    }
+
+    /**
+     * @covers ORM_Entity::getBindedEntities
+     */
+    public function testGetBindedEntities()
+    {
+        $getBindedEntities = new ReflectionMethod('ORM_Entity', 'getBindedEntities');
+        $getBindedEntities->setAccessible(true);
+
+        /*
+         * Проверяем случай, когда объект ещё не сохранён в БД
+         */
+        $entity = $this->getMockBuilder('ORM_Entity')->disableOriginalConstructor()
+            ->setMethods(array('getPrimaryKey'))->getMock();
+        $entity->expects($this->any())->method('getPrimaryKey')->will($this->returnValue(null));
+
+        /** @var SplObjectStorage $result */
+        $result = $getBindedEntities->invoke($entity, 'target', array());
+        $this->assertInstanceOf('SplObjectStorage', $result);
+        $this->assertEquals(0, $result->count());
+
+        /*
+         * Проверяем случай, когда объект сохранён в БД
+         */
+        $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()
+            ->setMethods(array('setTableDefinition', 'getName'))->getMock();
+        $table->expects($this->any())->method('getName')->will($this->returnValue('source'));
+
+        $targetTable = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()
+            ->setMethods(array('setTableDefinition', 'find'))->getMock();
+        $targetTable->expects($this->any())->method('find')->will($this->returnCallback(
+            function ($id)
+            {
+                $o = new stdClass();
+                $o->id = $id;
+                return $o;
+            }
+        ));
+
+        $entity = $this->getMockBuilder('ORM_Entity')->disableOriginalConstructor()
+            ->setMethods(array('getPrimaryKey', 'getTable', 'getTableByEntityClass'))->getMock();
+        $entity->expects($this->any())->method('getPrimaryKey')->will($this->returnValue(123));
+        $entity->expects($this->any())->method('getTable')->will($this->returnValue($table));
+        $entity->expects($this->any())->method('getTableByEntityClass')
+            ->will($this->returnValue($targetTable));
+
+        $query = $this->getMockBuilder('ezcQuery')
+            ->setMethods(array('select', 'from', 'where', 'bindValue'))->getMock();
+        $query->expects($this->once())->method('select')->with('target')->will($this->returnSelf());
+        $query->expects($this->once())->method('from')->with('source_target')
+            ->will($this->returnSelf());
+        $query->expects($this->once())->method('where')->with('*WHERE*')->will($this->returnSelf());
+        $query->expects($this->any())->method('bindValue')->will($this->returnArgument(0));
+
+        $expr = $this->getMockBuilder('ezcQueryExpression')
+            ->setMethods(array('eq'))->getMock();
+        $expr->expects($this->once())->method('eq')->with('source', 123)
+            ->will($this->returnValue('*WHERE*'));
+        $query->expr = $expr;
+
+        $handler = $this->getMock('Mekras\TestDoubles\UniversalStub', array('createSelectQuery'));
+        $handler->expects($this->any())->method('createSelectQuery')
+            ->will($this->returnValue($query));
+        $DB = $this->getMock('stdClass', array('getHandler', 'fetchAll'));
+        $DB->expects($this->any())->method('getHandler')
+            ->will($this->returnValue($handler));
+        $DB->expects($this->once())->method('fetchAll')->will($this->returnValue(array(
+            array('target' => 111),
+            array('target' => 222),
+        )));
+        DB::setMock($DB);
+
+        /** @var SplObjectStorage $result */
+        $result = $getBindedEntities->invoke($entity, 'target', array());
+        $this->assertInstanceOf('SplObjectStorage', $result);
+        $this->assertEquals(2, $result->count());
     }
 }
 
