@@ -51,6 +51,7 @@ abstract class ORM_Table
     protected static $orm2pdoTypeMap = array(
         'boolean' => PDO::PARAM_BOOL,
         'date' => PDO::PARAM_STR,
+        'datetime' => PDO::PARAM_STR,
         'entity' => PDO::PARAM_INT,
         'float' => null,
         'integer' => PDO::PARAM_INT,
@@ -868,7 +869,7 @@ abstract class ORM_Table
         /** @var ezcQueryInsert|ezcQueryUpdate $query */
         foreach ($this->getColumns() as $name => $attrs)
         {
-            if (in_array(@$attrs['type'], array('bindings', 'entities')))
+            if ('bindings' == @$attrs['type'])
             {
                 continue;
             }
