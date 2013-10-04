@@ -234,5 +234,20 @@ class ORM_Entity_Test extends PHPUnit_Framework_TestCase
         $this->assertInstanceOf('Foo_Entity_Table_Bar',
             $getTableByEntityClass->invoke($entity, 'Foo_Entity_Bar'));
     }
+
+    /**
+     * @covers ORM_Entity::__get
+     * @covers ORM_Entity::__set
+     */
+    public function testGettersCache()
+    {
+        $entity = $this->getMockBuilder('ORM_Entity')->disableOriginalConstructor()
+            ->setMethods(array('getFoo', 'setProperty'))->getMock();
+        $entity->expects($this->once())->method('getFoo')->will($this->returnValue('bar'));
+        $this->assertEquals('bar', $entity->foo);
+        $this->assertEquals('bar', $entity->foo);
+        $entity->foo = 'baz';
+        $this->assertEquals('baz', $entity->foo);
+    }
 }
 
