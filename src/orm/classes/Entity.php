@@ -175,6 +175,15 @@ abstract class ORM_Entity
             $column = $columns[$key];
             switch (@$column['type'])
             {
+                case 'bindings':
+                    foreach ($value as &$item)
+                    {
+                        if ($item instanceof ORM_Entity)
+                        {
+                            $item = $item->{$item->getTable()->getPrimaryKey()};
+                        }
+                    }
+                    break;
                 case 'entity':
                     if (is_object($value))
                     {
@@ -209,6 +218,40 @@ abstract class ORM_Entity
                 $column = $columns[$key];
                 switch (@$column['type'])
                 {
+                    case 'bindings':
+                        if (null === $value && $this->getPrimaryKey())
+                        {
+                            $q = DB::getHandler()->createSelectQuery();
+                            $q->select($key);
+                            $q->from($this->getTable()->getBindingsTableName($key));
+                            $q->where(
+                                $q->expr->eq(
+                                    preg_replace('/^.*?_/', '', $this->getTable()->getName()),
+                                    $q->bindValue($this->getPrimaryKey())
+                                ));
+                            $bindings = DB::fetchAll($q);
+                            $value = array();
+                            foreach ($bindings as $binding)
+                            {
+                                $value []= $binding[$key];
+                            }
+                        }
+
+                        if (null === $value)
+                        {
+                            $value = new SplObjectStorage();
+                        }
+                        else
+                        {
+                            $targetTable = $this->getTableByEntityClass(@$column['class']);
+                            $collection = new SplObjectStorage();
+                            foreach ($value as $item)
+                            {
+                                $collection->attach($targetTable->find($item));
+                            }
+                            $value = $collection;
+                        }
+                        break;
                     case 'entity':
                         $table = $this->getTableByEntityClass(@$column['class']);
                         $value = $table->find($value);
@@ -236,7 +279,6 @@ abstract class ORM_Entity
     }
     //@codeCoverageIgnoreEnd
 
-    //@codeCoverageIgnoreStart
     /**
      * Вызывается после записи изменений в БД
      *
@@ -246,8 +288,61 @@ abstract class ORM_Entity
      */
     public function afterSave()
     {
+        foreach ($this->getTable()->getColumns() as $key => $column)
+        {
+            if ('bindings' == @$column['type'])
+            {
+                $bindingsTableName = $this->getTable()->getBindingsTableName($key);
+                $sourceField = preg_replace('/^.*?_/', '', $this->getTable()->getName());
+                $actualBindings = array();
+                foreach ($this->{$key} as $bindedEntity)
+                {
+                    /** @var ORM_Entity $bindedEntity */
+                    $actualBindings[$bindedEntity->getPrimaryKey()] = $bindedEntity;
+                }
+
+                $q = DB::getHandler()->createSelectQuery();
+                $q->select('*');
+                $q->from($bindingsTableName);
+                $q->where($q->expr->eq($sourceField, $q->bindValue($this->getPrimaryKey())));
+                $storedBindings = DB::fetchAll($q);
+
+                $toDelete = array();
+                foreach ($storedBindings as $storedBinding)
+                {
+                    if (array_key_exists($storedBinding[$key], $actualBindings))
+                    {
+                        unset($actualBindings[$storedBinding[$key]]);
+                    }
+                    else
+                    {
+                        $toDelete []= $storedBinding['id'];
+                    }
+                }
+
+                if (count($toDelete) > 0)
+                {
+                    $q = DB::getHandler()->createDeleteQuery();
+                    $q->deleteFrom($bindingsTableName)->where($q->expr->in('id', $toDelete));
+                    DB::execute($q);
+                }
+
+                if (count($actualBindings) > 0)
+                {
+                    $q = DB::getHandler()->createInsertQuery();
+                    $q->insertInto($bindingsTableName);
+                    $q->set($sourceField, $q->bindValue($this->getPrimaryKey()));
+                    $q->set($key, $q->bindParam($bindedId));
+                    foreach ($actualBindings as $binding)
+                    {
+                        /** @var ORM_Entity $binding */
+                        $bindedId = $binding->getPrimaryKey();
+                        DB::execute($q);
+                    }
+                }
+            }
+        }
     }
-    //@codeCoverageIgnoreEnd
 
     //@codeCoverageIgnoreStart
     /**

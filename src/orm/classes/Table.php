@@ -465,14 +465,14 @@ abstract class ORM_Table
     public function createSelectQuery($fill = true)
     {
         $q = DB::getHandler()->createSelectQuery();
-        $q->from($this->getName());
         if ($fill)
         {
-            $q->select('*');
             $columns = $this->getColumns();
-            if (count($this->ordering) > 0)
+            $q->selectDistinct('*');
+            $q->from($this->getName());
+            if (count($this->getOrdering()) > 0)
             {
-                foreach ($this->ordering as $orderBy)
+                foreach ($this->getOrdering() as $orderBy)
                 {
                     $q->orderBy($orderBy[0], $orderBy[1]);
                 }
@@ -481,6 +481,10 @@ abstract class ORM_Table
             {
                 $q->orderBy('position');
             }
+        }
+        else
+        {
+            $q->from($this->getName());
         }
         return $q;
     }
@@ -550,7 +554,18 @@ abstract class ORM_Table
         return null;
     }
 
-    //@codeCoverageIgnoreStart
+    /**
+     * Возвращает имя таблицы привязок для указанного свойства
+     *
+     * @param string $propertyName  имя свойства
+     *
+     * @return string
+     */
+    public function getBindingsTableName($propertyName)
+    {
+        return $this->getName() . '_' . $propertyName;
+    }
+
     /**
      * Метод должен устанавливать свойства таблицы БД
      *
@@ -565,7 +580,6 @@ abstract class ORM_Table
      * @since 1.00
      */
     abstract protected function setTableDefinition();
-    //@codeCoverageIgnoreEnd
 
     /**
      * Устанавлвиает имя таблицы
@@ -854,6 +868,10 @@ abstract class ORM_Table
         /** @var ezcQueryInsert|ezcQueryUpdate $query */
         foreach ($this->getColumns() as $name => $attrs)
         {
+            if ('bindings' == @$attrs['type'])
+            {
+                continue;
+            }
             $type = $this->pdoFieldType(@$attrs['type']);
             $value = $this->pdoFieldValue($entity->getProperty($name), @$attrs['type']);
             $query->set($name, $query->bindValue($value, ":$name", $type));

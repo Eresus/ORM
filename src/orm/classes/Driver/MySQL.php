@@ -56,7 +56,14 @@ class ORM_Driver_MySQL extends ORM_Driver_Abstract
         $sql = array();
         foreach ($table->getColumns() as $name => $attrs)
         {
-            $sql []= $name . ' ' . $this->getFieldDefinition($attrs);
+            switch (@$attrs['type'])
+            {
+                case 'bindings':
+                    $this->createBindingTable($table, $name);
+                    break;
+                default:
+                    $sql []= $name . ' ' . $this->getFieldDefinition($attrs);
+            }
         }
         $sql []= 'PRIMARY KEY (' . $table->getPrimaryKey() . ')';
         foreach ($table->getIndexes() as $name => $params)
@@ -80,9 +87,16 @@ class ORM_Driver_MySQL extends ORM_Driver_Abstract
     public function dropTable(ORM_Table $table)
     {
         $db = DB::getHandler();
-        $tableName = $db->options->tableNamePrefix . $table->getName();
-        $sql = "DROP TABLE $tableName";
-        $db->exec($sql);
+        $prefix = $db->options->tableNamePrefix;
+        $db->exec("DROP TABLE {$prefix}{$table->getName()}");
+        $columns = $table->getColumns();
+        foreach ($columns as $name => $attrs)
+        {
+            if ('bindings' == @$attrs['type'])
+            {
+                $db->exec("DROP TABLE {$prefix}{$table->getBindingsTableName($name)}");
+            }
+        }
     }
 
     /**
@@ -415,6 +429,29 @@ class ORM_Driver_MySQL extends ORM_Driver_Abstract
             }
         }
         return $sql;
+    }
+
+    /**
+     * Создаёт таблицу привязок для указанного свойства
+     *
+     * @param ORM_Table $table
+     * @param string    $property
+     */
+    private function createBindingTable(ORM_Table $table, $property)
+    {
+        $db = DB::getHandler();
+        $tableName = $db->options->tableNamePrefix . $table->getBindingsTableName($property);
+        $sql = array();
+        $sourceField = preg_replace('/^.*?_/', '', $table->getName());
+        $sql []= $sourceField . ' '
+            . $this->getFieldDefinition(array('type' => 'integer', 'unsigned' => true));
+        $sql []= $property . ' '
+            . $this->getDefinitionForInteger(array('type' => 'integer', 'unsigned' => true));
+        $sql []= "PRIMARY KEY (`$sourceField`, `$property`)";
+
+        $sql = "CREATE TABLE $tableName (" . implode(', ', $sql)
+            . ') ENGINE InnoDB DEFAULT CHARSET=utf8';
+        $db->exec($sql);
     }
 }
 

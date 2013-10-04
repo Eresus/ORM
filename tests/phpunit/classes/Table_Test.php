@@ -83,13 +83,15 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
         DB::setMock($DB);
 
         $entity = $this->getMockBuilder('ORM_Entity')->disableOriginalConstructor()
-            ->setMethods(array('getTable', 'setProperty'))->getMock();
+            ->setMethods(array('getTable', 'setProperty', 'getColumns'))->getMock();
+        $entity->expects($this->any())->method('getColumns')->will($this->returnValue(array()));
 
         $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
-            setMethods(array('setTableDefinition', 'getTableName', 'bindValuesToQuery',
+            setMethods(array('setTableDefinition', 'getName', 'bindValuesToQuery',
                 'getColumns'))
             ->getMock();
-        $table->expects($this->any())->method('getTableName')->will($this->returnValue('table'));
+        $entity->expects($this->any())->method('getTable')->will($this->returnValue($table));
+        $table->expects($this->any())->method('getName')->will($this->returnValue('table'));
         $table->expects($this->any())->method('bindValuesToQuery')->with($entity, $query);
         $table->expects($this->any())->method('getColumns')
             ->will($this->returnValue(array('id' => array('autoincrement' => true))));
@@ -123,10 +125,11 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
             ->setMethods(array('getTable'))->getMock();
 
         $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
-            setMethods(array('setTableDefinition', 'getTableName', 'bindValuesToQuery',
+            setMethods(array('setTableDefinition', 'getName', 'bindValuesToQuery',
                 'getColumns'))
             ->getMock();
-        $table->expects($this->any())->method('getTableName')->will($this->returnValue('table'));
+        $entity->expects($this->any())->method('getTable')->will($this->returnValue($table));
+        $table->expects($this->any())->method('getName')->will($this->returnValue('table'));
         $table->expects($this->any())->method('getColumns')->will($this->returnValue(array(
             'id' => array('type' => 'integer')
         )));
