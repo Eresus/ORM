@@ -83,6 +83,26 @@ class ezcQuerySelect extends ezcQuery
     const DESC = 'DESC';
 }
 
+/**
+ * Заглушка для класса ezcQueryInsert
+ *
+ * @package Eresus
+ * @subpackage Tests
+ */
+class ezcQueryInsert extends ezcQuery
+{
+}
+
+/**
+ * Заглушка для класса ezcQueryUpdate
+ *
+ * @package Eresus
+ * @subpackage Tests
+ */
+class ezcQueryUpdate extends ezcQuery
+{
+}
+
 class EresusRuntimeException extends Exception
 {
 }

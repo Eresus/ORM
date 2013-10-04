@@ -38,27 +38,24 @@ abstract class ORM_Driver_Abstract
     /**
      * Создаёт таблицу
      *
-     * @param string $tableName   имя таблицы
-     * @param array  $columns     описание столбцов
-     * @param string $primaryKey  первичный ключ
-     * @param array  $indexes     описание индексов
+     * @param ORM_Table $table
      *
      * @return void
      *
      * @since 2.01
      */
-    abstract public function createTable($tableName, array $columns, $primaryKey, array $indexes);
+    abstract public function createTable(ORM_Table $table);
 
     /**
      * Удаляет таблицу
      *
-     * @param string $tableName  имя таблицы
+     * @param ORM_Table $table
      *
      * @return void
      *
      * @since 2.01
      */
-    abstract public function dropTable($tableName);
+    abstract public function dropTable(ORM_Table $table);
 
     /**
      * Преобразует значение поля ORM в значение PDO

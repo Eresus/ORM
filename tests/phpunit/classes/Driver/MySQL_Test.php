@@ -59,9 +59,18 @@ class ORM_Driver_MySQL_Test extends PHPUnit_Framework_TestCase
         $db->expects($this->once())->method('getHandler')->will($this->returnValue($handler));
         DB::setMock($db);
 
+        $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()
+            ->setMethods(array('setTableDefinition', 'getName', 'getColumns', 'getIndexes'))
+            ->getMock();
+        $table->expects($this->any())->method('getName')->will($this->returnValue('foo'));
+        $table->expects($this->any())->method('getColumns')
+            ->will($this->returnValue(array('f1' => array('type' => 'integer'))));
+        $table->expects($this->any())->method('getIndexes')
+            ->will($this->returnValue(array('idx1' => array('fields' => array('f1')))));
+
         /** @var ORM_Driver_MySQL $driver */
-        $driver->createTable('foo', array('f1' => array('type' => 'integer')), 'id',
-            array('idx1' => array('fields' => array('f1'))));
+        /** @var ORM_Table $table */
+        $driver->createTable($table);
     }
 
     /**
@@ -80,7 +89,12 @@ class ORM_Driver_MySQL_Test extends PHPUnit_Framework_TestCase
         $db->expects($this->once())->method('getHandler')->will($this->returnValue($handler));
         DB::setMock($db);
 
-        $driver->dropTable('foo');
+        $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()
+            ->setMethods(array('setTableDefinition', 'getName'))->getMock();
+        $table->expects($this->any())->method('getName')->will($this->returnValue('foo'));
+        /** @var ORM_Driver_MySQL $driver */
+        /** @var ORM_Table $table */
+        $driver->dropTable($table);
     }
 
     /**
@@ -99,7 +113,7 @@ class ORM_Driver_MySQL_Test extends PHPUnit_Framework_TestCase
      */
     public function pdoFieldValueInvalidDataProvider()
     {
-        return array(array('timestamp'), array('date'), array('time'));
+        return array(array('date'), array('datetime'), array('time'), array('entity'));
     }
 
     /**
@@ -110,14 +124,18 @@ class ORM_Driver_MySQL_Test extends PHPUnit_Framework_TestCase
         $driver = new ORM_Driver_MySQL;
 
         $datetime = new DateTime('01-02-03 12:34:56');
-        $this->assertEquals('2001-02-03 12:34:56', $driver->pdoFieldValue($datetime, 'timestamp'));
+        $this->assertEquals($datetime->getTimestamp(),
+            $driver->pdoFieldValue($datetime, 'timestamp'));
         $timestamp = time();
-        $s = date('Y-m-d H:i:s', $timestamp);
-        $this->assertEquals($s, $driver->pdoFieldValue($timestamp, 'timestamp'));
+        $this->assertEquals($timestamp, $driver->pdoFieldValue($timestamp, 'timestamp'));
         $this->assertEquals('2001-02-03', $driver->pdoFieldValue($datetime, 'date'));
         $this->assertEquals('12:34:56', $driver->pdoFieldValue($datetime, 'time'));
         $this->assertSame(0, $driver->pdoFieldValue(false, 'boolean'));
         $this->assertNull($driver->pdoFieldValue(null, 'time'));
+        $entity = $this->getMockBuilder('ORM_Entity')->disableOriginalConstructor()
+            ->setMethods(array('getPrimaryKey'))->getMock();
+        $entity->expects($this->any())->method('getPrimaryKey')->will($this->returnValue(123));
+        $this->assertEquals(123, $driver->pdoFieldValue($entity, 'entity'));
     }
 
     /**
@@ -277,7 +295,7 @@ class ORM_Driver_MySQL_Test extends PHPUnit_Framework_TestCase
         $method->setAccessible(true);
         $driver = new ORM_Driver_MySQL();
 
-        $this->assertEquals('TIMESTAMP', $method->invoke($driver, array()));
+        $this->assertEquals('INT(10) UNSIGNED', $method->invoke($driver, array()));
     }
 }
 

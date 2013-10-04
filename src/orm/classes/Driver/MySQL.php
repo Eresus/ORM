@@ -38,27 +38,28 @@ class ORM_Driver_MySQL extends ORM_Driver_Abstract
     /**
      * Создаёт таблицу
      *
-     * @param string $tableName   имя таблицы
-     * @param array  $columns     описание столбцов
-     * @param string $primaryKey  первичный ключ
-     * @param array  $indexes     описание индексов
+     * @param ORM_Table $table
      *
      * @return void
      *
      * @since 1.00
      */
-    public function createTable($tableName, array $columns, $primaryKey, array $indexes)
+    public function createTable(ORM_Table $table)
     {
+        if ($table->isAlias())
+        {
+            return;
+        }
         $db = DB::getHandler();
-        $tableName = $db->options->tableNamePrefix . $tableName;
+        $tableName = $db->options->tableNamePrefix . $table->getName();
 
         $sql = array();
-        foreach ($columns as $name => $attrs)
+        foreach ($table->getColumns() as $name => $attrs)
         {
             $sql []= $name . ' ' . $this->getFieldDefinition($attrs);
         }
-        $sql []= 'PRIMARY KEY (' . $primaryKey . ')';
-        foreach ($indexes as $name => $params)
+        $sql []= 'PRIMARY KEY (' . $table->getPrimaryKey() . ')';
+        foreach ($table->getIndexes() as $name => $params)
         {
             $sql []= 'KEY ' . $name . ' (' . implode(', ', $params['fields']) . ')';
         }
@@ -70,16 +71,16 @@ class ORM_Driver_MySQL extends ORM_Driver_Abstract
     /**
      * Удаляет таблицу
      *
-     * @param string $tableName  имя таблицы
+     * @param ORM_Table $table
      *
      * @return void
      *
      * @since 1.00
      */
-    public function dropTable($tableName)
+    public function dropTable(ORM_Table $table)
     {
         $db = DB::getHandler();
-        $tableName = $db->options->tableNamePrefix . $tableName;
+        $tableName = $db->options->tableNamePrefix . $table->getName();
         $sql = "DROP TABLE $tableName";
         $db->exec($sql);
     }
@@ -116,6 +117,21 @@ class ORM_Driver_MySQL extends ORM_Driver_Abstract
                 /* @var DateTime $ormValue */
                 $ormValue = $ormValue->format('Y-m-d');
                 break;
+            case 'datetime':
+                if (!($ormValue instanceof DateTime))
+                {
+                    throw new InvalidArgumentException('Value of $ormValue must be a DateTime');
+                }
+                /* @var DateTime $ormValue */
+                $ormValue = $ormValue->format('Y-m-d H:i:s');
+                break;
+            case 'entity':
+                if (!($ormValue instanceof ORM_Entity))
+                {
+                    throw new InvalidArgumentException('Value of $ormValue must be an ORM_Entity');
+                }
+                $ormValue = $ormValue->getPrimaryKey();
+                break;
             case 'time':
                 if (!($ormValue instanceof DateTime))
                 {
@@ -125,19 +141,14 @@ class ORM_Driver_MySQL extends ORM_Driver_Abstract
                 $ormValue = $ormValue->format('H:i:s');
                 break;
             case 'timestamp':
-                $format = 'Y-m-d H:i:s';
-                if (is_integer($ormValue))
-                {
-                    $ormValue = date($format, $ormValue);
-                }
-                elseif ($ormValue instanceof DateTime)
+                if ($ormValue instanceof DateTime)
                 {
                     /* @var DateTime $ormValue */
-                    $ormValue = $ormValue->format($format);
+                    $ormValue = $ormValue->getTimestamp();
                 }
                 else
                 {
-                    throw new InvalidArgumentException('Value of $ormValue must be a DateTime');
+                    $ormValue = intval($ormValue);
                 }
                 break;
         }
@@ -210,6 +221,40 @@ class ORM_Driver_MySQL extends ORM_Driver_Abstract
         $sql = 'DATE';
         $sql .= $this->getDefinitionForDefault($attrs);
         return $sql;
+    }
+
+    /** @noinspection PhpUnusedPrivateMethodInspection */
+    /**
+     * Возвращает SQL-объявление поля типа datetime
+     *
+     * @param array $attrs  атрибуты поля
+     *
+     * @return string  SQL
+     *
+     * @since unstable
+     *
+     * @SuppressWarnings(PHPMD.UnusedPrivateMethod)
+     */
+    private function getDefinitionForDatetime(array $attrs)
+    {
+        $sql = 'DATETIME';
+        $sql .= $this->getDefinitionForDefault($attrs);
+        return $sql;
+    }
+
+    /** @noinspection PhpUnusedPrivateMethodInspection */
+    /**
+     * Возвращает SQL-объявление поля типа entity
+     *
+     * @return string  SQL
+     *
+     * @since unstable
+     *
+     * @SuppressWarnings(PHPMD.UnusedPrivateMethod)
+     */
+    private function getDefinitionForEntity()
+    {
+        return $this->getDefinitionForInteger(array('type' => 'integer', 'unsigned' => true));
     }
 
     /** @noinspection PhpUnusedPrivateMethodInspection */
@@ -330,7 +375,8 @@ class ORM_Driver_MySQL extends ORM_Driver_Abstract
      */
     private function getDefinitionForTimestamp(array $attrs)
     {
-        $sql = 'TIMESTAMP';
+        $sql = 'INT(10) UNSIGNED';
+        $attrs['unsigned'] = true;
         $sql .= $this->getDefinitionForDefault($attrs);
         return $sql;
     }

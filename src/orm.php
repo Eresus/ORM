@@ -61,6 +61,13 @@ class ORM extends Plugin
     public $description = 'Средства ORM для использования в других плагинах';
 
     /**
+     * Драйвер СУБД
+     * @var ORM_Driver_Abstract
+     * @since unstable
+     */
+    private static $driver = null;
+
+    /**
      * Кэш таблиц
      *
      * @var array
@@ -74,8 +81,36 @@ class ORM extends Plugin
      * @var array
      * @since 1.00
      */
-    private static $filedTypes = array('boolean', 'date', 'float', 'integer', 'string', 'time',
-        'timestamp', 'entity');
+    private static $filedTypes = array('boolean', 'date', 'datetime', 'float', 'integer', 'string',
+        'time', 'timestamp', 'entity');
+
+    /**
+     * Задаёт используемый драйвер СУБД
+     *
+     * @param ORM_Driver_Abstract $driver
+     *
+     * @since unstable
+     */
+    public static function setDriver(ORM_Driver_Abstract $driver)
+    {
+        self::$driver = $driver;
+    }
+
+    /**
+     * Возвращает используемый драйвер СУБД
+     *
+     * @return ORM_Driver_Abstract
+     *
+     * @since unstable
+     */
+    public static function getDriver()
+    {
+        if (null === self::$driver)
+        {
+            self::$driver = new ORM_Driver_MySQL();
+        }
+        return self::$driver;
+    }
 
     /**
      * Возвращает объект таблицы для указанной сущности указанного плагина
@@ -106,7 +141,7 @@ class ORM extends Plugin
         $className .= '_Entity_Table_' . $entityName;
         if (!isset(self::$tables[$className]))
         {
-            self::$tables[$className] = new $className($plugin);
+            self::$tables[$className] = new $className(self::getDriver(), $plugin);
         }
         return self::$tables[$className];
     }

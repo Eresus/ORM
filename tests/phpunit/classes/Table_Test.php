@@ -57,108 +57,10 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
         $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
             setMethods(array('setTableDefinition'))->getMock();
         $table->expects($this->once())->method('setTableDefinition');
+        /** @var Plugin $plugin */
+        $plugin = $this->getMockBuilder('Eresus_Plugin')->disableOriginalConstructor()->getMock();
         /** @var ORM_Table $table */
-        $table->__construct(new Plugin());
-    }
-
-    /**
-     * @covers ORM_Table::create
-     *
-     * @see http://bugs.eresus.ru/view.php?id=876
-     */
-    public function testCreate()
-    {
-        $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
-            setMethods(array('setTableDefinition'))->getMock();
-        /** @var ORM_Table $table */
-        $table->__construct(new Plugin);
-        $tableName = new ReflectionProperty('ORM_Table', 'tableName');
-        $tableName->setAccessible(true);
-        $tableName->setValue($table, 'foo');
-        $hasColumns = new ReflectionMethod('ORM_Table', 'hasColumns');
-        $hasColumns->setAccessible(true);
-        $hasColumns->invoke($table, array(
-            'f1' => array(
-                'type' => 'integer',
-                'autoincrement' => true,
-                'unsigned' => true,
-            ),
-            'f2' => array(
-                'type' => 'string',
-                'length' => 100,
-                'default' => '',
-            ),
-            'f3' => array(
-                'type' => 'string',
-                'default' => null,
-            ),
-            'f4' => array(
-                'type' => 'string',
-                'length' => 70000,
-            ),
-            'f5' => array(
-                'type' => 'boolean',
-            ),
-            'f6' => array(
-                'type' => 'float',
-            ),
-            'f7' => array(
-                'type' => 'timestamp',
-            ),
-            'f8' => array(
-                'type' => 'date',
-            ),
-            'f9' => array(
-                'type' => 'time',
-            ),
-        ));
-
-        $index = new ReflectionMethod('ORM_Table', 'index');
-        $index->setAccessible(true);
-        $index->invoke($table, 'idx1', array('fields' => array('f2', 'f4')));
-
-        $db = $this->getMock('stdClass', array('exec'));
-        $db->expects($this->once())->method('exec')->with("CREATE TABLE p_foo (f1 INT(10) UNSIGNED " .
-            "AUTO_INCREMENT, f2 VARCHAR(100) DEFAULT '', f3 TEXT DEFAULT NULL, f4 LONGTEXT, f5 BOOL, " .
-            "f6 FLOAT, f7 TIMESTAMP, f8 DATE, f9 TIME, PRIMARY KEY (f1), KEY idx1 (f2, f4)) " .
-            "ENGINE InnoDB DEFAULT CHARSET=utf8");
-        /** @var ezcDbHandler $db */
-        $db->options = new stdClass();
-        $db->options->tableNamePrefix = 'p_';
-
-        $DB = $this->getMock('stdClass', array('getHandler'));
-        $DB->expects($this->any())->method('getHandler')->will($this->returnValue($db));
-
-        DB::setMock($DB);
-
-        $table->create();
-    }
-
-    /**
-     * @covers ORM_Table::drop
-     */
-    public function testDrop()
-    {
-        $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
-            setMethods(array('setTableDefinition'))->getMock();
-        /** @var ORM_Table $table */
-        $table->__construct(new Plugin);
-        $tableName = new ReflectionProperty('ORM_Table', 'tableName');
-        $tableName->setAccessible(true);
-        $tableName->setValue($table, 'foo');
-
-        $db = $this->getMock('stdClass', array('exec'));
-        $db->expects($this->once())->method('exec')->with("DROP TABLE p_foo");
-        /** @var ezcDbHandler $db */
-        $db->options = new stdClass();
-        $db->options->tableNamePrefix = 'p_';
-
-        $DB = $this->getMock('stdClass', array('getHandler'));
-        $DB->expects($this->any())->method('getHandler')->will($this->returnValue($db));
-
-        DB::setMock($DB);
-
-        $table->drop();
+        $table->__construct(new ORM_Driver_MySQL(), $plugin);
     }
 
     /**
@@ -166,35 +68,32 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
      */
     public function testPersist()
     {
-        $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
-            setMethods(array('setTableDefinition'))->getMock();
-        $EresusPlugin = 'Plugin'; // Обманываем IDEA
-        /** @var ORM_Table $table */
-        $table->__construct(new $EresusPlugin);
-        $hasColumns = new ReflectionMethod('ORM_Table', 'hasColumns');
-        $hasColumns->setAccessible(true);
-        $hasColumns->invoke($table, array(
-            'id' => array(
-                'type' => 'integer',
-                'autoincrement' => true,
-            ),
-            'foo' => array(
-                'type' => 'string'
-            )
-        ));
+        $query = $this->getMockBuilder('ezcQueryInsert')
+            ->setMethods(array('insertInto', 'execute'))
+            ->disableOriginalConstructor()->getMock();
 
-        $handler = $this->getMock('Mekras\TestDoubles\UniversalStub', array('createInsertQuery'));
+        $handler = $this->getMock('Mekras\TestDoubles\UniversalStub',
+            array('createInsertQuery', 'lastInsertId'));
         $handler->expects($this->any())->method('createInsertQuery')
-            ->will($this->returnValue($this->getMockForAbstractClass('ezcQuery')));
+            ->will($this->returnValue($query));
+        $handler->expects($this->once())->method('lastInsertId')->will($this->returnValue(123));
         $DB = $this->getMock('stdClass', array('getHandler'));
         $DB->expects($this->any())->method('getHandler')
             ->will($this->returnValue($handler));
         DB::setMock($DB);
 
         $entity = $this->getMockBuilder('ORM_Entity')->disableOriginalConstructor()
-            ->setMethods(array('getTable'))->getMock();
-        $entity->expects($this->any())->method('getTable')
-            ->will($this->returnValue(new \Mekras\TestDoubles\UniversalStub()));
+            ->setMethods(array('getTable', 'setProperty'))->getMock();
+
+        $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
+            setMethods(array('setTableDefinition', 'getTableName', 'bindValuesToQuery',
+                'getColumns'))
+            ->getMock();
+        $table->expects($this->any())->method('getTableName')->will($this->returnValue('table'));
+        $table->expects($this->any())->method('bindValuesToQuery')->with($entity, $query);
+        $table->expects($this->any())->method('getColumns')
+            ->will($this->returnValue(array('id' => array('autoincrement' => true))));
+        /** @var ORM_Table $table */
         /** @var ORM_Entity $entity */
         $table->persist($entity);
     }
@@ -204,31 +103,37 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
      */
     public function testUpdate()
     {
-        $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
-            setMethods(array('setTableDefinition'))->getMock();
-        /** @var ORM_Table $table */
-        $table->__construct(new Plugin);
-        $hasColumns = new ReflectionMethod('ORM_Table', 'hasColumns');
-        $hasColumns->setAccessible(true);
-        $hasColumns->invoke($table, array(
-            'id' => array(
-                'type' => 'integer',
-                'autoincrement' => true,
-            ),
-            'foo' => array(
-                'type' => 'string'
-            )
-        ));
+        $query = $this->getMockBuilder('ezcQueryUpdate')
+            ->setMethods(array('update', 'where', 'execute'))
+            ->disableOriginalConstructor()->getMock();
+        $query->expects($this->any())->method('update')->will($this->returnSelf());
+
+        $query->expr = $this->getMock('stdClass', array('eq'));
+        $query->expr->expects($this->once())->method('eq');
 
         $handler = $this->getMock('Mekras\TestDoubles\UniversalStub', array('createUpdateQuery'));
         $handler->expects($this->any())->method('createUpdateQuery')
-            ->will($this->returnValue($this->getMockForAbstractClass('ezcQuery')));
+            ->will($this->returnValue($query));
         $DB = $this->getMock('stdClass', array('getHandler'));
         $DB->expects($this->any())->method('getHandler')
             ->will($this->returnValue($handler));
         DB::setMock($DB);
 
-        $table->update($this->getMockForAbstractClass('ORM_Entity', array(new Plugin)));
+        $entity = $this->getMockBuilder('ORM_Entity')->disableOriginalConstructor()
+            ->setMethods(array('getTable'))->getMock();
+
+        $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
+            setMethods(array('setTableDefinition', 'getTableName', 'bindValuesToQuery',
+                'getColumns'))
+            ->getMock();
+        $table->expects($this->any())->method('getTableName')->will($this->returnValue('table'));
+        $table->expects($this->any())->method('getColumns')->will($this->returnValue(array(
+            'id' => array('type' => 'integer')
+        )));
+        $table->expects($this->any())->method('bindValuesToQuery')->with($entity, $query);
+        /** @var ORM_Table $table */
+        /** @var ORM_Entity $entity */
+        $table->update($entity);
     }
 
     /**
@@ -358,8 +263,8 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
     public function testCreateCountQuery()
     {
         $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
-            setMethods(array('setTableDefinition', 'getTableName'))->getMock();
-        $table->expects($this->once())->method('getTableName')->will($this->returnValue('foo'));
+            setMethods(array('setTableDefinition', 'getName'))->getMock();
+        $table->expects($this->once())->method('getName')->will($this->returnValue('foo'));
 
         $q = $this->getMock('ezcQuerySelect', array('select', 'alias', 'from', 'limit'));
         $q->expects($this->once())->method('select')->will($this->returnValue($q));
@@ -432,7 +337,7 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
 
     /**
      * @covers ORM_Table::setTableName
-     * @covers ORM_Table::getTableName
+     * @covers ORM_Table::getName
      */
     public function testSetGetTableName()
     {
@@ -443,7 +348,7 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
 
         $setTableName->invoke($table, 'foo');
         /** @var ORM_Table $table */
-        $this->assertEquals('foo', $table->getTableName());
+        $this->assertEquals('foo', $table->getName());
     }
 
     /**
@@ -586,16 +491,15 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
 
         $table->expects($this->once())->method('getEntityClass')->
             will($this->returnValue('ORM_Table_Test_Plugin_Entity_Foo'));
-        $table->expects($this->once())->method('getColumns')->
-            will($this->returnValue(array(
+        $table->expects($this->once())->method('getColumns')->will($this->returnValue(array(
             'id' => array('type' => 'integer'),
             'time' => array('type' => 'time'),
-            'timestamp' => array('type' => 'timestamp'),
+            'datetime' => array('type' => 'datetime'),
         )));
-        $plugin = new ReflectionProperty('ORM_Table', 'plugin');
-        $plugin->setAccessible(true);
-        $EresusPlugin = 'Plugin';
-        $plugin->setValue($table, new $EresusPlugin);
+        $pluginProp = new ReflectionProperty('ORM_Table', 'plugin');
+        $pluginProp->setAccessible(true);
+        $pluginProp->setValue($table, $this->getMockBuilder('Plugin')
+            ->disableOriginalConstructor()->getMock());
 
         $entityFactory = new ReflectionMethod('ORM_Table', 'entityFactory');
         $entityFactory->setAccessible(true);
@@ -603,12 +507,12 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
         $entity = $entityFactory->invoke($table, array(
             'id' => 123,
             'time' => '12:34',
-            'timestamp' => '2012-02-03 13:45'
+            'datetime' => '2012-02-03 13:45'
         ));
         $this->assertInstanceOf('ORM_Entity', $entity);
         $this->assertInstanceOf('DateTime', $entity->time);
-        $this->assertInstanceOf('DateTime', $entity->timestamp);
-        $this->assertEquals('03.02.12 13:45', $entity->timestamp->format('d.m.y H:i'));
+        $this->assertInstanceOf('DateTime', $entity->datetime);
+        $this->assertEquals('03.02.12 13:45', $entity->datetime->format('d.m.y H:i'));
     }
 
     /**
