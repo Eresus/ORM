@@ -243,11 +243,11 @@ class ORM_Entity_Test extends PHPUnit_Framework_TestCase
     {
         $entity = $this->getMockBuilder('ORM_Entity')->disableOriginalConstructor()
             ->setMethods(array('getFoo', 'setProperty'))->getMock();
-        $entity->expects($this->once())->method('getFoo')->will($this->returnValue('bar'));
+        $entity->expects($this->exactly(2))->method('getFoo')->will($this->returnValue('bar'));
         $this->assertEquals('bar', $entity->foo);
         $this->assertEquals('bar', $entity->foo);
         $entity->foo = 'baz';
-        $this->assertEquals('baz', $entity->foo);
+        $this->assertEquals('bar', $entity->foo);
     }
 }
 
