@@ -39,7 +39,7 @@ abstract class ORM_Entity
     /**
      * Модуль
      *
-     * @var Eresus_Plugin|TPlugin
+     * @var Plugin|TPlugin
      */
     protected $plugin;
 
@@ -60,7 +60,7 @@ abstract class ORM_Entity
     /**
      * Конструктор
      *
-     * @param Eresus_Plugin|TPlugin $plugin  модуль
+     * @param Plugin|TPlugin $plugin  модуль
      * @param array          $attrs   исходные значения полей
      *
      * @return ORM_Entity

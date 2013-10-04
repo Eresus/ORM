@@ -38,7 +38,7 @@ abstract class ORM_Table
     /**
      * Модуль
      *
-     * @var Eresus_Plugin|TPlugin
+     * @var Plugin|TPlugin
      */
     protected $plugin;
 
@@ -105,7 +105,7 @@ abstract class ORM_Table
     /**
      * Конструктор
      *
-     * @param Eresus_Plugin|TPlugin      $plugin
+     * @param Plugin|TPlugin      $plugin
      * @param ORM_Driver_Abstract $driver
      *
      * @return ORM_Table

@@ -168,7 +168,7 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
     {
         $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
             setMethods(array('setTableDefinition'))->getMock();
-        $EresusPlugin = 'Eresus_Plugin'; // Обманываем IDEA
+        $EresusPlugin = 'Plugin'; // Обманываем IDEA
         /** @var ORM_Table $table */
         $table->__construct(new $EresusPlugin);
         $hasColumns = new ReflectionMethod('ORM_Table', 'hasColumns');
@@ -594,7 +594,7 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
         )));
         $plugin = new ReflectionProperty('ORM_Table', 'plugin');
         $plugin->setAccessible(true);
-        $EresusPlugin = 'Eresus_Plugin';
+        $EresusPlugin = 'Plugin';
         $plugin->setValue($table, new $EresusPlugin);
 
         $entityFactory = new ReflectionMethod('ORM_Table', 'entityFactory');

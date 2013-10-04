@@ -58,7 +58,7 @@ class ORM_Entity_Test extends PHPUnit_Framework_TestCase
         $entity->expects($this->once())->method('setFoo')->with('baz');
         $entity->expects($this->any())->method('getTable')
             ->will($this->returnValue(new \Mekras\TestDoubles\UniversalStub()));
-        $EresusPlugin = 'Eresus_Plugin'; // Обманываем IDEA
+        $EresusPlugin = 'Plugin'; // Обманываем IDEA
         $plugin = new $EresusPlugin;
         $attrs = array('foo' => 'bar');
 
@@ -113,7 +113,7 @@ class ORM_Entity_Test extends PHPUnit_Framework_TestCase
         $entity = $this->getMockBuilder('ORM_Entity')->disableOriginalConstructor()
             ->setMethods(array('getTable'))->getMock();
         $entity->expects($this->any())->method('getTable')->will($this->returnValue($table));
-        $Eresus_Plugin = 'Eresus_Plugin'; // Обманываем IDEA
+        $Eresus_Plugin = 'Plugin'; // Обманываем IDEA
         $plugin = new $Eresus_Plugin;
         $attrs = array('foo' => 123);
 
@@ -138,7 +138,7 @@ class ORM_Entity_Test extends PHPUnit_Framework_TestCase
         $tables = new ReflectionProperty('ORM', 'tables');
         $tables->setAccessible(true);
         $tables->setValue(array(
-            'Eresus_Plugin_Entity_Table_tdClass' => $table,
+            'Plugin_Entity_Table_tdClass' => $table,
         ));
 
         $this->assertEquals('object', $entity->getProperty('foo'));
@@ -174,7 +174,7 @@ class ORM_Entity_Test extends PHPUnit_Framework_TestCase
      */
     public function testGetPrimaryKey()
     {
-        $plugin = $this->getMockBuilder('Eresus_Plugin')->disableOriginalConstructor()
+        $plugin = $this->getMockBuilder('Plugin')->disableOriginalConstructor()
             ->setMockClassName('testGetPrimaryKey')->getMock();
         $entity = $this->getMockBuilder('ORM_Entity')->setMethods(array('_'))
             ->setMockClassName('testGetPrimaryKey_Entity_Bar')
@@ -217,7 +217,7 @@ class ORM_Entity_Test extends PHPUnit_Framework_TestCase
 
         $entity = $this->getMockBuilder('ORM_Entity')->disableOriginalConstructor()->getMock();
 
-        $plugin = $this->getMockBuilder('Eresus_Plugin')->disableOriginalConstructor()
+        $plugin = $this->getMockBuilder('Plugin')->disableOriginalConstructor()
             ->setMockClassName('Foo')->getMock();
         $legacyKernel = new stdClass();
         $legacyKernel->plugins = $this->getMock('stdClass', array('load'));

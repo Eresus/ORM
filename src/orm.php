@@ -34,7 +34,7 @@
  *
  * @package ORM
  */
-class ORM extends Eresus_Plugin
+class ORM extends Plugin
 {
     /**
      * Версия плагина
@@ -46,7 +46,7 @@ class ORM extends Eresus_Plugin
      * Требуемая версия ядра
      * @var string
      */
-    public $kernel = '3.01a';
+    public $kernel = '3.00';
 
     /**
      * Название плагина
@@ -80,8 +80,8 @@ class ORM extends Eresus_Plugin
     /**
      * Возвращает объект таблицы для указанной сущности указанного плагина
      *
-     * @param Eresus_Plugin|TPlugin $plugin      плагин, которому принадлежит сущность
-     * @param string                $entityName  имя сущности (без имени плагина и слова «Entity»)
+     * @param Plugin|TPlugin $plugin      плагин, которому принадлежит сущность
+     * @param string         $entityName  имя сущности (без имени плагина и слова «Entity»)
      *
      * @return ORM_Table
      *
@@ -91,7 +91,7 @@ class ORM extends Eresus_Plugin
      */
     public static function getTable($plugin, $entityName)
     {
-        if (!($plugin instanceof Eresus_Plugin) && !($plugin instanceof TPlugin))
+        if (!($plugin instanceof Plugin) && !($plugin instanceof TPlugin))
         {
             throw new InvalidArgumentException(
                 '$plugin must be Eresus_Plugin or TPlugin instance.'
