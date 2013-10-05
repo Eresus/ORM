@@ -32,9 +32,74 @@
  * Коллекция сущностей
  *
  * @package ORM
- * @since 2.02
+ * @since unstable
  */
 class ORM_Entity_Collection extends SplObjectStorage
 {
+    /**
+     * @param ORM_Entity $entity
+     * @return bool
+     */
+    public function contains(ORM_Entity $entity)
+    {
+        if ($entity->getEntityState() == $entity::IS_DELETED)
+        {
+            return false;
+        }
+        return parent::contains($entity);
+    }
+
+    /**
+     * @return int
+     */
+    public function count()
+    {
+        $count = 0;
+        foreach ($this as $entity)
+        {
+            /** @var ORM_Entity $entity */
+            if ($entity->getEntityState() != $entity::IS_DELETED)
+            {
+                $count++;
+            }
+        }
+        return $count;
+    }
+
+    /**
+     * @return void
+     */
+    public function next()
+    {
+        do
+        {
+            parent::next();
+        }
+        while ($this->valid() && $this->isCurrentEntityDeleted());
+    }
+
+    /**
+     * @return void
+     */
+    public function rewind()
+    {
+        parent::rewind();
+        if ($this->valid() && $this->isCurrentEntityDeleted())
+        {
+            $this->next();
+        }
+    }
+
+    /**
+     * Возвращает true если текущая сущность помечена как удалённая
+     * @return bool
+     */
+    private function isCurrentEntityDeleted()
+    {
+        /** @var ORM_Entity $entity */
+        $entity = $this->current();
+        $isCurrentEntityDeleted = $entity->getEntityState() == ORM_Entity::IS_DELETED;
+        return $isCurrentEntityDeleted;
+    }
 }
 
