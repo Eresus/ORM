@@ -431,7 +431,7 @@ abstract class ORM_Entity
      *
      * @param array  $column
      *
-     * @return SplObjectStorage
+     * @return ORM_Entity_Collection
      */
     protected function getEntities(array $column)
     {
@@ -442,7 +442,7 @@ abstract class ORM_Entity
         }
         else
         {
-            return new SplObjectStorage();
+            return new ORM_Entity_Collection();
         }
     }
 
@@ -452,7 +452,7 @@ abstract class ORM_Entity
      * @param string $key
      * @param array  $column
      *
-     * @return SplObjectStorage
+     * @return ORM_Entity_Collection
      */
     protected function getBindedEntities($key, array $column)
     {
@@ -473,7 +473,7 @@ abstract class ORM_Entity
                 $value [] = $binding[$key];
             }
             $targetTable = $this->getTableByEntityClass(@$column['class']);
-            $collection = new SplObjectStorage();
+            $collection = new ORM_Entity_Collection();
             foreach ($value as $item)
             {
                 $collection->attach($targetTable->find($item));
@@ -483,7 +483,7 @@ abstract class ORM_Entity
         }
         else
         {
-            return new SplObjectStorage();
+            return new ORM_Entity_Collection();
         }
     }
 }

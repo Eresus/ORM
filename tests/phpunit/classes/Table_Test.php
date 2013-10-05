@@ -309,9 +309,17 @@ class ORM_Table_Test extends PHPUnit_Framework_TestCase
         $db->expects($this->once())->method('fetchAll')->will($this->
             returnValue(array(array(1), array(1), array(1))));
         DB::setMock($db);
+        $self = $this;
         /** @var PHPUnit_Framework_MockObject_MockObject $table */
         $table->expects($this->exactly(3))->method('entityFactory')->with(array(1))->
-            will($this->returnCallback(function () { return new stdClass(); }));
+            will($this->returnCallback(
+                function () use ($self)
+                {
+                    $o = $self->getMockBuilder('ORM_Entity')->disableOriginalConstructor()
+                        ->setMethods(array('none'))->getMock();
+                    return $o;
+                }
+            ));
         $q = $this->getMock('ezcQuerySelect');
         /** @var ORM_Table $table */
         $result = $table->loadFromQuery($q);

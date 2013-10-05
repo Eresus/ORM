@@ -514,7 +514,7 @@ abstract class ORM_Table
      * @param int            $limit   максимум элементов, который следует вернуть
      * @param int            $offset  сколько элементов пропустить
      *
-     * @return SplObjectStorage
+     * @return ORM_Entity_Collection
      *
      * @since 1.00
      */
@@ -525,7 +525,7 @@ abstract class ORM_Table
             $query->limit($limit, $offset);
         }
         $raw = DB::fetchAll($query);
-        $items = new SplObjectStorage();
+        $items = new ORM_Entity_Collection();
         if ($raw)
         {
             foreach ($raw as $attrs)

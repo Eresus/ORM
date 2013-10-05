@@ -2,7 +2,7 @@
 /**
  * ORM
  *
- * Объектно-реляционное отображение.
+ * Простое объектно-реляционное отображение для Eresus.
  *
  * @version ${product.version}
  *
@@ -68,9 +68,9 @@ class ORM extends Plugin
     private static $driver = null;
 
     /**
-     * Кэш таблиц
+     * Реестр таблиц
      *
-     * @var array
+     * @var ORM_Table[]
      * @since 1.00
      */
     private static $tables = array();

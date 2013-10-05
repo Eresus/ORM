@@ -276,11 +276,13 @@ class ORM_Entity_Test extends PHPUnit_Framework_TestCase
 
         $targetTable = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()
             ->setMethods(array('setTableDefinition', 'find'))->getMock();
+        $self = $this;
         $targetTable->expects($this->any())->method('find')->will($this->returnCallback(
-            function ($id)
+            function ($id) use ($self)
             {
-                $o = new stdClass();
-                $o->id = $id;
+                $o = $self->getMockBuilder('ORM_Entity')->disableOriginalConstructor()
+                    ->setMethods(array('getPrimaryKey'))->getMock();
+                $o->expects($self->any())->method('getPrimaryKey')->will($self->returnValue($id));
                 return $o;
             }
         ));
