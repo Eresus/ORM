@@ -323,5 +323,28 @@ class ORM_Entity_Test extends PHPUnit_Framework_TestCase
         $this->assertInstanceOf('SplObjectStorage', $result);
         $this->assertEquals(2, $result->count());
     }
+
+    /**
+     * @covers ORM_Entity::getEntityState
+     * @covers ORM_Entity::setEntityState
+     * @covers ORM_Entity::afterSave
+     * @covers ORM_Entity::__set
+     * @covers ORM_Entity::afterDelete
+     */
+    public function testEntityState()
+    {
+        $entity = $this->getMockBuilder('ORM_Entity')->disableOriginalConstructor()
+            ->setMethods(array('getTable'))->getMock();
+        $entity->expects($this->any())->method('getTable')
+            ->will($this->returnValue(new UniversalStub()));
+        /** @var ORM_Entity $entity */
+        $this->assertEquals(ORM_Entity::IS_NEW, $entity->getEntityState());
+        $entity->afterSave();
+        $this->assertEquals(ORM_Entity::IS_PERSISTENT, $entity->getEntityState());
+        $entity->foo = 'bar';
+        $this->assertEquals(ORM_Entity::IS_DIRTY, $entity->getEntityState());
+        $entity->afterDelete();
+        $this->assertEquals(ORM_Entity::IS_DELETED, $entity->getEntityState());
+    }
 }
 

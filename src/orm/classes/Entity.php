@@ -37,11 +37,43 @@
 abstract class ORM_Entity
 {
     /**
+     * Состояние сущности: новый объект
+     * @since unstable
+     */
+    const IS_NEW = 1;
+
+    /**
+     * Состояние сущности: объект соответствует записи в БД
+     * @since unstable
+     */
+    const IS_PERSISTENT = 2;
+
+    /**
+     * Состояние сущности: в объекте есть изменения, несохранённые в БД
+     * @since unstable
+     */
+    const IS_DIRTY = 3;
+
+    /**
+     * Состояние сущности: объект удалён из БД
+     * @since unstable
+     */
+    const IS_DELETED = 4;
+
+    /**
      * Модуль
      *
      * @var Plugin|TPlugin
      */
     protected $plugin;
+
+    /**
+     * Состояние сущности
+     * @var int
+     *
+     * @since unstable
+     */
+    private $state = self::IS_NEW;
 
     /**
      * Атрибуты
@@ -127,6 +159,10 @@ abstract class ORM_Entity
             $this->setProperty($key, $value);
         }
         unset($this->gettersCache[$key]);
+        if ($this->getEntityState() == self::IS_PERSISTENT)
+        {
+            $this->setEntityState(self::IS_DIRTY);
+        }
     }
 
     /**
@@ -141,6 +177,32 @@ abstract class ORM_Entity
         $entityName = get_class($this);
         $entityName = substr($entityName, strrpos($entityName, '_') + 1);
         return ORM::getTable($this->plugin, $entityName);
+    }
+
+    /**
+     * Возвращает состояние объекта
+     *
+     * См. константы ORM_Entity::IS_…
+     *
+     * @return int
+     *
+     * @since unstable
+     */
+    public function getEntityState()
+    {
+        return $this->state;
+    }
+
+    /**
+     * Задаёт состояние объекта
+     *
+     * @param int $state  новое состояние (см. константы ORM_Entity::IS_…)
+     *
+     * @since unstable
+     */
+    protected function setEntityState($state)
+    {
+        $this->state = intval($state);
     }
 
     /**
@@ -232,7 +294,6 @@ abstract class ORM_Entity
         return $value;
     }
 
-    //@codeCoverageIgnoreStart
     /**
      * Вызывается перед изменением в БД
      *
@@ -246,7 +307,6 @@ abstract class ORM_Entity
     public function beforeSave(ezcQuery $query)
     {
     }
-    //@codeCoverageIgnoreEnd
 
     /**
      * Вызывается после записи изменений в БД
@@ -311,9 +371,9 @@ abstract class ORM_Entity
                 }
             }
         }
+        $this->setEntityState(self::IS_PERSISTENT);
     }
 
-    //@codeCoverageIgnoreStart
     /**
      * Вызывается перед удалением записи из БД
      *
@@ -327,9 +387,7 @@ abstract class ORM_Entity
     public function beforeDelete(ezcQuery $query)
     {
     }
-    //@codeCoverageIgnoreEnd
 
-    //@codeCoverageIgnoreStart
     /**
      * Вызывается после удаления записи из БД
      *
@@ -339,8 +397,8 @@ abstract class ORM_Entity
      */
     public function afterDelete()
     {
+        $this->setEntityState(self::IS_DELETED);
     }
-    //@codeCoverageIgnoreEnd
 
     /**
      * Возвращает таблицу по имени класса сущности
