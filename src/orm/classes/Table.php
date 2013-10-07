@@ -46,7 +46,7 @@ abstract class ORM_Table
      * Карта соответствия типов ORM типам PDO
      *
      * @var array
-     * @since unstable
+     * @since 2.02
      */
     protected static $orm2pdoTypeMap = array(
         'boolean' => PDO::PARAM_BOOL,
@@ -80,7 +80,7 @@ abstract class ORM_Table
      * В этом случае в {@link tableName} хранится имя основной таблицы
      *
      * @var bool
-     * @since unstable
+     * @since 2.02
      */
     private $isAlias = false;
 
@@ -164,7 +164,7 @@ abstract class ORM_Table
      *
      * @return string
      *
-     * @since unstable
+     * @since 2.02
      */
     public function getName()
     {
@@ -254,7 +254,7 @@ abstract class ORM_Table
      *
      * @return bool
      *
-     * @since unstable
+     * @since 2.02
      */
     public function isAlias()
     {
@@ -405,7 +405,7 @@ abstract class ORM_Table
      *
      * @return ORM_Entity[]
      *
-     * @since unstable
+     * @since 2.02
      */
     public function findAllBy(array $filter)
     {
@@ -623,7 +623,7 @@ abstract class ORM_Table
      * @throws LogicException  если перед isAlias() был вызван {@link setTableName()} или isAlias()
      *                         вызван повторно
      *
-     * @since unstable
+     * @since 2.02
      */
     protected function isAliasFor($tableName)
     {

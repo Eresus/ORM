@@ -38,25 +38,25 @@ abstract class ORM_Entity
 {
     /**
      * Состояние сущности: новый объект
-     * @since unstable
+     * @since 2.02
      */
     const IS_NEW = 1;
 
     /**
      * Состояние сущности: объект соответствует записи в БД
-     * @since unstable
+     * @since 2.02
      */
     const IS_PERSISTENT = 2;
 
     /**
      * Состояние сущности: в объекте есть изменения, несохранённые в БД
-     * @since unstable
+     * @since 2.02
      */
     const IS_DIRTY = 3;
 
     /**
      * Состояние сущности: объект удалён из БД
-     * @since unstable
+     * @since 2.02
      */
     const IS_DELETED = 4;
 
@@ -71,7 +71,7 @@ abstract class ORM_Entity
      * Состояние сущности
      * @var int
      *
-     * @since unstable
+     * @since 2.02
      */
     private $state = self::IS_NEW;
 
@@ -186,7 +186,7 @@ abstract class ORM_Entity
      *
      * @return int
      *
-     * @since unstable
+     * @since 2.02
      */
     public function getEntityState()
     {
@@ -198,7 +198,7 @@ abstract class ORM_Entity
      *
      * @param int $state  новое состояние (см. константы ORM_Entity::IS_…)
      *
-     * @since unstable
+     * @since 2.02
      */
     protected function setEntityState($state)
     {

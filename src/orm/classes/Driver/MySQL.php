@@ -248,7 +248,7 @@ class ORM_Driver_MySQL extends ORM_Driver_Abstract
      *
      * @return string  SQL
      *
-     * @since unstable
+     * @since 2.02
      *
      * @SuppressWarnings(PHPMD.UnusedPrivateMethod)
      */
@@ -265,7 +265,7 @@ class ORM_Driver_MySQL extends ORM_Driver_Abstract
      *
      * @return string  SQL
      *
-     * @since unstable
+     * @since 2.02
      *
      * @SuppressWarnings(PHPMD.UnusedPrivateMethod)
      */

@@ -63,7 +63,7 @@ class ORM extends Plugin
     /**
      * Драйвер СУБД
      * @var ORM_Driver_Abstract
-     * @since unstable
+     * @since 2.02
      */
     private static $driver = null;
 
@@ -89,7 +89,7 @@ class ORM extends Plugin
      *
      * @param ORM_Driver_Abstract $driver
      *
-     * @since unstable
+     * @since 2.02
      */
     public static function setDriver(ORM_Driver_Abstract $driver)
     {
@@ -101,7 +101,7 @@ class ORM extends Plugin
      *
      * @return ORM_Driver_Abstract
      *
-     * @since unstable
+     * @since 2.02
      */
     public static function getDriver()
     {
