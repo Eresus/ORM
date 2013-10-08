@@ -56,7 +56,10 @@ class ORM_Driver_SQL
         $fieldDefinitions = array();
         foreach ($table->getColumns() as $name => $field)
         {
-            $fieldDefinitions []= $this->getFieldDefinition($name, $field);
+            if (!$field->isVirtual())
+            {
+                $fieldDefinitions []= $this->getFieldDefinition($name, $field);
+            }
         }
         $primaryKey = $this->getPrimaryKeyDefinition($table->getPrimaryKey());
         $indexDefinitions = array();

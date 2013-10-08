@@ -1,6 +1,6 @@
 <?php
 /**
- * Драйвер MySQL
+ * Модульные тесты класса ORM_Driver_MySQL
  *
  * @version ${product.version}
  *
@@ -25,31 +25,30 @@
  * <http://www.gnu.org/licenses/>
  *
  * @package ORM
+ * @subpackage Tests
  */
 
+require_once __DIR__ . '/../../bootstrap.php';
+
 /**
- * Драйвер MySQL
- *
  * @package ORM
- * @since 1.00
+ * @subpackage Tests
  */
-class ORM_Driver_MySQL extends ORM_Driver_SQL
+class ORM_Driver_MySQLTest extends PHPUnit_Framework_TestCase
 {
     /**
-     * Возвращает выражение SQL для создания таблицы
-     *
-     * @param string   $name        имя таблицы
-     * @param string[] $fields      выражения для полей
-     * @param string   $primaryKey  выражение для главного ключа
-     * @param string[] $indexes     выражения для индексов
-     *
-     * @return string  SQL
+     * @covers ORM_Driver_MySQL::getCreateTableDefinition
      */
-    protected function getCreateTableDefinition($name, $fields, $primaryKey, $indexes)
+    public function testGetCreateTableDefinition()
     {
-        return "CREATE TABLE $name ("
-        . implode(', ', array_merge($fields, array($primaryKey), $indexes))
-        . ') ENGINE InnoDB DEFAULT CHARSET=utf8';
+        $getCreateTableDefinition
+            = new ReflectionMethod('ORM_Driver_MySQL', 'getCreateTableDefinition');
+        $getCreateTableDefinition->setAccessible(true);
+        $driver = new ORM_Driver_MySQL();
+        $this->assertEquals(
+            'CREATE TABLE foo (bar, baz, pkey, idx1, idx2) ENGINE InnoDB DEFAULT CHARSET=utf8',
+            $getCreateTableDefinition->invoke($driver,
+                'foo', array('bar', 'baz'), 'pkey', array('idx1', 'idx2')));
     }
 }
 
