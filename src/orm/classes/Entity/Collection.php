@@ -37,6 +37,18 @@
 class ORM_Entity_Collection extends SplObjectStorage
 {
     /**
+     * Очишает коллекцию, удаляя все объекты
+     */
+    public function clear()
+    {
+        parent::rewind();
+        while (parent::valid())
+        {
+            $this->detach(parent::current());
+        }
+    }
+
+    /**
      * @param ORM_Entity $entity
      * @return bool
      */
@@ -91,6 +103,38 @@ class ORM_Entity_Collection extends SplObjectStorage
     }
 
     /**
+     * @param int|object $offset
+     *
+     * @throws OutOfBoundsException
+     *
+     * @return ORM_Entity
+     */
+    public function offsetGet($offset)
+    {
+        if (is_object($offset))
+        {
+            return parent::offsetGet($offset);
+        }
+
+        if (!$this->valid() || $this->key() > $offset)
+        {
+            $this->rewind();
+        }
+        while ($this->key() < $offset && $this->valid())
+        {
+            $this->next();
+        }
+        if ($this->valid())
+        {
+            return $this->current();
+        }
+        else
+        {
+            throw new OutOfBoundsException(sprintf('Invalid index "%s"', $offset));
+        }
+    }
+
+    /**
      * Возвращает true если текущая сущность помечена как удалённая
      * @return bool
      */
@@ -98,8 +142,7 @@ class ORM_Entity_Collection extends SplObjectStorage
     {
         /** @var ORM_Entity $entity */
         $entity = $this->current();
-        $isCurrentEntityDeleted = $entity->getEntityState() == ORM_Entity::IS_DELETED;
-        return $isCurrentEntityDeleted;
+        return $entity->getEntityState() == ORM_Entity::IS_DELETED;
     }
 }
 

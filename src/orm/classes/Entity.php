@@ -239,13 +239,7 @@ abstract class ORM_Entity
             switch (@$column['type'])
             {
                 case 'bindings':
-                    foreach ($value as &$item)
-                    {
-                        if ($item instanceof ORM_Entity)
-                        {
-                            $item = $item->{$item->getTable()->getPrimaryKey()};
-                        }
-                    }
+                    $value = $this->createCollectionOfBindings($key, $column, $value);
                     break;
                 case 'entity':
                     if (is_object($value))
@@ -271,24 +265,19 @@ abstract class ORM_Entity
      */
     public function getProperty($key)
     {
-        $value = isset($this->attrs[$key]) ? $this->attrs[$key] : null;
+        $value = array_key_exists($key, $this->attrs) ? $this->attrs[$key] : null;
 
         $table = $this->getTable();
         $columns = $table->getColumns();
         if (array_key_exists($key, $columns))
         {
-            $column = $columns[$key];
-            switch (@$column['type'])
+            if ($columns[$key]->isVirtual())
             {
-                case 'bindings':
-                    $value = $this->getBindedEntities($key, $column);
-                    break;
-                case 'entities':
-                    $value = $this->getEntities($column);
-                    break;
-                case 'entity':
-                    $table = $this->getTableByEntityClass(@$column['class']);
-                    $value = $table->find($value);
+                $value = $columns[$key]->evaluateVirtualValue($this, $key);
+            }
+            else
+            {
+                $value = $columns[$key]->pdo2orm($value);
             }
         }
         return $value;
@@ -299,13 +288,13 @@ abstract class ORM_Entity
      *
      * @param ezcQuery $query  запрос, который будет выполнен для сохранения записи
      *
-     * @return void
+     * @return ezcQuery
      *
      * @since 1.00
-     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function beforeSave(ezcQuery $query)
     {
+        return $query;
     }
 
     /**
@@ -319,57 +308,7 @@ abstract class ORM_Entity
     {
         foreach ($this->getTable()->getColumns() as $key => $column)
         {
-            if ('bindings' == @$column['type'])
-            {
-                $bindingsTableName = $this->getTable()->getBindingsTableName($key);
-                $sourceField = preg_replace('/^.*?_/', '', $this->getTable()->getName());
-                $actualBindings = array();
-                foreach ($this->{$key} as $bindedEntity)
-                {
-                    /** @var ORM_Entity $bindedEntity */
-                    $actualBindings[$bindedEntity->getPrimaryKey()] = $bindedEntity;
-                }
-
-                $q = DB::getHandler()->createSelectQuery();
-                $q->select('*');
-                $q->from($bindingsTableName);
-                $q->where($q->expr->eq($sourceField, $q->bindValue($this->getPrimaryKey())));
-                $storedBindings = DB::fetchAll($q);
-
-                $toDelete = array();
-                foreach ($storedBindings as $storedBinding)
-                {
-                    if (array_key_exists($storedBinding[$key], $actualBindings))
-                    {
-                        unset($actualBindings[$storedBinding[$key]]);
-                    }
-                    else
-                    {
-                        $toDelete []= $storedBinding['id'];
-                    }
-                }
-
-                if (count($toDelete) > 0)
-                {
-                    $q = DB::getHandler()->createDeleteQuery();
-                    $q->deleteFrom($bindingsTableName)->where($q->expr->in('id', $toDelete));
-                    DB::execute($q);
-                }
-
-                if (count($actualBindings) > 0)
-                {
-                    $q = DB::getHandler()->createInsertQuery();
-                    $q->insertInto($bindingsTableName);
-                    $q->set($sourceField, $q->bindValue($this->getPrimaryKey()));
-                    $q->set($key, $q->bindParam($bindedId));
-                    foreach ($actualBindings as $binding)
-                    {
-                        /** @var ORM_Entity $binding */
-                        $bindedId = $binding->getPrimaryKey();
-                        DB::execute($q);
-                    }
-                }
-            }
+            $column->afterEntitySave($this, $key);
         }
         $this->setEntityState(self::IS_PERSISTENT);
     }
@@ -427,64 +366,45 @@ abstract class ORM_Entity
     }
 
     /**
-     * Возвращает объекты-значения указанного поля
+     * Возвращает коллекцию привязок на основе переданных данных
      *
-     * @param array  $column
+     * @param string $key     имя поля
+     * @param array  $column  описание поля
+     * @param mixed  $value   устанавливаемое значение
      *
-     * @return ORM_Entity_Collection
-     */
-    protected function getEntities(array $column)
-    {
-        if ($this->getPrimaryKey())
-        {
-            $table = $this->getTableByEntityClass(@$column['class']);
-            return $table->findAllBy(array(@$column['reference'] => $this->getPrimaryKey()));
-        }
-        else
-        {
-            return new ORM_Entity_Collection();
-        }
-    }
-
-    /**
-     * Возвращает объекты, привязанные к указанному полю
-     *
-     * @param string $key
-     * @param array  $column
+     * @throws InvalidArgumentException
      *
      * @return ORM_Entity_Collection
      */
-    protected function getBindedEntities($key, array $column)
+    protected function createCollectionOfBindings($key, array $column, $value)
     {
-        if ($this->getPrimaryKey())
+        /*
+         * Получаем объект коллекции для этого свойства, что позволит нам избежать
+         * появления дубликатов свойства, если к нему уже были обращения.
+         */
+        /** @var ORM_Entity_Collection $collection */
+        $collection = $this->getProperty($key);
+        $collection->clear();
+        if (($value instanceof ORM_Entity_Collection) || is_array($value))
         {
-            $q = DB::getHandler()->createSelectQuery();
-            $q->select($key);
-            $q->from($this->getTable()->getBindingsTableName($key));
-            $q->where(
-                $q->expr->eq(
-                    preg_replace('/^.*?_/', '', $this->getTable()->getName()),
-                    $q->bindValue($this->getPrimaryKey())
-                ));
-            $bindings = DB::fetchAll($q);
-            $value = array();
-            foreach ($bindings as $binding)
+            $validClass = @$column['class'];
+            foreach ($value as $entity)
             {
-                $value [] = $binding[$key];
+                if (!($entity instanceof $validClass))
+                {
+                    throw new InvalidArgumentException(
+                        sprintf('Field "%s" accepts only instances of "%s"!', $key, $validClass)
+                    );
+                }
+                $collection->attach($entity);
             }
-            $targetTable = $this->getTableByEntityClass(@$column['class']);
-            $collection = new ORM_Entity_Collection();
-            foreach ($value as $item)
-            {
-                $collection->attach($targetTable->find($item));
-            }
-            $value = $collection;
-            return $value;
         }
         else
         {
-            return new ORM_Entity_Collection();
+            throw new InvalidArgumentException(
+                sprintf('Field "%s" can be set only to array or ORM_Entity_Collection!', $key));
         }
+        return $collection;
     }
 }
 

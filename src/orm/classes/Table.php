@@ -43,26 +43,8 @@ abstract class ORM_Table
     protected $plugin;
 
     /**
-     * Карта соответствия типов ORM типам PDO
-     *
-     * @var array
-     * @since 2.02
-     */
-    protected static $orm2pdoTypeMap = array(
-        'boolean' => PDO::PARAM_BOOL,
-        'date' => PDO::PARAM_STR,
-        'datetime' => PDO::PARAM_STR,
-        'entity' => PDO::PARAM_INT,
-        'float' => null,
-        'integer' => PDO::PARAM_INT,
-        'string' => PDO::PARAM_STR,
-        'time' => PDO::PARAM_STR,
-        'timestamp' => PDO::PARAM_STR,
-    );
-
-    /**
      * Драйвер СУБД
-     * @var ORM_Driver_Abstract
+     * @var ORM_Driver_SQL
      * @since 2.01
      */
     private $driver;
@@ -133,14 +115,14 @@ abstract class ORM_Table
     /**
      * Конструктор
      *
-     * @param ORM_Driver_Abstract $driver
+     * @param ORM_Driver_SQL $driver
      * @param Plugin|TPlugin      $plugin
      *
      * @return ORM_Table
      *
      * @since 1.00
      */
-    public function __construct(ORM_Driver_Abstract $driver, $plugin)
+    public function __construct(ORM_Driver_SQL $driver, $plugin)
     {
         $this->driver = $driver;
         $this->plugin = $plugin;
@@ -150,7 +132,7 @@ abstract class ORM_Table
     /**
      * Возвращает драйвер СУБД
      *
-     * @return ORM_Driver_Abstract
+     * @return ORM_Driver_SQL
      *
      * @since 2.02
      */
@@ -204,7 +186,7 @@ abstract class ORM_Table
     /**
      * Возвращает поля таблицы
      *
-     * @return array
+     * @return ORM_Field_Abstract[]
      *
      * @since 2.02
      */
@@ -301,10 +283,14 @@ abstract class ORM_Table
         $q = DB::getHandler()->createInsertQuery();
         $q->insertInto($this->getName());
         $this->bindValuesToQuery($entity, $q);
-        $entity->beforeSave($q);
+        $newQuery = $entity->beforeSave($q);
+        if ($newQuery instanceof ezcQuery)
+        {
+            $q = $newQuery;
+        }
         DB::execute($q);
         $columns = $this->getColumns();
-        if (@$columns[$this->getPrimaryKey()]['autoincrement'])
+        if ($columns[$this->getPrimaryKey()]->isAutoIncrementing())
         {
             $entity->{$this->getPrimaryKey()} = DB::getHandler()->lastInsertId();
         }
@@ -327,10 +313,14 @@ abstract class ORM_Table
         $q = DB::getHandler()->createUpdateQuery();
         $q->update($this->getName())->
             where($q->expr->eq($pKey,
-                $q->bindValue($entity->$pKey, null, $this->pdoFieldType(@$columns[$pKey]['type']))
+                $q->bindValue($entity->$pKey, null, $columns[$pKey]->getPdoType())
             ));
         $this->bindValuesToQuery($entity, $q);
-        $entity->beforeSave($q);
+        $newQuery = $entity->beforeSave($q);
+        if ($newQuery instanceof ezcQuery)
+        {
+            $q = $newQuery;
+        }
         DB::execute($q);
         $entity->afterSave();
     }
@@ -351,8 +341,7 @@ abstract class ORM_Table
         $q = DB::getHandler()->createDeleteQuery();
         $q->deleteFrom($this->getName())->
             where($q->expr->eq($pKey,
-                $q->bindValue($entity->getPrimaryKey(), null,
-                    $this->pdoFieldType(@$columns[$pKey]['type']))
+                $q->bindValue($entity->getPrimaryKey(), null, $columns[$pKey]->getPdoType())
             ));
         $entity->beforeDelete($q);
         DB::execute($q);
@@ -418,8 +407,13 @@ abstract class ORM_Table
             {
                 throw new LogicException(sprintf('Unknown column "%s" in filter', $field));
             }
-            $where []= $q->expr->eq($field, $q->bindValue($value, ":$field",
-                $this->pdoFieldType($columns[$field]['type'])));
+            if ($columns[$field]->isVirtual())
+            {
+                throw new LogicException(
+                    sprintf('Filters on virtual fields ("%s") not supported', $field));
+            }
+            $where []= $q->expr->eq($field,
+                $q->bindValue($value, ":$field", $columns[$field]->getPdoType()));
         }
         $q->where($q->expr->lAnd($where));
         return $this->loadFromQuery($q);
@@ -445,7 +439,7 @@ abstract class ORM_Table
         $columns = $this->getColumns();
         $q = $this->createSelectQuery();
         $q->where($q->expr->eq($pKey,
-            $q->bindValue($id, null, $this->pdoFieldType(@$columns[$pKey]['type']))));
+            $q->bindValue($id, null, $columns[$pKey]->getPdoType())));
         $entity = $this->loadOneFromQuery($q);
 
         if (null !== $entity)
@@ -661,14 +655,20 @@ abstract class ORM_Table
      *
      * Возможные типы полей:
      *
+     * - bindings — список привязок к другим сущностям
      * - boolean
      * - date
      * - datetime
+     * - entity — ссылка на другую сущность
+     * - entities — коллекция других сущностей
      * - float
      * - integer
      * - string
      * - time
      * - timestamp — хранится как целое число
+     *
+     * Более подробные описания этих типов можно найти в документации по соответствующим классам
+     * ORM_Field_xxx.
      *
      * @param array $columns
      *
@@ -680,6 +680,8 @@ abstract class ORM_Table
      */
     protected function hasColumns(array $columns)
     {
+        $this->columns = array();
+        $fieldTypes = $this->getDriver()->getOrm()->getFieldTypes();
         foreach ($columns as $name => $column)
         {
             if (!is_string($name) || !preg_match('/^[a-z_]+$/i', $name))
@@ -693,8 +695,15 @@ abstract class ORM_Table
                 throw new InvalidArgumentException(
                     sprintf('No "type" element in "%s" definition', $name));
             }
+            if (!array_key_exists($column['type'], $fieldTypes))
+            {
+                throw new InvalidArgumentException(
+                    sprintf('Unsupported type "%s" in "%s" definition', $column['type'], $name));
+            }
+            $fieldTypeClass = $fieldTypes[$column['type']];
+            $this->columns[$name] = new $fieldTypeClass($column, $this->driver->getOrm());
+
         }
-        $this->columns = $columns;
         reset($columns);
         $this->primaryKey = key($columns);
     }
@@ -751,81 +760,6 @@ abstract class ORM_Table
     }
 
     /**
-     * Возвращает тип поля PDO на основе типа поля ORM
-     *
-     * @param string $ormFieldType
-     *
-     * @throws InvalidArgumentException если $ormFieldType не строка или содержит неизвестный тип
-     *
-     * @return int|null
-     *
-     * @since 1.00
-     */
-    protected function pdoFieldType($ormFieldType)
-    {
-        if (!is_string($ormFieldType))
-        {
-            throw new InvalidArgumentException('$ormFieldType must be of type string, ' .
-                gettype($ormFieldType) . ' given');
-        }
-
-        if (!array_key_exists($ormFieldType, self::$orm2pdoTypeMap))
-        {
-            throw new InvalidArgumentException('Unknown field type: ' . $ormFieldType);
-        }
-        return self::$orm2pdoTypeMap[$ormFieldType];
-    }
-
-    /**
-     * Возвращает значение поля, пригодное для использования с PDO
-     *
-     * @param mixed  $ormValue      значение поля
-     * @param string $ormFieldType  см. {@link hasColumns()}
-     *
-     * @throws InvalidArgumentException
-     *
-     * @return mixed
-     *
-     * @since 1.00
-     */
-    protected function pdoFieldValue($ormValue, $ormFieldType)
-    {
-        if (!is_string($ormFieldType))
-        {
-            throw new InvalidArgumentException('$ormFieldType must be of type string, ' .
-                gettype($ormFieldType) . ' given');
-        }
-
-        return $this->driver->pdoFieldValue($ormValue, $ormFieldType);
-    }
-
-    /**
-     * Превращает значение PDO в значение ORM
-     *
-     * @param mixed  $value  значение поля
-     * @param array  $attrs  атрибуты поля, см. {@link hasColumns()}
-     *
-     * @return mixed
-     *
-     * @since 3.01
-     */
-    protected function convertPdoValue($value, array $attrs)
-    {
-        switch ($attrs['type'])
-        {
-            case 'date':
-            case 'time':
-            case 'datetime':
-                $value = new DateTime(strval($value));
-                break;
-            case 'timestamp':
-                $value = new DateTime('@' . strval($value));
-                break;
-        }
-        return $value;
-    }
-
-    /**
      * Фабрика сущностей
      *
      * @param array $values
@@ -850,9 +784,9 @@ abstract class ORM_Table
         }
 
         $entityClass = $this->getEntityClass();
-        foreach ($this->getColumns() as $name => $attrs)
+        foreach ($this->getColumns() as $name => $column)
         {
-            $values[$name] = $this->convertPdoValue($values[$name], $attrs);
+            $values[$name] = $column->pdo2orm($values[$name]);
         }
         $entity = new $entityClass($this->plugin, $values);
         $this->registry[$id] = $entity;
@@ -868,15 +802,14 @@ abstract class ORM_Table
     protected function bindValuesToQuery(ORM_Entity $entity, ezcQuery $query)
     {
         /** @var ezcQueryInsert|ezcQueryUpdate $query */
-        foreach ($this->getColumns() as $name => $attrs)
+        foreach ($this->getColumns() as $name => $column)
         {
-            if (in_array(@$attrs['type'], array('bindings', 'entities')))
+            if ($column->isVirtual())
             {
                 continue;
             }
-            $type = $this->pdoFieldType(@$attrs['type']);
-            $value = $this->pdoFieldValue($entity->getProperty($name), @$attrs['type']);
-            $query->set($name, $query->bindValue($value, ":$name", $type));
+            $value = $column->orm2pdo($entity->getProperty($name));
+            $query->set($name, $query->bindValue($value, ":$name", $column->getPdoType()));
         }
     }
 }

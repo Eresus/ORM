@@ -62,7 +62,7 @@ class ORM extends Plugin
 
     /**
      * Драйвер СУБД
-     * @var ORM_Driver_Abstract
+     * @var ORM_Driver_SQL
      * @since 2.02
      */
     private static $driver = null;
@@ -81,17 +81,35 @@ class ORM extends Plugin
      * @var array
      * @since 1.00
      */
-    private static $filedTypes = array('boolean', 'date', 'datetime', 'entity', 'entities', 'float',
-        'integer', 'string', 'time', 'timestamp');
+    private $filedTypes = array(
+        'bindings' => 'ORM_FieldType_Bindings',
+        'boolean' => 'ORM_FieldType_Boolean',
+        'date' => 'ORM_FieldType_Date',
+        'datetime' => 'ORM_FieldType_Datetime',
+        'entity' => 'ORM_FieldType_Entity',
+        'entities' => 'ORM_FieldType_Entities',
+        'float' => 'ORM_FieldType_Float',
+        'integer' => 'ORM_Field_Integer',
+        'string' => 'ORM_FieldType_String',
+        'timestamp' => 'ORM_FieldType_Timestamp'
+    );
+
+    /**
+     * Конструктор
+     */
+    public function __construct()
+    {
+        parent::__construct();
+    }
 
     /**
      * Задаёт используемый драйвер СУБД
      *
-     * @param ORM_Driver_Abstract $driver
+     * @param ORM_Driver_SQL $driver
      *
      * @since 2.02
      */
-    public static function setDriver(ORM_Driver_Abstract $driver)
+    public static function setDriver(ORM_Driver_SQL $driver)
     {
         self::$driver = $driver;
     }
@@ -99,7 +117,7 @@ class ORM extends Plugin
     /**
      * Возвращает используемый драйвер СУБД
      *
-     * @return ORM_Driver_Abstract
+     * @return ORM_Driver_SQL
      *
      * @since 2.02
      */
@@ -107,7 +125,9 @@ class ORM extends Plugin
     {
         if (null === self::$driver)
         {
-            self::$driver = new ORM_Driver_MySQL();
+            /** @var ORM $instance */
+            $instance = Eresus_Kernel::app()->getLegacyKernel()->plugins->load('orm');
+            self::$driver = new ORM_Driver_MySQL($instance);
         }
         return self::$driver;
     }
@@ -149,13 +169,71 @@ class ORM extends Plugin
     /**
      * Возвращает возможные типы полей
      *
+     * @return ORM_Field_Abstract[]
+     *
+     * @since 2.02
+     */
+    public function getFieldTypes()
+    {
+        return $this->filedTypes;
+    }
+
+    /**
+     * Возвращает возможные типы полей
+     *
      * @return array
      *
      * @since 1.00
+     * @deprecated с 2.02 используйте {@link getFieldTypes()}
      */
     public static function fieldTypes()
     {
-        return self::$filedTypes;
+        /** @var ORM $instance */
+        $instance = Eresus_Kernel::app()->getLegacyKernel()->plugins->load('orm');
+        return $instance->getFieldTypes();
+    }
+
+    /**
+     * Регистрирует тип поля
+     *
+     * $typeClass должен быть потомком ORM_Field_Abstract и содержать в имени строку «_Field_».
+     * Также должен существовать класс унаследованный от X, имя которого совпадает с $typeClass,
+     * но строка «_Field_» заменена на «_Driver_SQL_»
+     *
+     * @param string $typeName   имя типа (латинские буквы в нижнем регистре и цифры)
+     * @param string $typeClass  имя класса типа
+     *
+     * @since 2.02
+     */
+    public function registerFieldType($typeName, $typeClass)
+    {
+        $this->filedTypes[$typeName] = $typeClass;
+    }
+
+    /**
+     * Возвращает таблицу по имени класса сущности
+     *
+     * @param string $entityClass
+     *
+     * @throws InvalidArgumentException
+     *
+     * @return ORM_Table
+     *
+     * @since 2.02
+     */
+    public function getTableByEntityClass($entityClass)
+    {
+        if ('' === strval($entityClass))
+        {
+            throw new InvalidArgumentException('$entityClass can not be blank');
+        }
+        $entityPluginName = substr($entityClass, 0, strpos($entityClass, '_'));
+        $entityPluginName = strtolower($entityPluginName);
+        $plugin = Eresus_Kernel::app()->getLegacyKernel()->plugins
+            ->load($entityPluginName);
+        $entityName = substr($entityClass, strrpos($entityClass, '_') + 1);
+        $table = self::getTable($plugin, $entityName);
+        return $table;
     }
 }
 

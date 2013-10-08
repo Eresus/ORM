@@ -20,8 +20,12 @@ spl_autoload_register(
         }
         elseif (substr($class, 0, 4) == 'ORM_')
         {
-            $path = str_replace('_', '/', substr($class, 4)) . '.php';
-            require TESTS_SRC_DIR . '/orm/classes/' . $path;
+            $path = TESTS_SRC_DIR . '/orm/classes/' . str_replace('_', '/', substr($class, 4))
+                . '.php';
+            if (file_exists($path))
+            {
+                require $path;
+            }
         }
     }
 );

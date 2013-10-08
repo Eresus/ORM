@@ -34,8 +34,6 @@
 
 
 require_once __DIR__ . '/../../bootstrap.php';
-require_once TESTS_SRC_DIR . '/orm/classes/Table.php';
-require_once TESTS_SRC_DIR . '/orm/classes/Helper/Ordering.php';
 
 /**
  * @package ORM
@@ -43,73 +41,74 @@ require_once TESTS_SRC_DIR . '/orm/classes/Helper/Ordering.php';
  */
 class ORM_Helper_Ordering_Test extends PHPUnit_Framework_TestCase
 {
-	/**
-	 * @covers ORM_Helper_Ordering::groupBy
-	 */
-	public function test_groupBy()
-	{
-		$helper = new ORM_Helper_Ordering();
-		$helper->groupBy('foo', 'ASC', 'bar', 'DESC');
+    /**
+     * @covers ORM_Helper_Ordering::groupBy
+     */
+    public function test_groupBy()
+    {
+        $helper = new ORM_Helper_Ordering();
+        $helper->groupBy('foo', 'ASC', 'bar', 'DESC');
 
-		$p_groupBy = new ReflectionProperty('ORM_Helper_Ordering', 'groupBy');
-		$p_groupBy->setAccessible(true);
-		$this->assertEquals(array('foo', 'ASC', 'bar', 'DESC'), $p_groupBy->getValue($helper));
-	}
-	//-----------------------------------------------------------------------------
+        $p_groupBy = new ReflectionProperty('ORM_Helper_Ordering', 'groupBy');
+        $p_groupBy->setAccessible(true);
+        $this->assertEquals(array('foo', 'ASC', 'bar', 'DESC'), $p_groupBy->getValue($helper));
+    }
+    //-----------------------------------------------------------------------------
 
-	/**
-	 * @covers ORM_Helper_Ordering::moveUp
-	 */
-	public function test_moveUp()
-	{
-		$helper = $this->getMock('ORM_Helper_Ordering', array('swap'));
-		$plugin = new ORM_Helper_Ordering_Test_Plugin();
-		$entity = new ORM_Helper_Ordering_Test_Plugin_Entity_Foo($plugin);
-		$helper->moveUp($entity);
-		$entity->position = 1;
-		$p_groupBy = new ReflectionProperty('ORM_Helper_Ordering', 'groupBy');
-		$p_groupBy->setAccessible(true);
-		$p_groupBy->setValue($helper, array('foo'));
-		$helper->moveUp($entity);
-		$GLOBALS['ORM_Helper_Ordering_Test_Plugin_Entity_Table_Foo::loadOneFromQuery'] = null;
-		$helper->moveUp($entity);
-	}
-	//-----------------------------------------------------------------------------
+    /**
+     * @covers ORM_Helper_Ordering::moveUp
+     */
+    public function test_moveUp()
+    {
+        $helper = $this->getMock('ORM_Helper_Ordering', array('swap'));
+        $plugin = new ORM_Helper_Ordering_Test_Plugin();
+        $entity = new ORM_Helper_Ordering_Test_Plugin_Entity_Foo($plugin);
+        $helper->moveUp($entity);
+        $entity->position = 1;
+        $p_groupBy = new ReflectionProperty('ORM_Helper_Ordering', 'groupBy');
+        $p_groupBy->setAccessible(true);
+        $p_groupBy->setValue($helper, array('foo'));
+        $helper->moveUp($entity);
+        $GLOBALS['ORM_Helper_Ordering_Test_Plugin_Entity_Table_Foo::loadOneFromQuery'] = null;
+        $helper->moveUp($entity);
+    }
+    //-----------------------------------------------------------------------------
 
-	/**
-	 * @covers ORM_Helper_Ordering::moveDown
-	 */
-	public function test_moveDown()
-	{
-		$helper = $this->getMock('ORM_Helper_Ordering', array('swap'));
-		$plugin = new ORM_Helper_Ordering_Test_Plugin();
-		$entity = new ORM_Helper_Ordering_Test_Plugin_Entity_Foo($plugin);
-		$p_groupBy = new ReflectionProperty('ORM_Helper_Ordering', 'groupBy');
-		$p_groupBy->setAccessible(true);
-		$p_groupBy->setValue($helper, array('foo'));
-		$helper->moveDown($entity);
-		$GLOBALS['ORM_Helper_Ordering_Test_Plugin_Entity_Table_Foo::loadOneFromQuery'] = null;
-		$helper->moveDown($entity);
-	}
-	//-----------------------------------------------------------------------------
+    /**
+     * @covers ORM_Helper_Ordering::moveDown
+     */
+    public function test_moveDown()
+    {
+        $helper = $this->getMock('ORM_Helper_Ordering', array('swap'));
+        $plugin = new ORM_Helper_Ordering_Test_Plugin();
+        $entity = new ORM_Helper_Ordering_Test_Plugin_Entity_Foo($plugin);
+        $p_groupBy = new ReflectionProperty('ORM_Helper_Ordering', 'groupBy');
+        $p_groupBy->setAccessible(true);
+        $p_groupBy->setValue($helper, array('foo'));
+        $helper->moveDown($entity);
+        $GLOBALS['ORM_Helper_Ordering_Test_Plugin_Entity_Table_Foo::loadOneFromQuery'] = null;
+        $helper->moveDown($entity);
+    }
+    //-----------------------------------------------------------------------------
 }
 
 class ORM_Helper_Ordering_Test_Plugin extends Plugin {}
 class ORM_Helper_Ordering_Test_Plugin_Entity_Foo extends ORM_Entity {}
 class ORM_Helper_Ordering_Test_Plugin_Entity_Table_Foo extends ORM_Table
 {
-	protected function setTableDefinition() {}
-	//-----------------------------------------------------------------------------
-	public function createSelectQuery($fill = true)
-	{
-		return new ezcQuerySelect();
-	}
-	//-----------------------------------------------------------------------------
-	public function loadOneFromQuery(ezcQuerySelect $query)
-	{
-		$key = 'ORM_Helper_Ordering_Test_Plugin_Entity_Table_Foo::loadOneFromQuery';
-		return array_key_exists($key, $GLOBALS) ? $GLOBALS[$key] :
-			new ORM_Helper_Ordering_Test_Plugin_Entity_Foo(new ORM_Helper_Ordering_Test_Plugin);
-	}
-	//-----------------------------------------------------------------------------
+    protected function setTableDefinition() {}
+    //-----------------------------------------------------------------------------
+    public function createSelectQuery($fill = true)
+    {
+        return new ezcQuerySelect();
+    }
+    //-----------------------------------------------------------------------------
+    public function loadOneFromQuery(ezcQuerySelect $query)
+    {
+        $key = 'ORM_Helper_Ordering_Test_Plugin_Entity_Table_Foo::loadOneFromQuery';
+        return array_key_exists($key, $GLOBALS) ? $GLOBALS[$key] :
+            new ORM_Helper_Ordering_Test_Plugin_Entity_Foo(new ORM_Helper_Ordering_Test_Plugin);
+    }
+    //-----------------------------------------------------------------------------
 }
+

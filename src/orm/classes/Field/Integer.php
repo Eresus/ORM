@@ -1,12 +1,10 @@
 <?php
 /**
- * ORM
- *
- * Модульные тесты
+ * Поле типа «integer»
  *
  * @version ${product.version}
  *
- * @copyright 2011, Михаил Красильников <m.krasilnikov@yandex.ru>
+ * @copyright 2013, Михаил Красильников <m.krasilnikov@yandex.ru>
  * @license http://www.gnu.org/licenses/gpl.txt	GPL License 3
  * @author Михаил Красильников <m.krasilnikov@yandex.ru>
  *
@@ -27,38 +25,74 @@
  * <http://www.gnu.org/licenses/>
  *
  * @package ORM
- * @subpackage Tests
- *
- * $Id: bootstrap.php 1849 2011-10-03 17:34:22Z mk $
  */
 
-
-require_once __DIR__ . '/../../bootstrap.php';
 
 /**
+ * Поле типа «integer»
+ *
  * @package ORM
- * @subpackage Tests
+ * @since 2.02
  */
-class ORM_Table_Cached_Test extends PHPUnit_Framework_TestCase
+class ORM_Field_Integer extends ORM_Field_Abstract
 {
     /**
-     * @covers ORM_Table_Cached::fillCache
+     * Возвращает имя типа
+     *
+     * @return string
+     *
+     * @since 2.02
      */
-    public function testFillCache()
+    public function getTypeName()
     {
-        $table = $this->getMockBuilder('ORM_Table_Cached')->disableOriginalConstructor()->
-            setMethods(array('setTableDefinition', 'createSelectQuery', 'loadFromQuery'))->getMock();
-        $table->expects($this->once())->method('createSelectQuery')->
-            will($this->returnValue(new ezcQuerySelect()));
-        $item = new stdClass();
-        $item->id = 0;
-        $table->expects($this->once())->method('loadFromQuery')->will($this->returnValue(array($item)));
+        return 'integer';
+    }
 
-        $m_fillCache = new ReflectionMethod('ORM_Table_Cached', 'fillCache');
-        $m_fillCache->setAccessible(true);
+    /**
+     * Возвращает соответствующий тип PDO (PDO::PARAM_…) или null
+     *
+     * @return null|int
+     *
+     * @since 2.02
+     */
+    public function getPdoType()
+    {
+        return PDO::PARAM_INT;
+    }
 
-        $m_fillCache->invoke($table);
-        $m_fillCache->invoke($table);
+    /**
+     * Возвращает выражение SQL для описания поля при создании таблицы
+     *
+     * @param string $name  имя поля
+     *
+     * @return string
+     */
+    public function getSqlFieldDefinition($name)
+    {
+        $sql = $name . 'INT';
+        $length = $this->getParam('length') ?: 10;
+        $sql .= '(' . $length . ')';
+        if ($this->getParam('unsigned'))
+        {
+            $sql .= ' UNSIGNED';
+        }
+        if ($this->getParam('autoincrement'))
+        {
+            $sql .= ' AUTO_INCREMENT';
+        }
+        return $sql;
+    }
+
+    /**
+     * Возвращает список возможных необязательных параметров
+     *
+     * @return string[]
+     *
+     * @since 2.02
+     */
+    protected function getOptionalParams()
+    {
+        return array('autoincrement', 'length', 'unsigned');
     }
 }
 

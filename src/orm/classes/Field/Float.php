@@ -1,12 +1,10 @@
 <?php
 /**
- * ORM
- *
- * Модульные тесты
+ * Поле типа «float»
  *
  * @version ${product.version}
  *
- * @copyright 2011, Михаил Красильников <m.krasilnikov@yandex.ru>
+ * @copyright 2013, Михаил Красильников <m.krasilnikov@yandex.ru>
  * @license http://www.gnu.org/licenses/gpl.txt	GPL License 3
  * @author Михаил Красильников <m.krasilnikov@yandex.ru>
  *
@@ -27,38 +25,60 @@
  * <http://www.gnu.org/licenses/>
  *
  * @package ORM
- * @subpackage Tests
- *
- * $Id: bootstrap.php 1849 2011-10-03 17:34:22Z mk $
  */
 
-
-require_once __DIR__ . '/../../bootstrap.php';
 
 /**
+ * Поле типа «float»
+ *
  * @package ORM
- * @subpackage Tests
+ * @since 2.02
  */
-class ORM_Table_Cached_Test extends PHPUnit_Framework_TestCase
+class ORM_Field_Float extends ORM_Field_Abstract
 {
     /**
-     * @covers ORM_Table_Cached::fillCache
+     * Возвращает имя типа
+     *
+     * @return string
+     *
+     * @since 2.02
      */
-    public function testFillCache()
+    public function getTypeName()
     {
-        $table = $this->getMockBuilder('ORM_Table_Cached')->disableOriginalConstructor()->
-            setMethods(array('setTableDefinition', 'createSelectQuery', 'loadFromQuery'))->getMock();
-        $table->expects($this->once())->method('createSelectQuery')->
-            will($this->returnValue(new ezcQuerySelect()));
-        $item = new stdClass();
-        $item->id = 0;
-        $table->expects($this->once())->method('loadFromQuery')->will($this->returnValue(array($item)));
+        return 'float';
+    }
 
-        $m_fillCache = new ReflectionMethod('ORM_Table_Cached', 'fillCache');
-        $m_fillCache->setAccessible(true);
+    /**
+     * Возвращает список возможных необязательных параметров
+     *
+     * @return string[]
+     *
+     * @since 2.02
+     */
+    protected function getOptionalParams()
+    {
+        return array('length');
+    }
 
-        $m_fillCache->invoke($table);
-        $m_fillCache->invoke($table);
+    /**
+     * Возвращает выражение SQL для описания поля при создании таблицы
+     *
+     * @param string $name  имя поля
+     *
+     * @return string
+     */
+    public function getSqlFieldDefinition($name)
+    {
+        $sql = $name . ' ';
+        if ($this->getParam('length') == 2147483647)
+        {
+            $sql .= 'DOUBLE';
+        }
+        else
+        {
+            $sql .= 'FLOAT';
+        }
+        return $sql;
     }
 }
 

@@ -29,9 +29,6 @@
  */
 
 require_once __DIR__ . '/../../bootstrap.php';
-require_once TESTS_SRC_DIR . '/orm.php';
-require_once TESTS_SRC_DIR . '/orm/classes/Entity.php';
-require_once TESTS_SRC_DIR . '/orm/classes/Entity/Collection.php';
 
 /**
  * @package ORM
@@ -117,5 +114,41 @@ class ORM_Entity_CollectionTest extends PHPUnit_Framework_TestCase
         $this->assertCount(1, $collection);
     }
 
+    /**
+     * @covers ORM_Entity_Collection::clear
+     */
+    public function testClear()
+    {
+        $collection = new ORM_Entity_Collection();
+
+        $collection->attach($this->getMockBuilder('ORM_Entity')->disableOriginalConstructor()->
+            getMock());
+        $collection->attach($this->getMockBuilder('ORM_Entity')->disableOriginalConstructor()->
+            getMock());
+        $collection->attach($this->getMockBuilder('ORM_Entity')->disableOriginalConstructor()->
+            getMock());
+        $collection->clear();
+
+        $this->assertCount(0, $collection);
+    }
+
+    /**
+     * @covers ORM_Entity_Collection::offsetGet
+     */
+    public function testNumericIndexes()
+    {
+        $collection = new ORM_Entity_Collection();
+
+        $e1 = $this->getMockBuilder('ORM_Entity')->disableOriginalConstructor()->getMock();
+        $collection->attach($e1);
+        $e2 = $this->getMockBuilder('ORM_Entity')->disableOriginalConstructor()->getMock();
+        $collection->attach($e2);
+        $e3 = $this->getMockBuilder('ORM_Entity')->disableOriginalConstructor()->getMock();
+        $collection->attach($e3);
+
+        $this->assertSame($e2, $collection[1]);
+        $this->assertSame($e3, $collection[2]);
+        $this->assertSame($e1, $collection[0]);
+    }
 }
 
