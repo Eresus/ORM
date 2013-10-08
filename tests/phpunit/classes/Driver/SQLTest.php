@@ -29,7 +29,6 @@
  */
 
 require_once __DIR__ . '/../../bootstrap.php';
-require_once TESTS_SRC_DIR . '/orm/classes/Driver/SQL.php';
 
 /**
  * @package ORM
@@ -60,7 +59,7 @@ class ORM_Driver_SQLTest extends PHPUnit_Framework_TestCase
         $getFieldDefinition->setAccessible(true);
         $driver = new ORM_Driver_SQL();
         $field = $this->getMockBuilder('ORM_Field_Abstract')->disableOriginalConstructor()
-            ->setMethods(array('getSqlFieldDefinition'))->getMock();
+            ->setMethods(array('getTypeName', 'getSqlFieldDefinition'))->getMock();
         $field->expects($this->once())->method('getSqlFieldDefinition')
             ->will($this->returnArgument(0));
         $this->assertEquals('foo', $getFieldDefinition->invoke($driver, 'foo', $field));
