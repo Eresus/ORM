@@ -50,5 +50,32 @@ class ORM_Driver_MySQLTest extends PHPUnit_Framework_TestCase
             $getCreateTableDefinition->invoke($driver,
                 'foo', array('bar', 'baz'), 'pkey', array('idx1', 'idx2')));
     }
+
+    /**
+     * @covers ORM_Driver_MySQL_Datetime::getSqlFieldDefinition
+     * @covers ORM_Driver_MySQL_Integer::getSqlFieldDefinition
+     * @covers ORM_Driver_MySQL_String::getSqlFieldDefinition
+     */
+    public function testMySqlSpecificTypes()
+    {
+        $method = new ReflectionMethod('ORM_Driver_MySQL', 'getFieldDefinition');
+        $method->setAccessible(true);
+        $driver = new ORM_Driver_MySQL();
+
+        $field = new ORM_Field_Datetime(array(), $this->getMock('ORM'));
+        $this->assertEquals("foo DATETIME", $method->invoke($driver, 'foo', $field));
+
+        $field = new ORM_Field_Integer(
+            array('length' => 5, 'unsigned' => true, 'autoincrement' => true),
+            $this->getMock('ORM'));
+        $this->assertEquals("foo INT(5) UNSIGNED AUTO_INCREMENT",
+            $method->invoke($driver, 'foo', $field));
+
+        $field = new ORM_Field_String(
+            array('length' => 300),
+            $this->getMock('ORM'));
+        $this->assertEquals("foo TEXT",
+            $method->invoke($driver, 'foo', $field));
+    }
 }
 

@@ -118,5 +118,30 @@ class ORM_Driver_SQLTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('KEY foo (bar, baz)',
             $getIndexDefinition->invoke($driver, 'foo', array('fields' => array('bar', 'baz'))));
     }
+
+    /**
+     * @covers ORM_Driver_SQL::getDriverFieldType
+     */
+    public function testGetDriverFieldType()
+    {
+        $getDriverFieldType
+            = new ReflectionMethod('ORM_Driver_SQL', 'getDriverFieldType');
+        $getDriverFieldType->setAccessible(true);
+
+        $driver = new ORM_Driver_SQL();
+
+        $field = $this->getMockBuilder('ORM_Field_Abstract')->disableOriginalConstructor()
+            ->setMethods(array('getTypeName'))->setMockClassName('ORM_Field_Foo')->getMock();
+        $this->assertInstanceOf('ORM_Field_Foo',
+            $getDriverFieldType->invoke($driver, $field));
+
+        $field = $this->getMockBuilder('ORM_Field_Abstract')->disableOriginalConstructor()
+            ->setMethods(array('getTypeName'))->setMockClassName('Foo_Field_Bar')->getMock();
+        $this->getMockBuilder('ORM_Driver_SQL_Field')->disableOriginalConstructor()
+            ->setMethods(array('getSqlFieldDefinition'))
+            ->setMockClassName('Foo_Driver_SQL_Bar')->getMock();
+        $this->assertInstanceOf('Foo_Driver_SQL_Bar',
+            $getDriverFieldType->invoke($driver, $field));
+    }
 }
 

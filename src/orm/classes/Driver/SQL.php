@@ -133,7 +133,7 @@ class ORM_Driver_SQL
      */
     protected function getFieldDefinition($name, ORM_Field_Abstract $field)
     {
-        $sql = $field->getSqlFieldDefinition($name);
+        $sql = $this->getDriverFieldType($field)->getSqlFieldDefinition($name);
         if ($field->hasParam('default'))
         {
             $sql .= ' DEFAULT ';
@@ -180,6 +180,27 @@ class ORM_Driver_SQL
     protected function getIndexDefinition($name, array $params)
     {
         return 'KEY ' . $name . ' (' . implode(', ', $params['fields']) . ')';
+    }
+
+    /**
+     * @param ORM_Field_Abstract $field
+     *
+     * @return ORM_Field_Abstract|ORM_Driver_SQL_Field
+     */
+    private function getDriverFieldType(ORM_Field_Abstract $field)
+    {
+        $fieldType = get_class($field);
+        $driver = substr(get_class($this), strrpos(get_class($this), '_') + 1);
+        $driverFieldType = str_replace('_Field_', '_Driver_' . $driver . '_', $fieldType);
+        if (class_exists($driverFieldType))
+        {
+            $driverField = new $driverFieldType($field);
+            if ($driverField instanceof ORM_Driver_SQL_Field)
+            {
+                return $driverField;
+            }
+        }
+        return $field;
     }
 }
 
