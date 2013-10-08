@@ -59,10 +59,39 @@ class ORM_Driver_SQLTest extends PHPUnit_Framework_TestCase
         $getFieldDefinition->setAccessible(true);
         $driver = new ORM_Driver_SQL();
         $field = $this->getMockBuilder('ORM_Field_Abstract')->disableOriginalConstructor()
-            ->setMethods(array('getTypeName', 'getSqlFieldDefinition'))->getMock();
-        $field->expects($this->once())->method('getSqlFieldDefinition')
+            ->setMethods(array('getTypeName', 'getSqlFieldDefinition', 'hasParam', 'getParam',
+                'getPdoType'))
+            ->getMock();
+        $field->expects($this->any())->method('getSqlFieldDefinition')
             ->will($this->returnArgument(0));
-        $this->assertEquals('foo', $getFieldDefinition->invoke($driver, 'foo', $field));
+        $field->expects($this->any())->method('hasParam')
+            ->with('default')->will($this->returnValue(true));
+        $type = new stdClass();
+        $field->expects($this->any())->method('getPdoType')->will(
+            $this->returnCallback(function () use ($type) { return $type->value; }));
+        $value = new stdClass();
+        $field->expects($this->any())->method('getParam')->with('default')
+            ->will($this->returnCallback(function () use ($value) { return $value->value; }));
+
+        $type->value = null;
+        $value->value = null;
+        $this->assertEquals("foo DEFAULT NULL",
+            $getFieldDefinition->invoke($driver, 'foo', $field));
+
+        $type->value = PDO::PARAM_STR;
+        $value->value = 'bar';
+        $this->assertEquals("foo DEFAULT 'bar'",
+            $getFieldDefinition->invoke($driver, 'foo', $field));
+
+        $type->value = PDO::PARAM_BOOL;
+        $value->value = false;
+        $this->assertEquals("foo DEFAULT 0",
+            $getFieldDefinition->invoke($driver, 'foo', $field));
+
+        $type->value = PDO::PARAM_INT;
+        $value->value = 123;
+        $this->assertEquals("foo DEFAULT 123",
+            $getFieldDefinition->invoke($driver, 'foo', $field));
     }
 
     /**

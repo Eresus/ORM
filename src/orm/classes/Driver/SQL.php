@@ -130,7 +130,28 @@ class ORM_Driver_SQL
      */
     protected function getFieldDefinition($name, ORM_Field_Abstract $field)
     {
-        return $field->getSqlFieldDefinition($name);
+        $sql = $field->getSqlFieldDefinition($name);
+        if ($field->hasParam('default'))
+        {
+            $sql .= ' DEFAULT ';
+            if ($field->getParam('default') === null)
+            {
+                $sql .= 'NULL';
+            }
+            elseif ($field->getPdoType() == PDO::PARAM_STR)
+            {
+                $sql .= "'" . $field->getParam('default') . "'";
+            }
+            elseif ($field->getPdoType() == PDO::PARAM_BOOL)
+            {
+                $sql .= $field->getParam('default') ? '1' : '0';
+            }
+            else
+            {
+                $sql .= $field->getParam('default');
+            }
+        }
+        return $sql;
     }
 
     /**
