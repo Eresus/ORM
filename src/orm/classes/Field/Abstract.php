@@ -191,6 +191,16 @@ abstract class ORM_Field_Abstract
     }
 
     /**
+     * Действия, выполняемые после удаления сущности
+     *
+     * @param ORM_Entity $entity
+     * @param string $field
+     */
+    public function afterEntityDelete(ORM_Entity $entity, $field)
+    {
+    }
+
+    /**
      * Возвращает выражение SQL для описания поля при создании таблицы
      *
      * @param string $name  имя поля
