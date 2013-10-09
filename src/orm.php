@@ -65,16 +65,7 @@ class ORM extends Plugin
      * @var ORM_Manager
      * @since 3.00
      */
-    private $manager;
-
-    /**
-     * Конструктор
-     */
-    public function __construct()
-    {
-        parent::__construct();
-        $this->manager = new ORM_Manager();
-    }
+    private $manager = null;
 
     /**
      * Возвращает менджера ORM
@@ -84,6 +75,10 @@ class ORM extends Plugin
     {
         /** @var ORM $orm */
         $orm = Eresus_Kernel::app()->getLegacyKernel()->plugins->load('orm');
+        if (null === $orm->manager)
+        {
+            $orm->manager = new ORM_Manager();
+        }
         return $orm->manager;
     }
 
