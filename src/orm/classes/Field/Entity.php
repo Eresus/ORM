@@ -80,11 +80,11 @@ class ORM_Field_Entity extends ORM_Field_Abstract
         $validClass = $this->getParam('class');
         if (!($ormValue instanceof $validClass))
         {
-            throw new InvalidArgumentException('$ormValue must be an instance of ' . $validClass);
+            throw new InvalidArgumentException('Argument 1 must be an instance of ' . $validClass);
         }
         if (!($ormValue instanceof ORM_Entity))
         {
-            throw new InvalidArgumentException('$ormValue must be an instance of ORM_Entity');
+            throw new InvalidArgumentException('Argument 1 must be an instance of ORM_Entity');
         }
         /* @var ORM_Entity $ormValue */
         return $ormValue->getPrimaryKey();
