@@ -354,10 +354,11 @@ class ORM_TableTest extends PHPUnit_Framework_TestCase
      * @covers ORM_Table::findAllBy
      * @expectedException LogicException
      */
-    public function testFindAllByVirtualField()
+    public function testFindAllByUnusableField()
     {
-        $field = $this->getMock('stdClass', array('isVirtual'));
-        $field->expects($this->any())->method('isVirtual')->will($this->returnValue(true));
+        $field = $this->getMockBuilder('ORM_Field_Abstract')->disableOriginalConstructor()
+            ->setMethods(array('getTypeName', 'canBeUsedInWhere'))->getMock();
+        $field->expects($this->any())->method('canBeUsedInWhere')->will($this->returnValue(false));
 
         $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
             setMethods(array('setTableDefinition', 'getColumns', 'createSelectQuery'))->getMock();
@@ -373,8 +374,8 @@ class ORM_TableTest extends PHPUnit_Framework_TestCase
      */
     public function testFindAllBy()
     {
-        $field = $this->getMock('stdClass', array('isVirtual', 'orm2pdo', 'getPdoType'));
-        $field->expects($this->any())->method('isVirtual')->will($this->returnValue(false));
+        $field = $this->getMock('stdClass', array('canBeUsedInWhere', 'orm2pdo', 'getPdoType'));
+        $field->expects($this->any())->method('canBeUsedInWhere')->will($this->returnValue(true));
         $field->expects($this->once())->method('orm2pdo')->with('bar')
             ->will($this->returnValue('BAR'));
         $field->expects($this->any())->method('getPdoType')

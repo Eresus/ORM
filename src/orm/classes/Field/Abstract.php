@@ -171,6 +171,18 @@ abstract class ORM_Field_Abstract
     }
 
     /**
+     * Может ли это поле участвовать в разделе WHERE запросов SQL
+     *
+     * @return bool
+     *
+     * @since 3.00
+     */
+    public function canBeUsedInWhere()
+    {
+        return !$this->isVirtual();
+    }
+
+    /**
      * Возвращает true если поле автоинкрементируемое
      *
      * @return bool

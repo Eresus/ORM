@@ -405,7 +405,7 @@ abstract class ORM_Table
             {
                 throw new LogicException(sprintf('Unknown column "%s" in filter', $field));
             }
-            if ($columns[$field]->isVirtual())
+            if (!$columns[$field]->canBeUsedInWhere())
             {
                 throw new LogicException(
                     sprintf('Filters on virtual fields ("%s") not supported', $field));
