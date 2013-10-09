@@ -32,7 +32,7 @@
  * Поле типа «entity»
  *
  * @package ORM
- * @since 2.02
+ * @since 3.00
  */
 class ORM_Field_Entity extends ORM_Field_Abstract
 {
@@ -41,7 +41,7 @@ class ORM_Field_Entity extends ORM_Field_Abstract
      *
      * @return string
      *
-     * @since 2.02
+     * @since 3.00
      */
     public function getTypeName()
     {
@@ -53,7 +53,7 @@ class ORM_Field_Entity extends ORM_Field_Abstract
      *
      * @return null|int
      *
-     * @since 2.02
+     * @since 3.00
      */
     public function getPdoType()
     {
@@ -69,7 +69,7 @@ class ORM_Field_Entity extends ORM_Field_Abstract
      *
      * @return mixed
      *
-     * @since 2.02
+     * @since 3.00
      */
     public function orm2pdo($ormValue)
     {
@@ -97,7 +97,7 @@ class ORM_Field_Entity extends ORM_Field_Abstract
      *
      * @return mixed
      *
-     * @since 2.02
+     * @since 3.00
      */
     public function pdo2orm($pdoValue)
     {
@@ -110,7 +110,7 @@ class ORM_Field_Entity extends ORM_Field_Abstract
      *
      * @return string[]
      *
-     * @since 2.02
+     * @since 3.00
      */
     protected function getRequiredParams()
     {

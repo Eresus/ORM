@@ -32,7 +32,7 @@
  * Коллекция сущностей
  *
  * @package ORM
- * @since 2.02
+ * @since 3.00
  */
 class ORM_Entity_Collection extends SplObjectStorage
 {

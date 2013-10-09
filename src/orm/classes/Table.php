@@ -62,7 +62,7 @@ abstract class ORM_Table
      * В этом случае в {@link tableName} хранится имя основной таблицы
      *
      * @var bool
-     * @since 2.02
+     * @since 3.00
      */
     private $isAlias = false;
 
@@ -108,7 +108,7 @@ abstract class ORM_Table
      *
      * @var ORM_Entity[]
      *
-     * @since 2.02
+     * @since 3.00
      */
     private $registry = array();
 
@@ -134,7 +134,7 @@ abstract class ORM_Table
      *
      * @return ORM_Driver_SQL
      *
-     * @since 2.02
+     * @since 3.00
      */
     public function getDriver()
     {
@@ -146,7 +146,7 @@ abstract class ORM_Table
      *
      * @return string
      *
-     * @since 2.02
+     * @since 3.00
      */
     public function getName()
     {
@@ -158,7 +158,7 @@ abstract class ORM_Table
      *
      * @return string
      *
-     * @since 1.00, публичный с 2.02
+     * @since 1.00, публичный с 3.00
      * @deprecated используйте {@link getName()}
      */
     public function getTableName()
@@ -171,7 +171,7 @@ abstract class ORM_Table
      *
      * @return string
      *
-     * @since 1.00, публичный с 2.02
+     * @since 1.00, публичный с 3.00
      */
     public function getEntityClass()
     {
@@ -188,7 +188,7 @@ abstract class ORM_Table
      *
      * @return ORM_Field_Abstract[]
      *
-     * @since 2.02
+     * @since 3.00
      */
     public function getColumns()
     {
@@ -200,7 +200,7 @@ abstract class ORM_Table
      *
      * @return string
      *
-     * @since 1.00, публичный с 2.02
+     * @since 1.00, публичный с 3.00
      */
     public function getPrimaryKey()
     {
@@ -212,7 +212,7 @@ abstract class ORM_Table
      *
      * @return array
      *
-     * @since 2.02
+     * @since 3.00
      */
     public function getOrdering()
     {
@@ -224,7 +224,7 @@ abstract class ORM_Table
      *
      * @return array
      *
-     * @since 2.02
+     * @since 3.00
      */
     public function getIndexes()
     {
@@ -236,7 +236,7 @@ abstract class ORM_Table
      *
      * @return bool
      *
-     * @since 2.02
+     * @since 3.00
      */
     public function isAlias()
     {
@@ -394,7 +394,7 @@ abstract class ORM_Table
      *
      * @return ORM_Entity[]
      *
-     * @since 2.02
+     * @since 3.00
      */
     public function findAllBy(array $filter)
     {
@@ -551,18 +551,6 @@ abstract class ORM_Table
     }
 
     /**
-     * Возвращает имя таблицы привязок для указанного свойства
-     *
-     * @param string $propertyName  имя свойства
-     *
-     * @return string
-     */
-    public function getBindingsTableName($propertyName)
-    {
-        return $this->getName() . '_' . $propertyName;
-    }
-
-    /**
      * Метод должен устанавливать свойства таблицы БД
      *
      * В этом методе необходимо сделать следующее:
@@ -617,7 +605,7 @@ abstract class ORM_Table
      * @throws LogicException  если перед isAlias() был вызван {@link setTableName()} или isAlias()
      *                         вызван повторно
      *
-     * @since 2.02
+     * @since 3.00
      */
     protected function isAliasFor($tableName)
     {
@@ -680,9 +668,11 @@ abstract class ORM_Table
      */
     protected function hasColumns(array $columns)
     {
+        /** @var ORM $orm */
+        $orm = Eresus_Kernel::app()->getLegacyKernel()->plugins->load('orm');
+        $fieldTypes = $orm->getFieldTypes();
         $this->columns = array();
-        $fieldTypes = $this->getDriver()->getOrm()->getFieldTypes();
-        foreach ($columns as $name => $column)
+        foreach ($columns as $name => $attrs)
         {
             if (!is_string($name) || !preg_match('/^[a-z_]+$/i', $name))
             {
@@ -690,19 +680,19 @@ abstract class ORM_Table
                     'Column name must be a non empty string consisted of "a-z" or "_", got "%s"',
                     $name));
             }
-            if (!array_key_exists('type', $column))
+            if (!array_key_exists('type', $attrs))
             {
                 throw new InvalidArgumentException(
                     sprintf('No "type" element in "%s" definition', $name));
             }
-            if (!array_key_exists($column['type'], $fieldTypes))
+            if (!array_key_exists($attrs['type'], $fieldTypes))
             {
                 throw new InvalidArgumentException(
-                    sprintf('Unsupported type "%s" in "%s" definition', $column['type'], $name));
+                    sprintf('Unsupported type "%s" in "%s" definition', $attrs['type'], $name));
             }
-            $fieldTypeClass = $fieldTypes[$column['type']];
-            $this->columns[$name] = new $fieldTypeClass($column, $this->driver->getOrm());
-
+            $fieldTypeClass = $fieldTypes[$attrs['type']];
+            unset($attrs['type']);
+            $this->columns[$name] = new $fieldTypeClass($attrs, $orm);
         }
         reset($columns);
         $this->primaryKey = key($columns);
@@ -784,10 +774,6 @@ abstract class ORM_Table
         }
 
         $entityClass = $this->getEntityClass();
-        foreach ($this->getColumns() as $name => $column)
-        {
-            $values[$name] = $column->pdo2orm($values[$name]);
-        }
         $entity = new $entityClass($this->plugin, $values);
         $this->registry[$id] = $entity;
         return $entity;
@@ -808,7 +794,7 @@ abstract class ORM_Table
             {
                 continue;
             }
-            $value = $column->orm2pdo($entity->getProperty($name));
+            $value = $entity->getPdoValue($name);
             $query->set($name, $query->bindValue($value, ":$name", $column->getPdoType()));
         }
     }

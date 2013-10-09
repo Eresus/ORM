@@ -63,7 +63,7 @@ class ORM extends Plugin
     /**
      * Драйвер СУБД
      * @var ORM_Driver_SQL
-     * @since 2.02
+     * @since 3.00
      */
     private static $driver = null;
 
@@ -82,16 +82,16 @@ class ORM extends Plugin
      * @since 1.00
      */
     private $filedTypes = array(
-        'bindings' => 'ORM_FieldType_Bindings',
-        'boolean' => 'ORM_FieldType_Boolean',
-        'date' => 'ORM_FieldType_Date',
-        'datetime' => 'ORM_FieldType_Datetime',
-        'entity' => 'ORM_FieldType_Entity',
-        'entities' => 'ORM_FieldType_Entities',
-        'float' => 'ORM_FieldType_Float',
+        'bindings' => 'ORM_Field_Bindings',
+        'boolean' => 'ORM_Field_Boolean',
+        'date' => 'ORM_Field_Date',
+        'datetime' => 'ORM_Field_Datetime',
+        'entity' => 'ORM_Field_Entity',
+        'entities' => 'ORM_Field_Entities',
+        'float' => 'ORM_Field_Float',
         'integer' => 'ORM_Field_Integer',
-        'string' => 'ORM_FieldType_String',
-        'timestamp' => 'ORM_FieldType_Timestamp'
+        'string' => 'ORM_Field_String',
+        'timestamp' => 'ORM_Field_Timestamp'
     );
 
     /**
@@ -107,7 +107,7 @@ class ORM extends Plugin
      *
      * @param ORM_Driver_SQL $driver
      *
-     * @since 2.02
+     * @since 3.00
      */
     public static function setDriver(ORM_Driver_SQL $driver)
     {
@@ -119,7 +119,7 @@ class ORM extends Plugin
      *
      * @return ORM_Driver_SQL
      *
-     * @since 2.02
+     * @since 3.00
      */
     public static function getDriver()
     {
@@ -171,7 +171,7 @@ class ORM extends Plugin
      *
      * @return ORM_Field_Abstract[]
      *
-     * @since 2.02
+     * @since 3.00
      */
     public function getFieldTypes()
     {
@@ -184,7 +184,7 @@ class ORM extends Plugin
      * @return array
      *
      * @since 1.00
-     * @deprecated с 2.02 используйте {@link getFieldTypes()}
+     * @deprecated с 3.00 используйте {@link getFields()}
      */
     public static function fieldTypes()
     {
@@ -203,9 +203,9 @@ class ORM extends Plugin
      * @param string $typeName   имя типа (латинские буквы в нижнем регистре и цифры)
      * @param string $typeClass  имя класса типа
      *
-     * @since 2.02
+     * @since 3.00
      */
-    public function registerFieldType($typeName, $typeClass)
+    public function registerField($typeName, $typeClass)
     {
         $this->filedTypes[$typeName] = $typeClass;
     }
@@ -219,7 +219,7 @@ class ORM extends Plugin
      *
      * @return ORM_Table
      *
-     * @since 2.02
+     * @since 3.00
      */
     public function getTableByEntityClass($entityClass)
     {

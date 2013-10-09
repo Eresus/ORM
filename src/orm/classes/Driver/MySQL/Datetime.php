@@ -32,7 +32,7 @@
  * Поле типа «datetime» для MySQL
  *
  * @package ORM
- * @since 2.02
+ * @since 3.00
  */
 class ORM_Driver_MySQL_Datetime extends ORM_Driver_SQL_Field
 {

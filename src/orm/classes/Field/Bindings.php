@@ -32,7 +32,7 @@
  * Поле типа «bindings»
  *
  * @package ORM
- * @since 2.02
+ * @since 3.00
  */
 class ORM_Field_Bindings extends ORM_Field_Abstract
 {
@@ -41,7 +41,7 @@ class ORM_Field_Bindings extends ORM_Field_Abstract
      *
      * @return string
      *
-     * @since 2.02
+     * @since 3.00
      */
     public function getTypeName()
     {
@@ -53,7 +53,7 @@ class ORM_Field_Bindings extends ORM_Field_Abstract
      *
      * @return bool
      *
-     * @since 2.02
+     * @since 3.00
      */
     public function isVirtual()
     {
@@ -69,7 +69,7 @@ class ORM_Field_Bindings extends ORM_Field_Abstract
      * @return mixed
      *
      * @see isVirtual()
-     * @since 2.02
+     * @since 3.00
      */
     public function evaluateVirtualValue(ORM_Entity $entity, $fieldName)
     {
@@ -178,7 +178,7 @@ class ORM_Field_Bindings extends ORM_Field_Abstract
      *
      * @return string[]
      *
-     * @since 2.02
+     * @since 3.00
      */
     protected function getRequiredParams()
     {

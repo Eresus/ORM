@@ -32,7 +32,7 @@
  * Поле типа «float»
  *
  * @package ORM
- * @since 2.02
+ * @since 3.00
  */
 class ORM_Field_Float extends ORM_Field_Abstract
 {
@@ -41,7 +41,7 @@ class ORM_Field_Float extends ORM_Field_Abstract
      *
      * @return string
      *
-     * @since 2.02
+     * @since 3.00
      */
     public function getTypeName()
     {
@@ -53,7 +53,7 @@ class ORM_Field_Float extends ORM_Field_Abstract
      *
      * @return string[]
      *
-     * @since 2.02
+     * @since 3.00
      */
     protected function getOptionalParams()
     {

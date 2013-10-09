@@ -32,7 +32,7 @@
  * Базовый класс для переопределения типов полей для разных диалектов SQL
  *
  * @package ORM
- * @since 2.02
+ * @since 3.00
  */
 abstract class ORM_Driver_SQL_Field
 {

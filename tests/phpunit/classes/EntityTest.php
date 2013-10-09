@@ -1,6 +1,6 @@
 <?php
 /**
- * Модульные тесты
+ * Тесты класса ORM_Entity
  *
  * @version ${product.version}
  *
@@ -40,43 +40,54 @@ class ORM_EntityTest extends PHPUnit_Framework_TestCase
 {
     /**
      * @covers ORM_Entity::__construct
-     * @covers ORM_Entity::getProperty
-     * @covers ORM_Entity::setProperty
+     * @covers ORM_Entity::getPdoValue
+     * @covers ORM_Entity::setPdoValue
      * @covers ORM_Entity::__get
      * @covers ORM_Entity::__set
      */
-    public function testOverview()
+    public function testBasicUsage()
     {
-        $entity = $this->getMockBuilder('ORM_Entity')->disableOriginalConstructor()->
-            setMethods(array('getFoo', 'setFoo', 'getTable'))->getMock();
-        $entity->expects($this->once())->method('getFoo')->will($this->returnValue('baz'));
-        $entity->expects($this->once())->method('setFoo')->with('baz');
-        $entity->expects($this->any())->method('getTable')
-            ->will($this->returnValue(new \Mekras\TestDoubles\UniversalStub()));
-        $EresusPlugin = 'Plugin'; // Обманываем IDEA
-        $plugin = new $EresusPlugin;
-        $attrs = array('foo' => 'bar');
+        $plugin = new Plugin();
+        $dbRecord = array('foo' => 'bar');
+
+        $field = $this->getMock('stdClass', array('isVirtual', 'pdo2orm', 'orm2pdo'));
+        $field->expects($this->any())->method('isVirtual')->will($this->returnValue(false));
+        $field->expects($this->any())->method('pdo2orm')->will($this->returnArgument(0));
+        $field->expects($this->any())->method('orm2pdo')->will($this->returnArgument(0));
+
+        $table = $this->getMock('stdClass', array('getColumns'));
+        $table->expects($this->any())->method('getColumns')->will($this->returnValue(array(
+            'foo' => $field
+        )));
+
+        $entity = $this->getMockBuilder('ORM_Entity')->setMethods(array('getTable'))
+            ->setConstructorArgs(array($plugin, $dbRecord))->getMock();
+        $entity->expects($this->any())->method('getTable')->will($this->returnValue($table));
 
         /** @var ORM_Entity $entity */
-        $entity->__construct($plugin, $attrs);
-
-        $p_plugin = new ReflectionProperty('ORM_Entity', 'plugin');
-        $p_plugin->setAccessible(true);
-        $this->assertSame($plugin, $p_plugin->getValue($entity));
-
-        $p_attrs = new ReflectionProperty('ORM_Entity', 'attrs');
-        $p_attrs->setAccessible(true);
-        $this->assertEquals($attrs, $p_attrs->getValue($entity));
-
-        $this->assertEquals('bar', $entity->getProperty('foo'));
-        $this->assertNull($entity->getProperty('bar'));
-        $entity->setProperty('bar', 'foo');
-        $this->assertEquals('foo', $entity->getProperty('bar'));
-
-        $this->assertEquals('baz', $entity->foo);
+        $this->assertEquals('bar', $entity->foo);
         $entity->foo = 'baz';
-        $this->assertEquals('foo', $entity->bar);
-        $entity->bar = 'foo';
+        $this->assertEquals('baz', $entity->foo);
+    }
+
+    /**
+     * @covers ORM_Entity::__get
+     * @covers ORM_Entity::__set
+     */
+    public function testNoExistentProps()
+    {
+        $plugin = new Plugin();
+
+        $table = $this->getMock('stdClass', array('getColumns'));
+        $table->expects($this->any())->method('getColumns')->will($this->returnValue(array()));
+
+        $entity = $this->getMockBuilder('ORM_Entity')->setMethods(array('getTable'))
+            ->setConstructorArgs(array($plugin, array()))->getMock();
+        $entity->expects($this->any())->method('getTable')->will($this->returnValue($table));
+
+        /** @var ORM_Entity $entity */
+        $entity->bar = 'baz';
+        $this->assertEquals('baz', $entity->bar);
     }
 
     /**
@@ -91,37 +102,36 @@ class ORM_EntityTest extends PHPUnit_Framework_TestCase
         $p_tables->setAccessible(true);
         $p_tables->setValue('ORM', array('Plugin_Entity_Table_GetTable' => true));
 
+        /** @var ORM_Entity $entity */
         $this->assertTrue($entity->getTable());
     }
 
     /**
-     * @covers ORM_Entity::setProperty
+     * @covers ORM_Entity::getEntityState
+     * @covers ORM_Entity::setEntityState
+     * @covers ORM_Entity::afterSave
+     * @covers ORM_Entity::__set
+     * @covers ORM_Entity::afterDelete
      */
-    public function testSetProperty()
+    public function testEntityState()
     {
-        $table = $this->getMock('stdClass', array('getColumns', 'getPrimaryKey'));
-        $table->expects($this->any())->method('getColumns')
-            ->will($this->returnValue(array(
-                'foo' => array('type' => 'entity', 'class' => 'stdClass'),
-            )));
-        $table->expects($this->any())->method('getPrimaryKey')->will($this->returnValue('id'));
         $entity = $this->getMockBuilder('ORM_Entity')->disableOriginalConstructor()
             ->setMethods(array('getTable'))->getMock();
-        $entity->expects($this->any())->method('getTable')->will($this->returnValue($table));
-
-        $attrsProperty = new ReflectionProperty('ORM_Entity', 'attrs');
-        $attrsProperty->setAccessible(true);
-
-        $obj = new stdClass();
-        $obj->id = 123;
+        $entity->expects($this->any())->method('getTable')
+            ->will($this->returnValue(new UniversalStub()));
         /** @var ORM_Entity $entity */
-        $entity->setProperty('foo', $obj);
-        $this->assertEquals(array('foo' => 123), $attrsProperty->getValue($entity));
+        $this->assertEquals(ORM_Entity::IS_NEW, $entity->getEntityState());
+        $entity->afterSave();
+        $this->assertEquals(ORM_Entity::IS_PERSISTENT, $entity->getEntityState());
+        $entity->foo = 'bar';
+        $this->assertEquals(ORM_Entity::IS_DIRTY, $entity->getEntityState());
+        $entity->afterDelete();
+        $this->assertEquals(ORM_Entity::IS_DELETED, $entity->getEntityState());
     }
 
-    /**
+    /* *
      * @covers ORM_Entity::getPrimaryKey
-     */
+     * /
     public function testGetPrimaryKey()
     {
         $plugin = $this->getMockBuilder('Plugin')->disableOriginalConstructor()
@@ -153,13 +163,13 @@ class ORM_EntityTest extends PHPUnit_Framework_TestCase
         $tables->setAccessible(true);
         $tables->setValue(array('testGetPrimaryKey_Entity_Table_Bar' => $table));
 
-        /** @var ORM_Entity $entity */
+        /** @var ORM_Entity $entity * /
         $this->assertEquals(123, $entity->getPrimaryKey());
     }
 
     /**
      * @covers ORM_Entity::getTableByEntityClass
-     */
+     * /
     public function testGetTableByEntityClass()
     {
         $getTableByEntityClass = new ReflectionMethod('ORM_Entity', 'getTableByEntityClass');
@@ -188,39 +198,16 @@ class ORM_EntityTest extends PHPUnit_Framework_TestCase
     /**
      * @covers ORM_Entity::__get
      * @covers ORM_Entity::__set
-     */
+     * /
     public function testGettersCache()
     {
         $entity = $this->getMockBuilder('ORM_Entity')->disableOriginalConstructor()
-            ->setMethods(array('getFoo', 'setProperty'))->getMock();
+            ->setMethods(array('getFoo', 'setPdoValue'))->getMock();
         $entity->expects($this->exactly(2))->method('getFoo')->will($this->returnValue('bar'));
         $this->assertEquals('bar', $entity->foo);
         $this->assertEquals('bar', $entity->foo);
         $entity->foo = 'baz';
         $this->assertEquals('bar', $entity->foo);
-    }
-
-    /**
-     * @covers ORM_Entity::getEntityState
-     * @covers ORM_Entity::setEntityState
-     * @covers ORM_Entity::afterSave
-     * @covers ORM_Entity::__set
-     * @covers ORM_Entity::afterDelete
-     */
-    public function testEntityState()
-    {
-        $entity = $this->getMockBuilder('ORM_Entity')->disableOriginalConstructor()
-            ->setMethods(array('getTable'))->getMock();
-        $entity->expects($this->any())->method('getTable')
-            ->will($this->returnValue(new UniversalStub()));
-        /** @var ORM_Entity $entity */
-        $this->assertEquals(ORM_Entity::IS_NEW, $entity->getEntityState());
-        $entity->afterSave();
-        $this->assertEquals(ORM_Entity::IS_PERSISTENT, $entity->getEntityState());
-        $entity->foo = 'bar';
-        $this->assertEquals(ORM_Entity::IS_DIRTY, $entity->getEntityState());
-        $entity->afterDelete();
-        $this->assertEquals(ORM_Entity::IS_DELETED, $entity->getEntityState());
-    }
+    }*/
 }
 

@@ -32,7 +32,7 @@
  * Абстрактное поле
  *
  * @package ORM
- * @since 2.02
+ * @since 3.00
  */
 abstract class ORM_Field_Abstract
 {
@@ -46,7 +46,7 @@ abstract class ORM_Field_Abstract
     /**
      * Экземпляр оснвоного класса модуля
      * @var ORM
-     * @since 2.02
+     * @since 3.00
      */
     protected $orm;
 
@@ -68,7 +68,7 @@ abstract class ORM_Field_Abstract
      *
      * @return string
      *
-     * @since 2.02
+     * @since 3.00
      */
     abstract public function getTypeName();
 
@@ -78,7 +78,7 @@ abstract class ORM_Field_Abstract
      * @return bool
      *
      * @see evaluateVirtualValue()
-     * @since 2.02
+     * @since 3.00
      */
     public function isVirtual()
     {
@@ -94,7 +94,7 @@ abstract class ORM_Field_Abstract
      * @return mixed
      *
      * @see isVirtual()
-     * @since 2.02
+     * @since 3.00
      */
     public function evaluateVirtualValue(ORM_Entity $entity, $fieldName)
     {
@@ -106,7 +106,7 @@ abstract class ORM_Field_Abstract
      *
      * @return null|int
      *
-     * @since 2.02
+     * @since 3.00
      */
     public function getPdoType()
     {
@@ -120,7 +120,7 @@ abstract class ORM_Field_Abstract
      *
      * @return mixed
      *
-     * @since 2.02
+     * @since 3.00
      */
     public function orm2pdo($ormValue)
     {
@@ -134,7 +134,7 @@ abstract class ORM_Field_Abstract
      *
      * @return mixed
      *
-     * @since 2.02
+     * @since 3.00
      */
     public function pdo2orm($pdoValue)
     {
@@ -148,7 +148,7 @@ abstract class ORM_Field_Abstract
      *
      * @return bool
      *
-     * @since 2.02
+     * @since 3.00
      */
     public function hasParam($name)
     {
@@ -163,7 +163,7 @@ abstract class ORM_Field_Abstract
      *
      * @return mixed
      *
-     * @since 2.02
+     * @since 3.00
      */
     public function getParam($name)
     {
@@ -243,7 +243,7 @@ abstract class ORM_Field_Abstract
      *
      * @return string[]
      *
-     * @since 2.02
+     * @since 3.00
      */
     protected function getRequiredParams()
     {
@@ -255,7 +255,7 @@ abstract class ORM_Field_Abstract
      *
      * @return string[]
      *
-     * @since 2.02
+     * @since 3.00
      */
     protected function getOptionalParams()
     {

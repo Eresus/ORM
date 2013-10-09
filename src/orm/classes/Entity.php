@@ -38,25 +38,25 @@ abstract class ORM_Entity
 {
     /**
      * Состояние сущности: новый объект
-     * @since 2.02
+     * @since 3.00
      */
     const IS_NEW = 1;
 
     /**
      * Состояние сущности: объект соответствует записи в БД
-     * @since 2.02
+     * @since 3.00
      */
     const IS_PERSISTENT = 2;
 
     /**
      * Состояние сущности: в объекте есть изменения, несохранённые в БД
-     * @since 2.02
+     * @since 3.00
      */
     const IS_DIRTY = 3;
 
     /**
      * Состояние сущности: объект удалён из БД
-     * @since 2.02
+     * @since 3.00
      */
     const IS_DELETED = 4;
 
@@ -71,94 +71,122 @@ abstract class ORM_Entity
      * Состояние сущности
      * @var int
      *
-     * @since 2.02
+     * @since 3.00
      */
     private $state = self::IS_NEW;
 
     /**
-     * Атрибуты
+     * Необработанные значения свойств (значения PDO)
      *
      * @var array
      */
-    private $attrs = array();
+    private $pdoValues = array();
 
     /**
-     * Кэш геттеров
+     * Кэш значений свойств, приведённых к типам ORM
      *
      * @var array
      */
-    private $gettersCache = array();
+    private $ormValues = array();
 
     /**
      * Конструктор
      *
-     * @param Plugin|TPlugin $plugin  модуль
-     * @param array          $attrs   исходные значения полей
+     * @param Plugin|TPlugin $plugin     модуль
+     * @param array          $pdoValues  исходные PDO-значения полей
      *
      * @return ORM_Entity
      *
      * @since 1.00
      */
-    public function __construct($plugin, array $attrs = array())
+    public function __construct($plugin, array $pdoValues = array())
     {
         $this->plugin = $plugin;
-        $this->attrs = $attrs;
+        $this->pdoValues = $pdoValues;
     }
 
     /**
      * "Магический" метод для доступа к свойствам объекта
      *
-     * Если есть метод, имя которого состоит из префикса "get" и имени свойства, вызывает этот
-     * метод для получения значения. В противном случае вызывает {@link getProperty}.
+     * Если есть геттер (метод, имя которого состоит из префикса "get" и имени свойства), вызывает
+     * его для получения значения. В противном случае вызывает {@link getPdoValue}.
      *
-     * @param string $key  Имя поля
+     * Результат метода кэшируется.
      *
-     * @return mixed  Значение поля
+     * @param string $property  имя свойства
      *
-     * @uses getProperty
+     * @return mixed  ORM-значение свойства
+     *
+     * @uses getPdoValue()
      * @since 1.00
      */
-    public function __get($key)
+    public function __get($property)
     {
-        $getter = 'get' . $key;
-        if (method_exists($this, $getter))
+        if (!array_key_exists($property, $this->ormValues))
         {
-            if (!isset($this->gettersCache[$key]))
-            {
-                $this->gettersCache[$key] = $this->$getter();
-            }
-            return $this->gettersCache[$key];
-        }
+            $pdoValue = $this->getPdoValue($property);
 
-        return $this->getProperty($key);
+            $getter = 'get' . $property;
+            if (method_exists($this, $getter))
+            {
+                $ormValue = $this->$getter($pdoValue);
+            }
+            else
+            {
+                $table = $this->getTable();
+                $columns = $table->getColumns();
+                if (array_key_exists($property, $columns))
+                {
+                    if ($columns[$property]->isVirtual())
+                    {
+                        $ormValue = $columns[$property]->evaluateVirtualValue($this, $property);
+                    }
+                    else
+                    {
+                        $ormValue = $columns[$property]->pdo2orm($pdoValue);
+                    }
+                }
+                else
+                {
+                    $ormValue = $pdoValue;
+                }
+            }
+            $this->ormValues[$property] = $ormValue;
+        }
+        return $this->ormValues[$property];
     }
 
     /**
      * "Магический" метод для установки свойств объекта
      *
-     * Если есть метод, имя которого состоит из префикса "set" и имени свойства, вызывает этот
-     * метод для установки значения. В противном случае вызывает {@link setProperty()}.
+     * Если есть сеттер (метод, имя которого состоит из префикса "set" и имени свойства), вызывает
+     * его для установки значения. В противном случае вызывает {@link setPdoValue()}.
      *
-     * @param string $key    Имя поля
-     * @param mixed  $value  Значение поля
+     * @param string $property  имя свойства
+     * @param mixed  $value     ORM-значение
      *
      * @return void
      *
-     * @uses setProperty()
+     * @uses setPdoValue()
      * @since 1.00
      */
-    public function __set($key, $value)
+    public function __set($property, $value)
     {
-        $setter = 'set' . $key;
+        unset($this->ormValues[$property]);
+        $setter = 'set' . $property;
         if (method_exists($this, $setter))
         {
             $this->$setter($value);
         }
         else
         {
-            $this->setProperty($key, $value);
+            $columns = $this->getTable()->getColumns();
+            if (array_key_exists($property, $columns) && !$columns[$property]->isVirtual())
+            {
+                $value = $columns[$property]->orm2pdo($value);
+            }
+            $this->setPdoValue($property, $value);
         }
-        unset($this->gettersCache[$key]);
         if ($this->getEntityState() == self::IS_PERSISTENT)
         {
             $this->setEntityState(self::IS_DIRTY);
@@ -186,7 +214,7 @@ abstract class ORM_Entity
      *
      * @return int
      *
-     * @since 2.02
+     * @since 3.00
      */
     public function getEntityState()
     {
@@ -198,7 +226,7 @@ abstract class ORM_Entity
      *
      * @param int $state  новое состояние (см. константы ORM_Entity::IS_…)
      *
-     * @since 2.02
+     * @since 3.00
      */
     protected function setEntityState($state)
     {
@@ -210,7 +238,7 @@ abstract class ORM_Entity
      *
      * @return mixed
      *
-     * @since 2.02
+     * @since 3.00
      */
     public function getPrimaryKey()
     {
@@ -218,69 +246,32 @@ abstract class ORM_Entity
     }
 
     /**
-     * Устанавливает значение свойства
+     * Возвращает PDO-значение свойства
      *
-     * Метод не инициирует вызов сеттеров, но обрабатывает значение фильтрами
+     * @param string $property  имя свойства
      *
-     * @param string $key    Имя свойства
-     * @param mixed  $value  Значение
+     * @return mixed  PDO-значение свойства
      *
-     * @return void
-     *
-     * @uses PDO
-     * @since 1.00
+     * @since 3.00
      */
-    public function setProperty($key, $value)
+    public function getPdoValue($property)
     {
-        $columns = $this->getTable()->getColumns();
-        if (array_key_exists($key, $columns))
-        {
-            $column = $columns[$key];
-            switch (@$column['type'])
-            {
-                case 'bindings':
-                    $value = $this->createCollectionOfBindings($key, $column, $value);
-                    break;
-                case 'entity':
-                    if (is_object($value))
-                    {
-                        $primaryKey = $this->getTable()->getPrimaryKey();
-                        $value = $value->{$primaryKey};
-                    }
-            }
-        }
-        $this->attrs[$key] = $value;
+        return array_key_exists($property, $this->pdoValues) ? $this->pdoValues[$property] : null;
     }
 
     /**
-     * Возвращает значение свойства
+     * Устанавливает PDO-значение свойства
      *
-     * Читает значение непосредственно из массива свойств, не инициируя вызов геттеров
+     * @param string $property  имя свойства
+     * @param mixed  $value     PDO-значение
      *
-     * @param string $key  имя свойства
+     * @return void
      *
-     * @return mixed  значение свойства
-     *
-     * @since 1.00
+     * @since 3.00
      */
-    public function getProperty($key)
+    public function setPdoValue($property, $value)
     {
-        $value = array_key_exists($key, $this->attrs) ? $this->attrs[$key] : null;
-
-        $table = $this->getTable();
-        $columns = $table->getColumns();
-        if (array_key_exists($key, $columns))
-        {
-            if ($columns[$key]->isVirtual())
-            {
-                $value = $columns[$key]->evaluateVirtualValue($this, $key);
-            }
-            else
-            {
-                $value = $columns[$key]->pdo2orm($value);
-            }
-        }
-        return $value;
+        $this->pdoValues[$property] = $value;
     }
 
     /**
@@ -336,75 +327,11 @@ abstract class ORM_Entity
      */
     public function afterDelete()
     {
+        foreach ($this->getTable()->getColumns() as $key => $column)
+        {
+            $column->afterEntityDelete($this, $key);
+        }
         $this->setEntityState(self::IS_DELETED);
-    }
-
-    /**
-     * Возвращает таблицу по имени класса сущности
-     *
-     * @param string $entityClass
-     *
-     * @throws InvalidArgumentException
-     *
-     * @return ORM_Table
-     *
-     * @since 2.02
-     */
-    protected function getTableByEntityClass($entityClass)
-    {
-        if ('' === strval($entityClass))
-        {
-            throw new InvalidArgumentException('$entityClass can not be blank');
-        }
-        $entityPluginName = substr($entityClass, 0, strpos($entityClass, '_'));
-        $entityPluginName = strtolower($entityPluginName);
-        $plugin = Eresus_Kernel::app()->getLegacyKernel()->plugins
-            ->load($entityPluginName);
-        $entityName = substr($entityClass, strrpos($entityClass, '_') + 1);
-        $table = ORM::getTable($plugin, $entityName);
-        return $table;
-    }
-
-    /**
-     * Возвращает коллекцию привязок на основе переданных данных
-     *
-     * @param string $key     имя поля
-     * @param array  $column  описание поля
-     * @param mixed  $value   устанавливаемое значение
-     *
-     * @throws InvalidArgumentException
-     *
-     * @return ORM_Entity_Collection
-     */
-    protected function createCollectionOfBindings($key, array $column, $value)
-    {
-        /*
-         * Получаем объект коллекции для этого свойства, что позволит нам избежать
-         * появления дубликатов свойства, если к нему уже были обращения.
-         */
-        /** @var ORM_Entity_Collection $collection */
-        $collection = $this->getProperty($key);
-        $collection->clear();
-        if (($value instanceof ORM_Entity_Collection) || is_array($value))
-        {
-            $validClass = @$column['class'];
-            foreach ($value as $entity)
-            {
-                if (!($entity instanceof $validClass))
-                {
-                    throw new InvalidArgumentException(
-                        sprintf('Field "%s" accepts only instances of "%s"!', $key, $validClass)
-                    );
-                }
-                $collection->attach($entity);
-            }
-        }
-        else
-        {
-            throw new InvalidArgumentException(
-                sprintf('Field "%s" can be set only to array or ORM_Entity_Collection!', $key));
-        }
-        return $collection;
     }
 }
 

@@ -31,7 +31,7 @@
  * Драйвер на основе стандарта SQL
  *
  * @package ORM
- * @since 2.02
+ * @since 3.00
  */
 class ORM_Driver_SQL
 {
@@ -42,7 +42,7 @@ class ORM_Driver_SQL
      *
      * @return void
      *
-     * @since 2.02
+     * @since 3.00
      */
     public function createTable(ORM_Table $table)
     {
@@ -79,7 +79,7 @@ class ORM_Driver_SQL
      *
      * @return void
      *
-     * @since 2.02
+     * @since 3.00
      */
     public function dropTable(ORM_Table $table)
     {
