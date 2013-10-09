@@ -51,11 +51,11 @@ class BaseTest extends PHPUnit_Framework_TestCase
         $db->options->tableNamePrefix = 'prf_';
         DB::setHandler($db);
 
-        $orm = new ORM;
+        $manager = new ORM_Manager();
         $plugin = new Plugin;
-        $driver = $this->getMock('ORM_Driver_MySQL', array('none'), array($orm));
+        $driver = $this->getMock('ORM_Driver_MySQL', array('none'), array($manager));
         /** @var ORM_Driver_MySQL $driver */
-        $orm->setDriver($driver);
+        $manager->setDriver($driver);
         include_once 'BaseTable.fixtures/Table_Foo.php';
         $table = new MyPlugin_Entity_Table_Foo($plugin, $driver);
         $driver->createTable($table);

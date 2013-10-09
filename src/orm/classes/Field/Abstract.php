@@ -44,23 +44,23 @@ abstract class ORM_Field_Abstract
     protected $params;
 
     /**
-     * Экземпляр оснвоного класса модуля
-     * @var ORM
+     * Менеджер
+     * @var ORM_Manager
      * @since 3.00
      */
-    protected $orm;
+    protected $manager;
 
     /**
      * Параметры поля
      *
-     * @param array $params
-     * @param ORM   $plugin
+     * @param array       $params
+     * @param ORM_Manager $manager
      */
-    public function __construct(array $params, ORM $plugin)
+    public function __construct(array $params, ORM_Manager $manager)
     {
         $this->checkParams($params);
         $this->params = $params;
-        $this->orm = $plugin;
+        $this->manager = $manager;
     }
 
     /**

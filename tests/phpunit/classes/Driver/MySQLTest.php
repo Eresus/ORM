@@ -44,7 +44,7 @@ class ORM_Driver_MySQLTest extends PHPUnit_Framework_TestCase
         $getCreateTableDefinition
             = new ReflectionMethod('ORM_Driver_MySQL', 'getCreateTableDefinition');
         $getCreateTableDefinition->setAccessible(true);
-        $driver = new ORM_Driver_MySQL(new ORM);
+        $driver = new ORM_Driver_MySQL(new ORM_Manager());
         $this->assertEquals(
             'CREATE TABLE foo (bar, baz, pkey, idx1, idx2) ENGINE InnoDB DEFAULT CHARSET=utf8',
             $getCreateTableDefinition->invoke($driver,
@@ -60,22 +60,18 @@ class ORM_Driver_MySQLTest extends PHPUnit_Framework_TestCase
     {
         $method = new ReflectionMethod('ORM_Driver_MySQL', 'getFieldDefinition');
         $method->setAccessible(true);
-        $driver = new ORM_Driver_MySQL(new ORM);
+        $driver = new ORM_Driver_MySQL(new ORM_Manager());
 
-        $field = new ORM_Field_Datetime(array(), $this->getMock('ORM'));
+        $field = new ORM_Field_Datetime(array(), new ORM_Manager());
         $this->assertEquals("foo DATETIME", $method->invoke($driver, 'foo', $field));
 
         $field = new ORM_Field_Integer(
-            array('length' => 5, 'unsigned' => true, 'autoincrement' => true),
-            $this->getMock('ORM'));
+            array('length' => 5, 'unsigned' => true, 'autoincrement' => true), new ORM_Manager());
         $this->assertEquals("foo INT(5) UNSIGNED AUTO_INCREMENT",
             $method->invoke($driver, 'foo', $field));
 
-        $field = new ORM_Field_String(
-            array('length' => 300),
-            $this->getMock('ORM'));
-        $this->assertEquals("foo TEXT",
-            $method->invoke($driver, 'foo', $field));
+        $field = new ORM_Field_String(array('length' => 300), new ORM_Manager());
+        $this->assertEquals("foo TEXT", $method->invoke($driver, 'foo', $field));
     }
 }
 

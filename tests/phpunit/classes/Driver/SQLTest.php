@@ -44,7 +44,7 @@ class ORM_Driver_SQLTest extends PHPUnit_Framework_TestCase
         $getCreateTableDefinition
             = new ReflectionMethod('ORM_Driver_SQL', 'getCreateTableDefinition');
         $getCreateTableDefinition->setAccessible(true);
-        $driver = new ORM_Driver_SQL(new ORM);
+        $driver = new ORM_Driver_SQL(new ORM_Manager);
         $this->assertEquals('CREATE TABLE foo (bar, baz, pkey, idx1, idx2)',
             $getCreateTableDefinition->invoke($driver,
                 'foo', array('bar', 'baz'), 'pkey', array('idx1', 'idx2')));
@@ -57,7 +57,7 @@ class ORM_Driver_SQLTest extends PHPUnit_Framework_TestCase
     {
         $getFieldDefinition = new ReflectionMethod('ORM_Driver_SQL', 'getFieldDefinition');
         $getFieldDefinition->setAccessible(true);
-        $driver = new ORM_Driver_SQL(new ORM);
+        $driver = new ORM_Driver_SQL(new ORM_Manager);
         $field = $this->getMockBuilder('ORM_Field_Abstract')->disableOriginalConstructor()
             ->setMethods(array('getTypeName', 'getSqlFieldDefinition', 'hasParam', 'getParam',
                 'getPdoType'))
@@ -102,7 +102,7 @@ class ORM_Driver_SQLTest extends PHPUnit_Framework_TestCase
         $getPrimaryKeyDefinition
             = new ReflectionMethod('ORM_Driver_SQL', 'getPrimaryKeyDefinition');
         $getPrimaryKeyDefinition->setAccessible(true);
-        $driver = new ORM_Driver_SQL(new ORM);
+        $driver = new ORM_Driver_SQL(new ORM_Manager);
         $this->assertEquals('PRIMARY KEY (foo)', $getPrimaryKeyDefinition->invoke($driver, 'foo'));
     }
 
@@ -114,7 +114,7 @@ class ORM_Driver_SQLTest extends PHPUnit_Framework_TestCase
         $getIndexDefinition
             = new ReflectionMethod('ORM_Driver_SQL', 'getIndexDefinition');
         $getIndexDefinition->setAccessible(true);
-        $driver = new ORM_Driver_SQL(new ORM);
+        $driver = new ORM_Driver_SQL(new ORM_Manager);
         $this->assertEquals('KEY foo (bar, baz)',
             $getIndexDefinition->invoke($driver, 'foo', array('fields' => array('bar', 'baz'))));
     }
@@ -128,7 +128,7 @@ class ORM_Driver_SQLTest extends PHPUnit_Framework_TestCase
             = new ReflectionMethod('ORM_Driver_SQL', 'getDriverFieldType');
         $getDriverFieldType->setAccessible(true);
 
-        $driver = new ORM_Driver_SQL(new ORM);
+        $driver = new ORM_Driver_SQL(new ORM_Manager);
 
         $field = $this->getMockBuilder('ORM_Field_Abstract')->disableOriginalConstructor()
             ->setMethods(array('getTypeName'))->setMockClassName('ORM_Field_Foo')->getMock();

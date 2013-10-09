@@ -1,12 +1,10 @@
 <?php
 /**
- * ORM
- *
- * Модульные тесты
+ * Тесты класса ORM_Manager
  *
  * @version ${product.version}
  *
- * @copyright 2011, Михаил Красильников <m.krasilnikov@yandex.ru>
+ * @copyright 2013, Михаил Красильников <m.krasilnikov@yandex.ru>
  * @license http://www.gnu.org/licenses/gpl.txt	GPL License 3
  * @author Михаил Красильников <m.krasilnikov@yandex.ru>
  *
@@ -28,37 +26,50 @@
  *
  * @package ORM
  * @subpackage Tests
- *
- * $Id: bootstrap.php 1849 2011-10-03 17:34:22Z mk $
  */
 
-
-require_once __DIR__ . '/../../bootstrap.php';
+require_once __DIR__ . '/../bootstrap.php';
 
 /**
  * @package ORM
  * @subpackage Tests
  */
-class ORM_Table_Cached_Test extends PHPUnit_Framework_TestCase
+class ORM_ManagerTest extends PHPUnit_Framework_TestCase
 {
     /**
-     * @covers ORM_Table_Cached::fillCache
+     * @covers ORM_Manager::getTable
+     * @expectedException InvalidArgumentException
      */
-    public function testFillCache()
+    public function testGetTableInvalidPlugin()
     {
-        $table = $this->getMockBuilder('ORM_Table_Cached')->disableOriginalConstructor()->
-            setMethods(array('setTableDefinition', 'createSelectQuery', 'loadFromQuery'))->getMock();
-        $table->expects($this->once())->method('createSelectQuery')->
-            will($this->returnValue(new ezcQuerySelect()));
-        $item = new stdClass();
-        $item->id = 0;
-        $table->expects($this->once())->method('loadFromQuery')->will($this->returnValue(array($item)));
+        $orm = new ORM_Manager;
+        $orm->getTable(null, 'Foo');
+    }
 
-        $m_fillCache = new ReflectionMethod('ORM_Table_Cached', 'fillCache');
-        $m_fillCache->setAccessible(true);
+    /**
+     * @covers ORM_Manager::getTable
+     */
+    public function testGetTablePlugin()
+    {
+        $uid = uniqid();
+        $this->getMockBuilder('ORM_Table')->setMockClassName("Plugin_Entity_Table_{$uid}")
+            ->setMethods(array('setTableDefinition'))->disableOriginalConstructor()->getMock();
+        $plugin = new Plugin();
+        $orm = new ORM_Manager();
+        $this->assertInstanceOf("Plugin_Entity_Table_{$uid}", $orm->getTable($plugin, $uid));
+    }
 
-        $m_fillCache->invoke($table);
-        $m_fillCache->invoke($table);
+    /**
+     * @covers ORM_Manager::getTable
+     */
+    public function testGetTableTPlugin()
+    {
+        $uid = uniqid();
+        $this->getMockBuilder('ORM_Table')->setMockClassName("Plugin_Entity_Table_{$uid}")
+            ->setMethods(array('setTableDefinition'))->disableOriginalConstructor()->getMock();
+        $plugin = new TPlugin();
+        $orm = new ORM_Manager();
+        $this->assertInstanceOf("Plugin_Entity_Table_{$uid}", $orm->getTable($plugin, $uid));
     }
 }
 

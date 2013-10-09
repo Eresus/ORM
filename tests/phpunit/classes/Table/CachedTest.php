@@ -1,10 +1,12 @@
 <?php
 /**
- * Поле типа «entities»
+ * ORM
+ *
+ * Модульные тесты
  *
  * @version ${product.version}
  *
- * @copyright 2013, Михаил Красильников <m.krasilnikov@yandex.ru>
+ * @copyright 2011, Михаил Красильников <m.krasilnikov@yandex.ru>
  * @license http://www.gnu.org/licenses/gpl.txt	GPL License 3
  * @author Михаил Красильников <m.krasilnikov@yandex.ru>
  *
@@ -25,77 +27,38 @@
  * <http://www.gnu.org/licenses/>
  *
  * @package ORM
+ * @subpackage Tests
+ *
+ * $Id: bootstrap.php 1849 2011-10-03 17:34:22Z mk $
  */
 
+
+require_once __DIR__ . '/../../bootstrap.php';
 
 /**
- * Поле типа «entities»
- *
  * @package ORM
- * @since 3.00
+ * @subpackage Tests
  */
-class ORM_Field_Entities extends ORM_Field_Abstract
+class ORM_Table_CachedTest extends PHPUnit_Framework_TestCase
 {
     /**
-     * Возвращает имя типа
-     *
-     * @return string
-     *
-     * @since 3.00
+     * @covers ORM_Table_Cached::fillCache
      */
-    public function getTypeName()
+    public function testFillCache()
     {
-        return 'entities';
-    }
+        $table = $this->getMockBuilder('ORM_Table_Cached')->disableOriginalConstructor()->
+            setMethods(array('setTableDefinition', 'createSelectQuery', 'loadFromQuery'))->getMock();
+        $table->expects($this->once())->method('createSelectQuery')->
+            will($this->returnValue(new ezcQuerySelect()));
+        $item = new stdClass();
+        $item->id = 0;
+        $table->expects($this->once())->method('loadFromQuery')->will($this->returnValue(array($item)));
 
-    /**
-     * Возвращает true если это виртуальный тип (т. е. для него не надо создавать поле в таблице)
-     *
-     * @return bool
-     *
-     * @since 3.00
-     */
-    public function isVirtual()
-    {
-        return true;
-    }
+        $m_fillCache = new ReflectionMethod('ORM_Table_Cached', 'fillCache');
+        $m_fillCache->setAccessible(true);
 
-    /**
-     * Вычисляет и возвращает значение виртуального поля
-     *
-     * @param ORM_Entity $entity
-     * @param string     $fieldName
-     *
-     * @return mixed
-     *
-     * @see isVirtual()
-     * @since 3.00
-     */
-    public function evaluateVirtualValue(ORM_Entity $entity, $fieldName)
-    {
-        if ($entity->getPrimaryKey())
-        {
-            $table = $this->manager->getTableByEntityClass($this->getParam('class'));
-            return $table->findAllBy(array(
-                $this->getParam('reference') => $entity->getPrimaryKey()
-            ));
-        }
-        else
-        {
-            return new ORM_Entity_Collection();
-        }
-    }
-
-    /**
-     * Возвращает список обязательных параметров
-     *
-     * @return string[]
-     *
-     * @since 3.00
-     */
-    protected function getRequiredParams()
-    {
-        return array('class', 'reference');
+        $m_fillCache->invoke($table);
+        $m_fillCache->invoke($table);
     }
 }
 

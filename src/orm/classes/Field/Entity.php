@@ -101,7 +101,7 @@ class ORM_Field_Entity extends ORM_Field_Abstract
      */
     public function pdo2orm($pdoValue)
     {
-        $table = $this->orm->getTableByEntityClass($this->getParam('class'));
+        $table = $this->manager->getTableByEntityClass($this->getParam('class'));
         return $table->find($pdoValue);
     }
 

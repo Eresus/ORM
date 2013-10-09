@@ -61,38 +61,11 @@ class ORM extends Plugin
     public $description = 'Средства ORM для использования в других плагинах';
 
     /**
-     * Драйвер СУБД
-     * @var ORM_Driver_SQL
+     * Менеджер
+     * @var ORM_Manager
      * @since 3.00
      */
-    private $driver = null;
-
-    /**
-     * Реестр таблиц
-     *
-     * @var ORM_Table[]
-     * @since 1.00
-     */
-    private $tables = array();
-
-    /**
-     * Типы полей
-     *
-     * @var array
-     * @since 1.00
-     */
-    private $filedTypes = array(
-        'bindings' => 'ORM_Field_Bindings',
-        'boolean' => 'ORM_Field_Boolean',
-        'date' => 'ORM_Field_Date',
-        'datetime' => 'ORM_Field_Datetime',
-        'entity' => 'ORM_Field_Entity',
-        'entities' => 'ORM_Field_Entities',
-        'float' => 'ORM_Field_Float',
-        'integer' => 'ORM_Field_Integer',
-        'string' => 'ORM_Field_String',
-        'timestamp' => 'ORM_Field_Timestamp'
-    );
+    private $manager;
 
     /**
      * Конструктор
@@ -100,42 +73,18 @@ class ORM extends Plugin
     public function __construct()
     {
         parent::__construct();
+        $this->manager = new ORM_Manager();
     }
 
     /**
-     * Задаёт используемый драйвер СУБД
-     *
-     * Внимание! Этот метод можно вызывать только до первого обращения к {@link getDriver()}.
-     *
-     * @param ORM_Driver_SQL $driver
-     *
-     * @throws LogicException
-     *
-     * @since 3.00
+     * Возвращает менджера ORM
+     * @return ORM_Manager
      */
-    public function setDriver(ORM_Driver_SQL $driver)
+    public static function getManager()
     {
-        if (null !== $this->driver)
-        {
-            throw new LogicException('ORM Driver is already set');
-        }
-        $this->driver = $driver;
-    }
-
-    /**
-     * Возвращает используемый драйвер СУБД
-     *
-     * @return ORM_Driver_SQL
-     *
-     * @since 3.00
-     */
-    public function getDriver()
-    {
-        if (null === $this->driver)
-        {
-            $this->driver = new ORM_Driver_MySQL($this);
-        }
-        return $this->driver;
+        /** @var ORM $orm */
+        $orm = Eresus_Kernel::app()->getLegacyKernel()->plugins->load('orm');
+        return $orm->manager;
     }
 
     /**
@@ -150,81 +99,9 @@ class ORM extends Plugin
      *
      * @since 1.00
      */
-    public function getTable($plugin, $entityName)
+    public static function getTable($plugin, $entityName)
     {
-        if (!($plugin instanceof Plugin) && !($plugin instanceof TPlugin))
-        {
-            throw new InvalidArgumentException(
-                '$plugin must be Plugin or TPlugin instance.'
-            );
-        }
-        $className = get_class($plugin);
-        if ($plugin instanceof TPlugin)
-        {
-            // Удаляем букву «T» из начала имени класса
-            $className = substr($className, 1);
-        }
-        $className .= '_Entity_Table_' . $entityName;
-        if (!array_key_exists($className, $this->tables))
-        {
-            $this->tables[$className] = new $className($plugin, $this->getDriver());
-        }
-        return $this->tables[$className];
-    }
-
-    /**
-     * Возвращает возможные типы полей
-     *
-     * @return ORM_Field_Abstract[]
-     *
-     * @since 3.00
-     */
-    public function getFieldTypes()
-    {
-        return $this->filedTypes;
-    }
-
-    /**
-     * Регистрирует тип поля
-     *
-     * $typeClass должен быть потомком ORM_Field_Abstract и содержать в имени строку «_Field_».
-     * Также должен существовать класс унаследованный от X, имя которого совпадает с $typeClass,
-     * но строка «_Field_» заменена на «_Driver_SQL_»
-     *
-     * @param string $typeName   имя типа (латинские буквы в нижнем регистре и цифры)
-     * @param string $typeClass  имя класса типа
-     *
-     * @since 3.00
-     */
-    public function registerField($typeName, $typeClass)
-    {
-        $this->filedTypes[$typeName] = $typeClass;
-    }
-
-    /**
-     * Возвращает таблицу по имени класса сущности
-     *
-     * @param string $entityClass
-     *
-     * @throws InvalidArgumentException
-     *
-     * @return ORM_Table
-     *
-     * @since 3.00
-     */
-    public function getTableByEntityClass($entityClass)
-    {
-        if ('' === strval($entityClass))
-        {
-            throw new InvalidArgumentException('$entityClass can not be blank');
-        }
-        $entityPluginName = substr($entityClass, 0, strpos($entityClass, '_'));
-        $entityPluginName = strtolower($entityPluginName);
-        $plugin = Eresus_Kernel::app()->getLegacyKernel()->plugins
-            ->load($entityPluginName);
-        $entityName = substr($entityClass, strrpos($entityClass, '_') + 1);
-        $table = self::getTable($plugin, $entityName);
-        return $table;
+        return self::getManager()->getTable($plugin, $entityName);
     }
 }
 

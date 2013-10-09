@@ -48,7 +48,7 @@ class ORM_TableTest extends PHPUnit_Framework_TestCase
         /** @var Plugin $plugin */
         $plugin = $this->getMockBuilder('Eresus_Plugin')->disableOriginalConstructor()->getMock();
         /** @var ORM_Table $table */
-        $table->__construct($plugin, new ORM_Driver_MySQL(new ORM));
+        $table->__construct($plugin, new ORM_Driver_MySQL(new ORM_Manager()));
     }
 
     /**
@@ -57,7 +57,7 @@ class ORM_TableTest extends PHPUnit_Framework_TestCase
      */
     public function testHasColumnsBadName()
     {
-        $driver = new ORM_Driver_SQL(new ORM());
+        $driver = new ORM_Driver_SQL(new ORM_Manager());
         $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
             setMethods(array('setTableDefinition', 'getDriver'))->getMock();
         $table->expects($this->any())->method('getDriver')->will($this->returnValue($driver));
@@ -72,7 +72,7 @@ class ORM_TableTest extends PHPUnit_Framework_TestCase
      */
     public function testHasColumnsBadDefinition()
     {
-        $driver = new ORM_Driver_SQL(new ORM());
+        $driver = new ORM_Driver_SQL(new ORM_Manager());
         $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
             setMethods(array('setTableDefinition', 'getDriver'))->getMock();
         $table->expects($this->any())->method('getDriver')->will($this->returnValue($driver));
@@ -87,7 +87,7 @@ class ORM_TableTest extends PHPUnit_Framework_TestCase
      */
     public function testHasColumnsNoType()
     {
-        $driver = new ORM_Driver_SQL(new ORM());
+        $driver = new ORM_Driver_SQL(new ORM_Manager());
         $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
             setMethods(array('setTableDefinition', 'getDriver'))->getMock();
         $table->expects($this->any())->method('getDriver')->will($this->returnValue($driver));
@@ -102,7 +102,7 @@ class ORM_TableTest extends PHPUnit_Framework_TestCase
      */
     public function testHasColumnsInvalidType()
     {
-        $driver = new ORM_Driver_SQL(new ORM());
+        $driver = new ORM_Driver_SQL(new ORM_Manager());
         $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
             setMethods(array('setTableDefinition', 'getDriver'))->getMock();
         $table->expects($this->any())->method('getDriver')->will($this->returnValue($driver));
@@ -117,7 +117,7 @@ class ORM_TableTest extends PHPUnit_Framework_TestCase
      */
     public function testHasColumns()
     {
-        $driver = new ORM_Driver_SQL(new ORM());
+        $driver = new ORM_Driver_SQL(new ORM_Manager());
         $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
             setMethods(array('setTableDefinition', 'getDriver'))->getMock();
         $table->expects($this->any())->method('getDriver')->will($this->returnValue($driver));

@@ -669,7 +669,7 @@ abstract class ORM_Table
      */
     protected function hasColumns(array $columns)
     {
-        $fieldTypes = $this->getDriver()->getOrm()->getFieldTypes();
+        $fieldTypes = $this->getDriver()->getManager()->getFieldTypes();
         $this->columns = array();
         foreach ($columns as $name => $attrs)
         {
@@ -696,7 +696,7 @@ abstract class ORM_Table
             }
             $fieldTypeClass = $fieldTypes[$attrs['type']];
             unset($attrs['type']);
-            $this->columns[$name] = new $fieldTypeClass($attrs, $this->getDriver()->getOrm());
+            $this->columns[$name] = new $fieldTypeClass($attrs, $this->getDriver()->getManager());
         }
         reset($columns);
         $this->primaryKey = key($columns);

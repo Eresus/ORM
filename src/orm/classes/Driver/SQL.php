@@ -36,24 +36,24 @@
 class ORM_Driver_SQL
 {
     /**
-     * @var ORM
+     * @var ORM_Manager
      */
-    private $orm;
+    private $manager;
 
     /**
-     * @param ORM $orm
+     * @param ORM_Manager $manager
      */
-    public function __construct(ORM $orm)
+    public function __construct(ORM_Manager $manager)
     {
-        $this->orm = $orm;
+        $this->manager = $manager;
     }
 
     /**
-     * @return ORM
+     * @return ORM_Manager
      */
-    public function getOrm()
+    public function getManager()
     {
-        return $this->orm;
+        return $this->manager;
     }
 
     /**

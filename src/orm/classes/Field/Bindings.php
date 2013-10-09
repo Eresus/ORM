@@ -89,7 +89,7 @@ class ORM_Field_Bindings extends ORM_Field_Abstract
             {
                 $value [] = $binding[$fieldName];
             }
-            $targetTable = $this->orm->getTableByEntityClass($this->getParam('class'));
+            $targetTable = $this->manager->getTableByEntityClass($this->getParam('class'));
             $collection = new ORM_Entity_Collection();
             foreach ($value as $item)
             {
