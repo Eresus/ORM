@@ -1,6 +1,6 @@
 <?php
 /**
- * Модульные тесты
+ * Базовые тесты высокого уровня
  *
  * @version ${product.version}
  *
@@ -34,42 +34,55 @@ require_once __DIR__ . '/bootstrap.php';
  * @package ORM
  * @subpackage Tests
  */
-class OrmTest extends PHPUnit_Framework_TestCase
+class BaseTest extends PHPUnit_Framework_TestCase
 {
-    /**
-     * @covers ORM::getTable
-     * @expectedException InvalidArgumentException
-     */
-    public function testGetTableInvalidPlugin()
+    public function testCreateDropComplexTable()
     {
+        $queue = new SplQueue();
+
+        $db = $this->getMock('stdClass', array('exec'));
+        $db->expects($this->any())->method('exec')->will($this->returnCallback(
+            function ($sql) use ($queue)
+            {
+                $queue->push($sql);
+            }
+        ));
+        $db->options = new stdClass;
+        $db->options->tableNamePrefix = 'prf_';
+        DB::setHandler($db);
+
         $orm = new ORM;
-        $orm->getTable(null, 'Foo');
-    }
+        $plugin = new Plugin;
+        $driver = $this->getMock('ORM_Driver_MySQL', array('none'), array($orm));
+        /** @var ORM_Driver_MySQL $driver */
+        $orm->setDriver($driver);
+        include_once 'BaseTable.fixtures/Table_Foo.php';
+        $table = new MyPlugin_Entity_Table_Foo($plugin, $driver);
+        $driver->createTable($table);
+        $driver->dropTable($table);
 
-    /**
-     * @covers ORM::getTable
-     */
-    public function testGetTablePlugin()
-    {
-        $uid = uniqid();
-        $this->getMockBuilder('ORM_Table')->setMockClassName("Plugin_Entity_Table_{$uid}")
-            ->setMethods(array('setTableDefinition'))->disableOriginalConstructor()->getMock();
-        $plugin = new Plugin();
-        $orm = new ORM();
-        $this->assertInstanceOf("Plugin_Entity_Table_{$uid}", $orm->getTable($plugin, $uid));
-    }
+        $this->assertEquals(
+            'CREATE TABLE prf_foo (' .
+                'id INT(10) UNSIGNED AUTO_INCREMENT, ' .
+                'active BOOLEAN DEFAULT 0, ' .
+                'entity INTEGER UNSIGNED, ' .
+                'PRIMARY KEY (id), ' .
+                'KEY active_idx (active)' .
+            ') ENGINE InnoDB DEFAULT CHARSET=utf8',
+            $queue->dequeue()
+        );
 
-    /**
-     * @covers ORM::getTable
-     */
-    public function testGetTableTPlugin()
-    {
-        $uid = uniqid();
-        $this->getMockBuilder('ORM_Table')->setMockClassName("Plugin_Entity_Table_{$uid}")
-            ->setMethods(array('setTableDefinition'))->disableOriginalConstructor()->getMock();
-        $plugin = new TPlugin();
-        $orm = new ORM();
-        $this->assertInstanceOf("Plugin_Entity_Table_{$uid}", $orm->getTable($plugin, $uid));
+        $this->assertEquals(
+            'CREATE TABLE prf_foo_bindings (' .
+            'foo INT(10) UNSIGNED, ' .
+            'bindings INT(10) UNSIGNED, ' .
+            'PRIMARY KEY (foo, bindings)' .
+            ') ENGINE InnoDB DEFAULT CHARSET=utf8',
+            $queue->dequeue()
+        );
+
+        $this->assertEquals('DROP TABLE prf_foo', $queue->dequeue());
+        $this->assertEquals('DROP TABLE prf_foo_bindings', $queue->dequeue());
     }
 }
 

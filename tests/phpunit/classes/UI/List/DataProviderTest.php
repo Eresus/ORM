@@ -38,21 +38,22 @@ require_once __DIR__ . '/../../../bootstrap.php';
  * @package ORM
  * @subpackage Tests
  */
-class ORM_UI_List_DataProvider_Test extends PHPUnit_Framework_TestCase
+class ORM_UI_List_DataProviderTest extends PHPUnit_Framework_TestCase
 {
     /**
      * @covers ORM_UI_List_DataProvider::__construct
      */
-    public function test_construct()
+    public function testConstruct()
     {
-        $obj = new ORM_UI_List_DataProvider(new ORM_UI_List_DataProvider_Test_Pluign(), 'foo');
+        $table = $this->getMockBuilder('ORM_Table')->setMethods(array('setTableDefinition'))
+            ->disableOriginalConstructor()->getMock();
+        $obj = new ORM_UI_List_DataProvider($table);
     }
-    //-----------------------------------------------------------------------------
 
     /**
      * @covers ORM_UI_List_DataProvider::filterInclude
      */
-    public function test_filterInclude()
+    public function testFilterInclude()
     {
         $provider = $this->getMockBuilder('ORM_UI_List_DataProvider')->disableOriginalConstructor()->
             setMethods(array('__none__'))->getMock();
@@ -63,12 +64,11 @@ class ORM_UI_List_DataProvider_Test extends PHPUnit_Framework_TestCase
         $this->assertEquals(array(array('foo', 123, '='), array('bar', 456, '<')),
             $p_filter->getValue($provider));
     }
-    //-----------------------------------------------------------------------------
 
     /**
      * @covers ORM_UI_List_DataProvider::orderBy
      */
-    public function test_orderBy()
+    public function testOrderBy()
     {
         $provider = $this->getMockBuilder('ORM_UI_List_DataProvider')->disableOriginalConstructor()->
             setMethods(array('__none__'))->getMock();
@@ -79,12 +79,11 @@ class ORM_UI_List_DataProvider_Test extends PHPUnit_Framework_TestCase
         $p_orderBy->setAccessible(true);
         $this->assertEquals(array('foo', 'ASC', 'bar'),	$p_orderBy->getValue($provider));
     }
-    //-----------------------------------------------------------------------------
 
     /**
      * @covers ORM_UI_List_DataProvider::getItems
      */
-    public function test_getItems()
+    public function testGetItems()
     {
         $provider = $this->getMockBuilder('ORM_UI_List_DataProvider')->disableOriginalConstructor()->
             setMethods(array('setFilter'))->getMock();
@@ -105,12 +104,11 @@ class ORM_UI_List_DataProvider_Test extends PHPUnit_Framework_TestCase
 
         $provider->getItems();
     }
-    //-----------------------------------------------------------------------------
 
     /**
      * @covers ORM_UI_List_DataProvider::getCount
      */
-    public function test_getCount()
+    public function testGetCount()
     {
         $provider = $this->getMockBuilder('ORM_UI_List_DataProvider')->disableOriginalConstructor()->
             setMethods(array('setFilter'))->getMock();
@@ -122,12 +120,11 @@ class ORM_UI_List_DataProvider_Test extends PHPUnit_Framework_TestCase
         $p_table->setValue($provider, $table);
         $provider->getCount();
     }
-    //-----------------------------------------------------------------------------
 
     /**
      * @covers ORM_UI_List_DataProvider::setFilter
      */
-    public function test_setFilter()
+    public function testSetFilter()
     {
         $provider = $this->getMockBuilder('ORM_UI_List_DataProvider')->disableOriginalConstructor()->
             setMethods(array('__none__'))->getMock();
@@ -151,7 +148,6 @@ class ORM_UI_List_DataProvider_Test extends PHPUnit_Framework_TestCase
 
         $m_setFilter->invoke($provider, $q);
     }
-    //-----------------------------------------------------------------------------
 }
 
 class ORM_UI_List_DataProvider_Test_Pluign extends Plugin {};

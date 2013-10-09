@@ -1,6 +1,6 @@
 <?php
 /**
- * Поле типа «integer»
+ * Таблица привязок
  *
  * @version ${product.version}
  *
@@ -27,72 +27,56 @@
  * @package ORM
  */
 
-
 /**
- * Поле типа «integer»
+ * Таблица привязок
  *
  * @package ORM
  * @since 3.00
  */
-class ORM_Field_Integer extends ORM_Field_Abstract
+class ORM_Table_Bindings extends ORM_Table
 {
     /**
-     * Возвращает имя типа
-     *
-     * @return string
-     *
-     * @since 3.00
+     * @var ORM_Table
      */
-    public function getTypeName()
+    private $baseTable;
+
+    /**
+     * @var string
+     */
+    private $property;
+
+    /**
+     * Конструктор
+     *
+     * @param ORM_Table $baseTable  таблица, хранящая базовые объекты
+     * @param string    $property   свойство, привязки к которому хранит таблица
+     */
+    public function __construct(ORM_Table $baseTable, $property)
     {
-        return 'integer';
+        $this->baseTable = $baseTable;
+        $this->property = $property;
+        parent::__construct($baseTable->getPlugin(), $baseTable->getDriver());
     }
 
     /**
-     * Возвращает соответствующий тип PDO (PDO::PARAM_…) или null
-     *
-     * @return null|int
-     *
-     * @since 3.00
+     * Описание таблицы
      */
-    public function getPdoType()
+    protected function setTableDefinition()
     {
-        return PDO::PARAM_INT;
-    }
+        $this->setTableName($this->baseTable->getName() . '_' . $this->property);
 
-    /**
-     * Возвращает выражение SQL для описания поля при создании таблицы
-     *
-     * @param string $name  имя поля
-     *
-     * @return string
-     */
-    public function getSqlFieldDefinition($name)
-    {
-        $sql = $name . ' INT';
-        $length = $this->getParam('length') ?: 10;
-        $sql .= '(' . $length . ')';
-        if ($this->getParam('unsigned'))
-        {
-            $sql .= ' UNSIGNED';
-        }
-        if ($this->getParam('autoincrement'))
-        {
-            $sql .= ' AUTO_INCREMENT';
-        }
-        return $sql;
-    }
-
-    /**
-     * Возвращает список возможных необязательных параметров
-     *
-     * @return string[]
-     *
-     * @since 3.00
-     */
-    protected function getOptionalParams()
-    {
-        return array('autoincrement', 'length', 'unsigned');
+        $sourceField = preg_replace('/^.*?_/', '', $this->baseTable->getName());
+        $this->hasColumns(array(
+            $sourceField => array(
+                'type' => 'integer',
+                'unsigned' => true
+            ),
+            $this->property => array(
+                'type' => 'integer',
+                'unsigned' => true
+            ),
+        ));
+        $this->setPrimaryKey(array($sourceField, $this->property));
     }
 }
 

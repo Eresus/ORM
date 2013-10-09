@@ -40,7 +40,7 @@ abstract class ORM_Table
      *
      * @var Plugin|TPlugin
      */
-    protected $plugin;
+    private $plugin;
 
     /**
      * Драйвер СУБД
@@ -115,18 +115,30 @@ abstract class ORM_Table
     /**
      * Конструктор
      *
+     * @param Plugin|TPlugin $plugin
      * @param ORM_Driver_SQL $driver
-     * @param Plugin|TPlugin      $plugin
      *
      * @return ORM_Table
      *
      * @since 1.00
      */
-    public function __construct(ORM_Driver_SQL $driver, $plugin)
+    public function __construct($plugin, ORM_Driver_SQL $driver)
     {
-        $this->driver = $driver;
         $this->plugin = $plugin;
+        $this->driver = $driver;
         $this->setTableDefinition();
+    }
+
+    /**
+     * Возвращает модуль-владелец
+     *
+     * @return Plugin|TPlugin
+     *
+     * @since 3.00
+     */
+    public function getPlugin()
+    {
+        return $this->plugin;
     }
 
     /**
@@ -208,6 +220,18 @@ abstract class ORM_Table
     }
 
     /**
+     * Назначет основной ключ
+     *
+     * @param string|array $key
+     *
+     * @since 3.00
+     */
+    protected function setPrimaryKey($key)
+    {
+        $this->primaryKey = $key;
+    }
+
+    /**
      * Возвращает сортировку
      *
      * @return array
@@ -241,32 +265,6 @@ abstract class ORM_Table
     public function isAlias()
     {
         return $this->isAlias;
-    }
-
-    /**
-     * Создаёт таблицу в БД
-     *
-     * @return void
-     *
-     * @since 1.00
-     * @deprecated используйте ORM::getDriver()->create($table);
-     */
-    public function create()
-    {
-        $this->getDriver()->createTable($this);
-    }
-
-    /**
-     * Удаляет таблицу из БД
-     *
-     * @return void
-     *
-     * @since 1.00
-     * @deprecated используйте ORM::getDriver()->drop($table);
-     */
-    public function drop()
-    {
-        $this->getDriver()->dropTable($this);
     }
 
     /**
@@ -412,8 +410,11 @@ abstract class ORM_Table
                 throw new LogicException(
                     sprintf('Filters on virtual fields ("%s") not supported', $field));
             }
-            $where []= $q->expr->eq($field,
-                $q->bindValue($value, ":$field", $columns[$field]->getPdoType()));
+            $where []= $q->expr->eq($field, $q->bindValue(
+                $columns[$field]->orm2pdo($value),
+                ":$field",
+                $columns[$field]->getPdoType())
+            );
         }
         $q->where($q->expr->lAnd($where));
         return $this->loadFromQuery($q);
@@ -668,17 +669,20 @@ abstract class ORM_Table
      */
     protected function hasColumns(array $columns)
     {
-        /** @var ORM $orm */
-        $orm = Eresus_Kernel::app()->getLegacyKernel()->plugins->load('orm');
-        $fieldTypes = $orm->getFieldTypes();
+        $fieldTypes = $this->getDriver()->getOrm()->getFieldTypes();
         $this->columns = array();
         foreach ($columns as $name => $attrs)
         {
             if (!is_string($name) || !preg_match('/^[a-z_]+$/i', $name))
             {
                 throw new InvalidArgumentException(sprintf(
-                    'Column name must be a non empty string consisted of "a-z" or "_", got "%s"',
+                    'Column name must be a non empty string consisted of "a-zA-Z" or "_", got "%s"',
                     $name));
+            }
+            if (!is_array($attrs))
+            {
+                throw new InvalidArgumentException(
+                    sprintf('Definition of column "%s" is not an array', $name));
             }
             if (!array_key_exists('type', $attrs))
             {
@@ -692,7 +696,7 @@ abstract class ORM_Table
             }
             $fieldTypeClass = $fieldTypes[$attrs['type']];
             unset($attrs['type']);
-            $this->columns[$name] = new $fieldTypeClass($attrs, $orm);
+            $this->columns[$name] = new $fieldTypeClass($attrs, $this->getDriver()->getOrm());
         }
         reset($columns);
         $this->primaryKey = key($columns);
@@ -774,7 +778,7 @@ abstract class ORM_Table
         }
 
         $entityClass = $this->getEntityClass();
-        $entity = new $entityClass($this->plugin, $values);
+        $entity = new $entityClass($this, $values);
         $this->registry[$id] = $entity;
         return $entity;
     }

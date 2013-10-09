@@ -38,14 +38,6 @@ require_once __DIR__ . '/../bootstrap.php';
 class ORM_TableTest extends PHPUnit_Framework_TestCase
 {
     /**
-     * @see PHPUnit_Framework_TestCase::tearDown()
-     */
-    protected function tearDown()
-    {
-        DB::setMock(null);
-    }
-
-    /**
      * @covers ORM_Table::__construct
      */
     public function testConstruct()
@@ -56,7 +48,87 @@ class ORM_TableTest extends PHPUnit_Framework_TestCase
         /** @var Plugin $plugin */
         $plugin = $this->getMockBuilder('Eresus_Plugin')->disableOriginalConstructor()->getMock();
         /** @var ORM_Table $table */
-        $table->__construct(new ORM_Driver_MySQL(), $plugin);
+        $table->__construct($plugin, new ORM_Driver_MySQL(new ORM));
+    }
+
+    /**
+     * @covers ORM_Table::hasColumns
+     * @expectedException InvalidArgumentException
+     */
+    public function testHasColumnsBadName()
+    {
+        $driver = new ORM_Driver_SQL(new ORM());
+        $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
+            setMethods(array('setTableDefinition', 'getDriver'))->getMock();
+        $table->expects($this->any())->method('getDriver')->will($this->returnValue($driver));
+        $hasColumns = new ReflectionMethod('ORM_Table', 'hasColumns');
+        $hasColumns->setAccessible(true);
+        $hasColumns->invoke($table, array(null));
+    }
+
+    /**
+     * @covers ORM_Table::hasColumns
+     * @expectedException InvalidArgumentException
+     */
+    public function testHasColumnsBadDefinition()
+    {
+        $driver = new ORM_Driver_SQL(new ORM());
+        $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
+            setMethods(array('setTableDefinition', 'getDriver'))->getMock();
+        $table->expects($this->any())->method('getDriver')->will($this->returnValue($driver));
+        $hasColumns = new ReflectionMethod('ORM_Table', 'hasColumns');
+        $hasColumns->setAccessible(true);
+        $hasColumns->invoke($table, array('foo' => null));
+    }
+
+    /**
+     * @covers ORM_Table::hasColumns
+     * @expectedException InvalidArgumentException
+     */
+    public function testHasColumnsNoType()
+    {
+        $driver = new ORM_Driver_SQL(new ORM());
+        $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
+            setMethods(array('setTableDefinition', 'getDriver'))->getMock();
+        $table->expects($this->any())->method('getDriver')->will($this->returnValue($driver));
+        $hasColumns = new ReflectionMethod('ORM_Table', 'hasColumns');
+        $hasColumns->setAccessible(true);
+        $hasColumns->invoke($table, array('foo' => array()));
+    }
+
+    /**
+     * @covers ORM_Table::hasColumns
+     * @expectedException InvalidArgumentException
+     */
+    public function testHasColumnsInvalidType()
+    {
+        $driver = new ORM_Driver_SQL(new ORM());
+        $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
+            setMethods(array('setTableDefinition', 'getDriver'))->getMock();
+        $table->expects($this->any())->method('getDriver')->will($this->returnValue($driver));
+        $hasColumns = new ReflectionMethod('ORM_Table', 'hasColumns');
+        $hasColumns->setAccessible(true);
+        $hasColumns->invoke($table, array('foo' => array('type' => 'bar')));
+    }
+
+    /**
+     * @covers ORM_Table::hasColumns
+     * @covers ORM_Table::getPrimaryKey
+     */
+    public function testHasColumns()
+    {
+        $driver = new ORM_Driver_SQL(new ORM());
+        $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
+            setMethods(array('setTableDefinition', 'getDriver'))->getMock();
+        $table->expects($this->any())->method('getDriver')->will($this->returnValue($driver));
+        $hasColumns = new ReflectionMethod('ORM_Table', 'hasColumns');
+        $hasColumns->setAccessible(true);
+        $hasColumns->invoke($table, array(
+            'foo' => array('type' => 'integer'),
+            'bar' => array('type' => 'integer')
+        ));
+        /** @var ORM_Table $table */
+        $this->assertEquals('foo', $table->getPrimaryKey());
     }
 
     /**
@@ -107,9 +179,7 @@ class ORM_TableTest extends PHPUnit_Framework_TestCase
         $q = new ezcQuerySelect(null);
         $handler = $this->getMock('stdClass', array('createSelectQuery'));
         $handler->expects($this->exactly(2))->method('createSelectQuery')->will($this->returnValue($q));
-        $db = $this->getMock('stdClass', array('getHandler'));
-        $db->expects($this->exactly(2))->method('getHandler')->will($this->returnValue($handler));
-        DB::setMock($db);
+        DB::setHandler($handler);
 
         $p_ordering = new ReflectionProperty('ORM_Table', 'ordering');
         $p_ordering->setAccessible(true);
@@ -138,9 +208,7 @@ class ORM_TableTest extends PHPUnit_Framework_TestCase
         $q->expects($this->once())->method('limit')->with(1);
         $handler = $this->getMock('stdClass', array('createSelectQuery'));
         $handler->expects($this->once())->method('createSelectQuery')->will($this->returnValue($q));
-        $db = $this->getMock('stdClass', array('getHandler'));
-        $db->expects($this->once())->method('getHandler')->will($this->returnValue($handler));
-        DB::setMock($db);
+        DB::setHandler($handler);
 
         $table->createCountQuery();
     }
@@ -268,6 +336,74 @@ class ORM_TableTest extends PHPUnit_Framework_TestCase
         $this->assertEquals(array(array('foo', 'DESC'), array('bar', 'ASC')),
             $p_ordering->getValue($table));
     }
-}
 
+    /**
+     * @covers ORM_Table::findAllBy
+     * @expectedException LogicException
+     */
+    public function testFindAllByUnknownField()
+    {
+        $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
+            setMethods(array('setTableDefinition', 'getColumns', 'createSelectQuery'))->getMock();
+        $table->expects($this->any())->method('getColumns')->will($this->returnValue(array()));
+        /** @var ORM_Table $table */
+        $table->findAllBy(array('foo' => 'bar'));
+    }
+
+    /**
+     * @covers ORM_Table::findAllBy
+     * @expectedException LogicException
+     */
+    public function testFindAllByVirtualField()
+    {
+        $field = $this->getMock('stdClass', array('isVirtual'));
+        $field->expects($this->any())->method('isVirtual')->will($this->returnValue(true));
+
+        $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
+            setMethods(array('setTableDefinition', 'getColumns', 'createSelectQuery'))->getMock();
+        $table->expects($this->any())->method('getColumns')->will($this->returnValue(array(
+            'foo' => $field
+        )));
+        /** @var ORM_Table $table */
+        $table->findAllBy(array('foo' => 'bar'));
+    }
+
+    /**
+     * @covers ORM_Table::findAllBy
+     */
+    public function testFindAllBy()
+    {
+        $field = $this->getMock('stdClass', array('isVirtual', 'orm2pdo', 'getPdoType'));
+        $field->expects($this->any())->method('isVirtual')->will($this->returnValue(false));
+        $field->expects($this->once())->method('orm2pdo')->with('bar')
+            ->will($this->returnValue('BAR'));
+        $field->expects($this->any())->method('getPdoType')
+            ->will($this->returnValue(PDO::PARAM_STR));
+
+        $q = $this->getMock('ezcQuerySelect', array('bindValue', 'where'));
+        $q->expects($this->once())->method('bindValue')->with('BAR', ':foo', PDO::PARAM_STR)
+            ->will($this->returnValue("'BAR'"));
+        $q->expects($this->once())->method('where')->with("foo = 'BAR'");
+        $q->expr = $this->getMock('stdClass', array('eq', 'lAnd'));
+        $q->expr->expects($this->once())->method('eq')->with('foo', "'BAR'")
+            ->will($this->returnValue("foo = 'BAR'"));
+        $q->expr->expects($this->once())->method('lAnd')->will($this->returnCallback(
+            function ($values)
+            {
+                return implode(' AND ', $values);
+            }
+        ));
+
+        $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
+            setMethods(array('setTableDefinition', 'getColumns', 'createSelectQuery',
+                'loadFromQuery'))->getMock();
+        $table->expects($this->any())->method('getColumns')->will($this->returnValue(array(
+            'foo' => $field
+        )));
+        $table->expects($this->once())->method('createSelectQuery')->will($this->returnValue($q));
+        $table->expects($this->once())->method('loadFromQuery')->with($q);
+        /** @var ORM_Table $table */
+        $table->findAllBy(array('foo' => 'bar'));
+    }
+}
 

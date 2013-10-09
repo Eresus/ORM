@@ -105,6 +105,30 @@ class ORM_Field_Bindings extends ORM_Field_Abstract
     }
 
     /**
+     * Действия, выполняемые после создания таблицы
+     *
+     * @param ORM_Table $table
+     * @param string    $field
+     */
+    public function afterTableCreate(ORM_Table $table, $field)
+    {
+        $table = new ORM_Table_Bindings($table, $field);
+        $table->getDriver()->createTable($table);
+    }
+
+    /**
+     * Действия, выполняемые после удаления таблицы
+     *
+     * @param ORM_Table $table
+     * @param string    $field
+     */
+    public function afterTableDrop(ORM_Table $table, $field)
+    {
+        $table = new ORM_Table_Bindings($table, $field);
+        $table->getDriver()->dropTable($table);
+    }
+
+    /**
      * Действия, выполняемые после сохранения сущности
      *
      * @param ORM_Entity $entity
@@ -186,6 +210,18 @@ class ORM_Field_Bindings extends ORM_Field_Abstract
     }
 
     /**
+     * Возвращает список возможных необязательных параметров
+     *
+     * @return string[]
+     *
+     * @since 3.00
+     */
+    protected function getOptionalParams()
+    {
+        return array('reverse');
+    }
+
+    /**
      * Возвращает имя таблицы привязок для указанного свойства
      *
      * @param ORM_Table $table
@@ -195,7 +231,9 @@ class ORM_Field_Bindings extends ORM_Field_Abstract
      */
     protected function getBindingsTableName(ORM_Table $table, $fieldName)
     {
-        return $table->getName() . '_' . $fieldName;
+        return $this->getParam('reverse')
+            ? $fieldName . '_' . $table->getName()
+            : $table->getName() . '_' . $fieldName;
     }
 }
 

@@ -36,6 +36,27 @@
 class ORM_Driver_SQL
 {
     /**
+     * @var ORM
+     */
+    private $orm;
+
+    /**
+     * @param ORM $orm
+     */
+    public function __construct(ORM $orm)
+    {
+        $this->orm = $orm;
+    }
+
+    /**
+     * @return ORM
+     */
+    public function getOrm()
+    {
+        return $this->orm;
+    }
+
+    /**
      * Создаёт таблицу
      *
      * @param ORM_Table $table
@@ -70,6 +91,12 @@ class ORM_Driver_SQL
         $sql = $this->getCreateTableDefinition($tableName, $fieldDefinitions, $primaryKey,
             $indexDefinitions);
         $db->exec($sql);
+
+        $columns = $table->getColumns();
+        foreach ($columns as $name => $column)
+        {
+            $column->afterTableCreate($table, $name);
+        }
     }
 
     /**
@@ -92,6 +119,12 @@ class ORM_Driver_SQL
 
         $sql = $this->getDropTableDefinition($tableName);
         $db->exec($sql);
+
+        $columns = $table->getColumns();
+        foreach ($columns as $name => $column)
+        {
+            $column->afterTableDrop($table, $name);
+        }
     }
 
     /**
@@ -166,6 +199,10 @@ class ORM_Driver_SQL
      */
     protected function getPrimaryKeyDefinition($key)
     {
+        if (is_array($key))
+        {
+            $key = implode(', ', $key);
+        }
         return 'PRIMARY KEY (' . $key . ')';
     }
 

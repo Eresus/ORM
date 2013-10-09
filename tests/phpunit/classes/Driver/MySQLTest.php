@@ -44,7 +44,7 @@ class ORM_Driver_MySQLTest extends PHPUnit_Framework_TestCase
         $getCreateTableDefinition
             = new ReflectionMethod('ORM_Driver_MySQL', 'getCreateTableDefinition');
         $getCreateTableDefinition->setAccessible(true);
-        $driver = new ORM_Driver_MySQL();
+        $driver = new ORM_Driver_MySQL(new ORM);
         $this->assertEquals(
             'CREATE TABLE foo (bar, baz, pkey, idx1, idx2) ENGINE InnoDB DEFAULT CHARSET=utf8',
             $getCreateTableDefinition->invoke($driver,
@@ -60,7 +60,7 @@ class ORM_Driver_MySQLTest extends PHPUnit_Framework_TestCase
     {
         $method = new ReflectionMethod('ORM_Driver_MySQL', 'getFieldDefinition');
         $method->setAccessible(true);
-        $driver = new ORM_Driver_MySQL();
+        $driver = new ORM_Driver_MySQL(new ORM);
 
         $field = new ORM_Field_Datetime(array(), $this->getMock('ORM'));
         $this->assertEquals("foo DATETIME", $method->invoke($driver, 'foo', $field));

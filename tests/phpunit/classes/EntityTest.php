@@ -47,7 +47,6 @@ class ORM_EntityTest extends PHPUnit_Framework_TestCase
      */
     public function testBasicUsage()
     {
-        $plugin = new Plugin();
         $dbRecord = array('foo' => 'bar');
 
         $field = $this->getMock('stdClass', array('isVirtual', 'pdo2orm', 'orm2pdo'));
@@ -55,14 +54,13 @@ class ORM_EntityTest extends PHPUnit_Framework_TestCase
         $field->expects($this->any())->method('pdo2orm')->will($this->returnArgument(0));
         $field->expects($this->any())->method('orm2pdo')->will($this->returnArgument(0));
 
-        $table = $this->getMock('stdClass', array('getColumns'));
+        $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()
+            ->setMethods(array('setTableDefinition', 'getColumns'))->getMock();
         $table->expects($this->any())->method('getColumns')->will($this->returnValue(array(
             'foo' => $field
         )));
 
-        $entity = $this->getMockBuilder('ORM_Entity')->setMethods(array('getTable'))
-            ->setConstructorArgs(array($plugin, $dbRecord))->getMock();
-        $entity->expects($this->any())->method('getTable')->will($this->returnValue($table));
+        $entity = $this->getMockForAbstractClass('ORM_Entity', array($table, $dbRecord));
 
         /** @var ORM_Entity $entity */
         $this->assertEquals('bar', $entity->foo);
@@ -76,14 +74,11 @@ class ORM_EntityTest extends PHPUnit_Framework_TestCase
      */
     public function testNoExistentProps()
     {
-        $plugin = new Plugin();
-
-        $table = $this->getMock('stdClass', array('getColumns'));
+        $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()
+            ->setMethods(array('setTableDefinition', 'getColumns'))->getMock();
         $table->expects($this->any())->method('getColumns')->will($this->returnValue(array()));
 
-        $entity = $this->getMockBuilder('ORM_Entity')->setMethods(array('getTable'))
-            ->setConstructorArgs(array($plugin, array()))->getMock();
-        $entity->expects($this->any())->method('getTable')->will($this->returnValue($table));
+        $entity = $this->getMockForAbstractClass('ORM_Entity', array($table, array()));
 
         /** @var ORM_Entity $entity */
         $entity->bar = 'baz';
@@ -95,15 +90,12 @@ class ORM_EntityTest extends PHPUnit_Framework_TestCase
      */
     public function testGetTable()
     {
-        $entity = $this->getMockForAbstractClass('ORM_Entity', array(new Plugin),
+        $table = $this->getMockBuilder('ORM_Table')->setMethods(array('setTableDefinition'))
+            ->disableOriginalConstructor()->getMock();
+        $entity = $this->getMockForAbstractClass('ORM_Entity', array($table),
             'ORM_Entity_Test__Entity_GetTable');
-
-        $p_tables = new ReflectionProperty('ORM', 'tables');
-        $p_tables->setAccessible(true);
-        $p_tables->setValue('ORM', array('Plugin_Entity_Table_GetTable' => true));
-
         /** @var ORM_Entity $entity */
-        $this->assertTrue($entity->getTable());
+        $this->assertSame($table, $entity->getTable());
     }
 
     /**

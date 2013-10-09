@@ -65,7 +65,7 @@ class ORM extends Plugin
      * @var ORM_Driver_SQL
      * @since 3.00
      */
-    private static $driver = null;
+    private $driver = null;
 
     /**
      * Реестр таблиц
@@ -73,7 +73,7 @@ class ORM extends Plugin
      * @var ORM_Table[]
      * @since 1.00
      */
-    private static $tables = array();
+    private $tables = array();
 
     /**
      * Типы полей
@@ -105,13 +105,21 @@ class ORM extends Plugin
     /**
      * Задаёт используемый драйвер СУБД
      *
+     * Внимание! Этот метод можно вызывать только до первого обращения к {@link getDriver()}.
+     *
      * @param ORM_Driver_SQL $driver
+     *
+     * @throws LogicException
      *
      * @since 3.00
      */
-    public static function setDriver(ORM_Driver_SQL $driver)
+    public function setDriver(ORM_Driver_SQL $driver)
     {
-        self::$driver = $driver;
+        if (null !== $this->driver)
+        {
+            throw new LogicException('ORM Driver is already set');
+        }
+        $this->driver = $driver;
     }
 
     /**
@@ -121,15 +129,13 @@ class ORM extends Plugin
      *
      * @since 3.00
      */
-    public static function getDriver()
+    public function getDriver()
     {
-        if (null === self::$driver)
+        if (null === $this->driver)
         {
-            /** @var ORM $instance */
-            $instance = Eresus_Kernel::app()->getLegacyKernel()->plugins->load('orm');
-            self::$driver = new ORM_Driver_MySQL($instance);
+            $this->driver = new ORM_Driver_MySQL($this);
         }
-        return self::$driver;
+        return $this->driver;
     }
 
     /**
@@ -144,12 +150,12 @@ class ORM extends Plugin
      *
      * @since 1.00
      */
-    public static function getTable($plugin, $entityName)
+    public function getTable($plugin, $entityName)
     {
         if (!($plugin instanceof Plugin) && !($plugin instanceof TPlugin))
         {
             throw new InvalidArgumentException(
-                '$plugin must be Eresus_Plugin or TPlugin instance.'
+                '$plugin must be Plugin or TPlugin instance.'
             );
         }
         $className = get_class($plugin);
@@ -159,11 +165,11 @@ class ORM extends Plugin
             $className = substr($className, 1);
         }
         $className .= '_Entity_Table_' . $entityName;
-        if (!isset(self::$tables[$className]))
+        if (!array_key_exists($className, $this->tables))
         {
-            self::$tables[$className] = new $className(self::getDriver(), $plugin);
+            $this->tables[$className] = new $className($plugin, $this->getDriver());
         }
-        return self::$tables[$className];
+        return $this->tables[$className];
     }
 
     /**
@@ -176,21 +182,6 @@ class ORM extends Plugin
     public function getFieldTypes()
     {
         return $this->filedTypes;
-    }
-
-    /**
-     * Возвращает возможные типы полей
-     *
-     * @return array
-     *
-     * @since 1.00
-     * @deprecated с 3.00 используйте {@link getFields()}
-     */
-    public static function fieldTypes()
-    {
-        /** @var ORM $instance */
-        $instance = Eresus_Kernel::app()->getLegacyKernel()->plugins->load('orm');
-        return $instance->getFieldTypes();
     }
 
     /**

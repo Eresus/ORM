@@ -36,13 +36,6 @@
 class ORM_UI_List_DataProvider implements UI_List_DataProvider_Interface
 {
     /**
-     * Основной объект плагина-владельца
-     *
-     * @var Plugin|TPlugin
-     */
-    private $plugin;
-
-    /**
      * Таблица БД
      *
      * @var ORM_Table
@@ -73,17 +66,15 @@ class ORM_UI_List_DataProvider implements UI_List_DataProvider_Interface
     /**
      * Конструктор
      *
-     * @param Plugin|TPlugin $plugin
-     * @param string $entityName
+     * @param ORM_Table $table
      *
      * @return ORM_UI_List_DataProvider
      *
      * @since 1.00
      */
-    public function __construct($plugin, $entityName)
+    public function __construct(ORM_Table $table)
     {
-        $this->plugin = $plugin;
-        $this->table = ORM::getTable($plugin, $entityName);
+        $this->table = $table;
     }
 
     /**
@@ -120,15 +111,14 @@ class ORM_UI_List_DataProvider implements UI_List_DataProvider_Interface
     /**
      * Задаёт сортировку списка
      *
-     * @param string $field1  имя поля
-     * @param bool   $desc1   обратное направление (по умолчанию false)
-     * @param ...
+     * @param ... имя поля
+     * @param ... обратное направление (по умолчанию false)
      *
      * @return void
      *
      * @since 1.00
      */
-    public function orderBy($field1, $desc1 = false)
+    public function orderBy()
     {
         $this->orderBy = func_get_args();
     }

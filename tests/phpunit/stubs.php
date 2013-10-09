@@ -59,6 +59,17 @@ class Eresus_CMS extends MockFacade
  */
 class DB extends MockFacade
 {
+    private static $handler;
+
+    public static function setHandler($handler)
+    {
+        self::$handler = $handler;
+    }
+
+    public static function getHandler()
+    {
+        return self::$handler;
+    }
 }
 
 /**

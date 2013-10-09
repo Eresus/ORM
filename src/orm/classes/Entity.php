@@ -61,11 +61,9 @@ abstract class ORM_Entity
     const IS_DELETED = 4;
 
     /**
-     * Модуль
-     *
-     * @var Plugin|TPlugin
+     * @var ORM_Table
      */
-    protected $plugin;
+    private $table;
 
     /**
      * Состояние сущности
@@ -92,16 +90,16 @@ abstract class ORM_Entity
     /**
      * Конструктор
      *
-     * @param Plugin|TPlugin $plugin     модуль
+     * @param ORM_Table      $table      таблица
      * @param array          $pdoValues  исходные PDO-значения полей
      *
      * @return ORM_Entity
      *
      * @since 1.00
      */
-    public function __construct($plugin, array $pdoValues = array())
+    public function __construct(ORM_Table $table, array $pdoValues = array())
     {
-        $this->plugin = $plugin;
+        $this->table = $table;
         $this->pdoValues = $pdoValues;
     }
 
@@ -202,9 +200,7 @@ abstract class ORM_Entity
      */
     public function getTable()
     {
-        $entityName = get_class($this);
-        $entityName = substr($entityName, strrpos($entityName, '_') + 1);
-        return ORM::getTable($this->plugin, $entityName);
+        return $this->table;
     }
 
     /**

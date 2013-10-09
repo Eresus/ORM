@@ -181,10 +181,30 @@ abstract class ORM_Field_Abstract
     }
 
     /**
+     * Действия, выполняемые после создания таблицы
+     *
+     * @param ORM_Table $table
+     * @param string    $field
+     */
+    public function afterTableCreate(ORM_Table $table, $field)
+    {
+    }
+
+    /**
+     * Действия, выполняемые после удаления таблицы
+     *
+     * @param ORM_Table $table
+     * @param string    $field
+     */
+    public function afterTableDrop(ORM_Table $table, $field)
+    {
+    }
+
+    /**
      * Действия, выполняемые после сохранения сущности
      *
      * @param ORM_Entity $entity
-     * @param string $field
+     * @param string     $field
      */
     public function afterEntitySave(ORM_Entity $entity, $field)
     {
