@@ -287,11 +287,6 @@ abstract class ORM_Table
             $q = $newQuery;
         }
         DB::execute($q);
-        $columns = $this->getColumns();
-        if ($columns[$this->getPrimaryKey()]->isAutoIncrementing())
-        {
-            $entity->{$this->getPrimaryKey()} = DB::getHandler()->lastInsertId();
-        }
         $entity->afterSave();
     }
 
@@ -436,11 +431,10 @@ abstract class ORM_Table
             return $this->registry[$id];
         }
 
-        $pKey = $this->getPrimaryKey();
         $columns = $this->getColumns();
+        $pKey = $this->getPrimaryKey();
         $q = $this->createSelectQuery();
-        $q->where($q->expr->eq($pKey,
-            $q->bindValue($id, null, $columns[$pKey]->getPdoType())));
+        $q->where($q->expr->eq($pKey, $q->bindValue($id, null, $columns[$pKey]->getPdoType())));
         $entity = $this->loadOneFromQuery($q);
 
         if (null !== $entity)
@@ -784,7 +778,7 @@ abstract class ORM_Table
     {
         if (!array_key_exists($this->getPrimaryKey(), $values))
         {
-            throw new InvalidArgumentException('Primary key value not found in $values argument.');
+            throw new InvalidArgumentException('Primary key not found in a given array');
         }
 
         $id = $values[$this->getPrimaryKey()];

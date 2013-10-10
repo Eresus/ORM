@@ -169,6 +169,35 @@ class ORM_TableTest extends PHPUnit_Framework_TestCase
     }
 
     /**
+     * @covers ORM_Table::find
+     */
+    public function testFind()
+    {
+        $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()->
+            setMethods(array('setTableDefinition', 'getColumns', 'getPrimaryKey',
+                'createSelectQuery', 'loadOneFromQuery'))->getMock();
+
+        $table->expects($this->once())->method('getColumns')->will($this->returnValue(array(
+            'id' => new ORM_Field_Integer($table, 'id', array())
+        )));
+
+        $table->expects($this->once())->method('getPrimaryKey')->will($this->returnValue('id'));
+
+        $q = new ezcQuerySelect(null);
+        $table->expects($this->once())->method('createSelectQuery')->with(true)
+            ->will($this->returnValue($q));
+
+        $entity = new stdClass();
+        $table->expects($this->once())->method('loadOneFromQuery')->with($q)
+            ->will($this->returnValue($entity));
+
+        /** @var ORM_Table $table */
+        $this->assertSame($entity, $table->find(1));
+        // Проверяем реестр
+        $this->assertSame($entity, $table->find(1));
+    }
+
+    /**
      * @covers ORM_Table::createSelectQuery
      */
     public function testCreateSelectQuery()

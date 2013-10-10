@@ -61,6 +61,19 @@ class ORM_Field_Integer extends ORM_Field_Abstract
     }
 
     /**
+     * Действия, выполняемые после сохранения сущности
+     *
+     * @param ORM_Entity $entity
+     */
+    public function afterEntitySave(ORM_Entity $entity)
+    {
+        if ($entity->getEntityState() == $entity::IS_NEW && $this->getParam('autoincrement'))
+        {
+            $entity->{$this->getName()} = DB::getHandler()->lastInsertId();
+        }
+    }
+
+    /**
      * Возвращает выражение SQL для описания поля при создании таблицы
      *
      * @return string
