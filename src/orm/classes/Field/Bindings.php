@@ -268,6 +268,20 @@ class ORM_Field_Bindings extends ORM_Field_Abstract
     }
 
     /**
+     * Действия, выполняемые после удаления сущности
+     *
+     * @param ORM_Entity $entity
+     */
+    public function afterEntityDelete(ORM_Entity $entity)
+    {
+        $table = new ORM_Table_Bindings($this->table, $this->getName());
+        $q = DB::getHandler()->createDeleteQuery();
+        $q->deleteFrom($table->getName());
+        $q->where($q->expr->eq($table->getSourceField(), $q->bindValue($entity->getPrimaryKey())));
+        DB::execute($q);
+    }
+
+    /**
      * Возвращает список обязательных параметров
      *
      * @return string[]
