@@ -794,7 +794,7 @@ abstract class ORM_Table
         }
 
         $entityClass = $this->getEntityClass();
-        $entity = new $entityClass($this, $values);
+        $entity = new $entityClass($values);
         $this->registry[$id] = $entity;
         return $entity;
     }

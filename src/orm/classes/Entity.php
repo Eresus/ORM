@@ -90,16 +90,15 @@ abstract class ORM_Entity
     /**
      * Конструктор
      *
-     * @param ORM_Table      $table      таблица
-     * @param array          $pdoValues  исходные PDO-значения полей
+     * @param array $pdoValues  исходные PDO-значения полей
      *
      * @return ORM_Entity
      *
      * @since 1.00
      */
-    public function __construct(ORM_Table $table, array $pdoValues = array())
+    public function __construct(array $pdoValues = array())
     {
-        $this->table = $table;
+        $this->table = ORM::getManager()->getTableByEntityClass(get_class($this));
         $this->pdoValues = $pdoValues;
         if ($this->getPrimaryKey() !== null)
         {

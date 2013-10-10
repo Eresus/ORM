@@ -54,13 +54,13 @@ class ORM_EntityTest extends PHPUnit_Framework_TestCase
         $field->expects($this->any())->method('pdo2orm')->will($this->returnArgument(0));
         $field->expects($this->any())->method('orm2pdo')->will($this->returnArgument(0));
 
-        $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()
+        /*$table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()
             ->setMethods(array('setTableDefinition', 'getColumns'))->getMock();
         $table->expects($this->any())->method('getColumns')->will($this->returnValue(array(
             'foo' => $field
-        )));
+        )));*/
 
-        $entity = $this->getMockForAbstractClass('ORM_Entity', array($table, $dbRecord));
+        $entity = $this->getMockForAbstractClass('ORM_Entity', array($dbRecord));
 
         /** @var ORM_Entity $entity */
         $this->assertEquals('bar', $entity->foo);
@@ -74,29 +74,29 @@ class ORM_EntityTest extends PHPUnit_Framework_TestCase
      */
     public function testNoExistentProps()
     {
-        $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()
+        /*$table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()
             ->setMethods(array('setTableDefinition', 'getColumns'))->getMock();
-        $table->expects($this->any())->method('getColumns')->will($this->returnValue(array()));
+        $table->expects($this->any())->method('getColumns')->will($this->returnValue(array()));*/
 
-        $entity = $this->getMockForAbstractClass('ORM_Entity', array($table, array()));
+        $entity = $this->getMockForAbstractClass('ORM_Entity', array(array()));
 
         /** @var ORM_Entity $entity */
         $entity->bar = 'baz';
         $this->assertEquals('baz', $entity->bar);
     }
 
-    /**
+    /* *
      * @covers ORM_Entity::getTable
-     */
+     * /
     public function testGetTable()
     {
         $table = $this->getMockBuilder('ORM_Table')->setMethods(array('setTableDefinition'))
             ->disableOriginalConstructor()->getMock();
         $entity = $this->getMockForAbstractClass('ORM_Entity', array($table),
             'ORM_Entity_Test__Entity_GetTable');
-        /** @var ORM_Entity $entity */
+        /** @var ORM_Entity $entity * /
         $this->assertSame($table, $entity->getTable());
-    }
+    }*/
 
     /**
      * @covers ORM_Entity::getEntityState
