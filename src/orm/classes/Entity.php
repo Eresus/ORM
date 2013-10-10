@@ -135,14 +135,11 @@ abstract class ORM_Entity
                 $columns = $table->getColumns();
                 if (array_key_exists($property, $columns))
                 {
-                    if ($columns[$property]->isVirtual())
+                    if (null === $pdoValue && $columns[$property]->isVirtual())
                     {
-                        $ormValue = $columns[$property]->evaluateVirtualValue($this, $property);
+                        $pdoValue = $columns[$property]->evaluateVirtualValue($this);
                     }
-                    else
-                    {
-                        $ormValue = $columns[$property]->pdo2orm($pdoValue);
-                    }
+                    $ormValue = $columns[$property]->pdo2orm($pdoValue);
                 }
                 else
                 {

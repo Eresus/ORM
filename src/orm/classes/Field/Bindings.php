@@ -85,9 +85,11 @@ class ORM_Field_Bindings extends ORM_Field_Abstract
     {
         if ($entity->getPrimaryKey())
         {
+            $table = new ORM_Table_Bindings($this->table, $this->getName());
+
             $q = DB::getHandler()->createSelectQuery();
             $q->select($this->getName());
-            $q->from($this->getBindingsTableName());
+            $q->from($table->getName());
             $q->where(
                 $q->expr->eq(
                     preg_replace('/^.*?_/', '', $entity->getTable()->getName()),
@@ -287,19 +289,6 @@ class ORM_Field_Bindings extends ORM_Field_Abstract
     protected function getOptionalParams()
     {
         return array('reverse');
-    }
-
-    /**
-     * Возвращает имя таблицы привязок для указанного свойства
-     *
-     * @return string
-     * @deprecated
-     */
-    protected function getBindingsTableName()
-    {
-        return $this->getParam('reverse')
-            ? $this->getName() . '_' . $this->table->getName()
-            : $this->table->getName() . '_' . $this->getName();
     }
 }
 
