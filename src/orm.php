@@ -85,17 +85,27 @@ class ORM extends Plugin
     /**
      * Возвращает объект таблицы для указанной сущности указанного плагина
      *
-     * @param Plugin|TPlugin $plugin      плагин, которому принадлежит сущность
-     * @param string         $entityName  имя сущности (без имени плагина и слова «Entity»)
+     * @param Plugin|TPlugin|string $plugin      плагин, которому принадлежит сущность
+     * @param string                $entityName  имя сущности (без имени плагина и слова «Entity»)
      *
      * @return ORM_Table
      *
      * @throws InvalidArgumentException
+     * @throws RuntimeException
      *
      * @since 1.00
      */
     public static function getTable($plugin, $entityName)
     {
+        if (is_string($plugin))
+        {
+            $name = $plugin;
+            $plugin = Eresus_Kernel::app()->getLegacyKernel()->plugins->load($plugin);
+            if (false === $plugin)
+            {
+                throw new RuntimeException(sprintf('Plugin "%s" not found or inactive', $name));
+            }
+        }
         return self::getManager()->getTable($plugin, $entityName);
     }
 }
