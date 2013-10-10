@@ -179,7 +179,7 @@ abstract class ORM_Entity
         else
         {
             $columns = $this->getTable()->getColumns();
-            if (array_key_exists($property, $columns) && !$columns[$property]->isVirtual())
+            if (array_key_exists($property, $columns))
             {
                 $value = $columns[$property]->orm2pdo($value);
             }

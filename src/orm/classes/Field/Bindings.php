@@ -116,6 +116,39 @@ class ORM_Field_Bindings extends ORM_Field_Abstract
     }
 
     /**
+     * Преобразует значение ORM в значение PDO
+     *
+     * @param mixed $ormValue
+     *
+     * @throws InvalidArgumentException
+     *
+     * @return mixed
+     *
+     * @since 3.00
+     */
+    public function orm2pdo($ormValue)
+    {
+        if (!(is_array($ormValue) || $ormValue instanceof ArrayAccess))
+        {
+            throw new InvalidArgumentException(
+                sprintf('Argument 1 passed to %s should be array (or ArrayAccess) but %s given',
+                    __METHOD__, gettype($ormValue)));
+        }
+
+        $manager = $this->table->getDriver()->getManager();
+        $table = $manager->getTableByEntityClass($this->getParam('class'));
+
+        foreach ($ormValue as &$element)
+        {
+            if (!($element instanceof ORM_Entity))
+            {
+                $element = $table->find($element);
+            }
+        }
+        return $ormValue;
+    }
+
+    /**
      * Добавляет дополнительные таблицы к запросу
      *
      * @param ezcQuerySelect $query

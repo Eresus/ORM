@@ -36,21 +36,40 @@ require_once __DIR__ . '/bootstrap.php';
  */
 class BaseTest extends PHPUnit_Framework_TestCase
 {
-    public function testCreateDropComplexTable()
-    {
-        $queue = new SplQueue();
+    /**
+     * @var SplQueue
+     */
+    private $queries;
 
-        $db = $this->getMock('stdClass', array('exec'));
+    /**
+     *
+     */
+    protected function setUp()
+    {
+        parent::setUp();
+
+        $this->queries = new SplQueue();
+        $queries = $this->queries;
+
+        $db = $this->getMock('stdClass', array('exec', 'createInsertQuery'));
         $db->expects($this->any())->method('exec')->will($this->returnCallback(
-            function ($sql) use ($queue)
+            function ($sql) use ($queries)
             {
-                $queue->push($sql);
+                $queries->push($sql);
             }
         ));
+        $db->expects($this->any())->method('createInsertQuery')
+            ->will($this->returnValue(new \Mekras\TestDoubles\UniversalStub()));
         $db->options = new stdClass;
         $db->options->tableNamePrefix = 'prf_';
         DB::setHandler($db);
+    }
 
+    /**
+     *
+     */
+    public function testCreateDropComplexTable()
+    {
         $manager = new ORM_Manager();
         $plugin = new Plugin;
         $driver = $this->getMock('ORM_Driver_MySQL', array('none'), array($manager));
@@ -69,7 +88,7 @@ class BaseTest extends PHPUnit_Framework_TestCase
                 'PRIMARY KEY (id), ' .
                 'KEY active_idx (active)' .
             ') ENGINE InnoDB DEFAULT CHARSET=utf8',
-            $queue->dequeue()
+            $this->queries->dequeue()
         );
 
         $this->assertEquals(
@@ -78,11 +97,39 @@ class BaseTest extends PHPUnit_Framework_TestCase
             'bindings INT(10) UNSIGNED, ' .
             'PRIMARY KEY (foo, bindings)' .
             ') ENGINE InnoDB DEFAULT CHARSET=utf8',
-            $queue->dequeue()
+            $this->queries->dequeue()
         );
 
-        $this->assertEquals('DROP TABLE prf_foo', $queue->dequeue());
-        $this->assertEquals('DROP TABLE prf_foo_bindings', $queue->dequeue());
+        $this->assertEquals('DROP TABLE prf_foo', $this->queries->dequeue());
+        $this->assertEquals('DROP TABLE prf_foo_bindings', $this->queries->dequeue());
     }
+
+    /* *
+     *
+     * /
+    public function testSaveBindings()
+    {
+        $manager = new ORM_Manager();
+        $plugin = new Plugin;
+        $driver = $this->getMock('ORM_Driver_MySQL', array('none'), array($manager));
+        /** @var ORM_Driver_MySQL $driver * /
+        $manager->setDriver($driver);
+        include_once 'BaseTable.fixtures/Table_Foo.php';
+        include_once 'BaseTable.fixtures/Entity_Foo.php';
+        $table = new MyPlugin_Entity_Table_Foo($plugin, $driver);
+        $entity = new MyPlugin_Entity_Foo($table);
+        $table->persist($entity);
+
+        $this->assertEquals(
+            'CREATE TABLE prf_foo (' .
+            'id INT(10) UNSIGNED AUTO_INCREMENT, ' .
+            'active BOOLEAN DEFAULT 0, ' .
+            'entity INTEGER UNSIGNED, ' .
+            'PRIMARY KEY (id), ' .
+            'KEY active_idx (active)' .
+            ') ENGINE InnoDB DEFAULT CHARSET=utf8',
+            $this->queries->dequeue()
+        );
+    }*/
 }
 
