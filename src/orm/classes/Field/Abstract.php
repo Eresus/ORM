@@ -175,14 +175,15 @@ abstract class ORM_Field_Abstract
      * Возвращает значение параметра поля
      *
      * @param string $name
+     * @param mixed  $default  значение по умолчанию, если параметр не задан
      *
      * @return mixed
      *
      * @since 3.00
      */
-    public function getParam($name)
+    public function getParam($name, $default = null)
     {
-        return $this->hasParam($name) ? $this->params[$name] : null;
+        return $this->hasParam($name) ? $this->params[$name] : $default;
     }
 
     /**

@@ -31,6 +31,17 @@
 /**
  * Поле типа «entities»
  *
+ * Обязательные параметры:
+ *
+ * - «class» — полное имя класса объектов, привязанных к этому полю
+ * - «reference» — имя поля привязанных объектов, ссылающегося на этот объект
+ *
+ * Необязательные параметры:
+ *
+ * - «cascade» — (массив) определяет, какие действия над этим объектом, должны быть повторены над
+ *   объектами, привязанными к нему. Возможные ключевые слова: «persist» (добавление), «update»
+ *   (обновление), «delete» (удаление)
+ *
  * @package ORM
  * @since 3.00
  */
@@ -86,6 +97,54 @@ class ORM_Field_Entities extends ORM_Field_Abstract
     }
 
     /**
+     * Действия, выполняемые после сохранения сущности
+     *
+     * @param ORM_Entity $entity
+     */
+    public function afterEntitySave(ORM_Entity $entity)
+    {
+        if ($entity->getEntityState() == $entity::IS_NEW
+            && in_array('persist', $this->getParam('cascade', array())))
+        {
+            $table = $this->table->getDriver()->getManager()
+                ->getTableByEntityClass($this->getParam('class'));
+            foreach ($entity->{$this->getName()} as $childEntity)
+            {
+                $table->persist($childEntity);
+            }
+        }
+
+        if ($entity->getEntityState() == $entity::IS_DIRTY
+            && in_array('update', $this->getParam('cascade', array())))
+        {
+            $table = $this->table->getDriver()->getManager()
+                ->getTableByEntityClass($this->getParam('class'));
+            foreach ($entity->{$this->getName()} as $childEntity)
+            {
+                $table->update($childEntity);
+            }
+        }
+    }
+
+    /**
+     * Действия, выполняемые после удаления сущности
+     *
+     * @param ORM_Entity $entity
+     */
+    public function afterEntityDelete(ORM_Entity $entity)
+    {
+        if (in_array('delete', $this->getParam('cascade', array())))
+        {
+            $table = $this->table->getDriver()->getManager()
+                ->getTableByEntityClass($this->getParam('class'));
+            foreach ($entity->{$this->getName()} as $childEntity)
+            {
+                $table->delete($childEntity);
+            }
+        }
+    }
+
+    /**
      * Возвращает список обязательных параметров
      *
      * @return string[]
@@ -95,6 +154,18 @@ class ORM_Field_Entities extends ORM_Field_Abstract
     protected function getRequiredParams()
     {
         return array('class', 'reference');
+    }
+
+    /**
+     * Возвращает список возможных необязательных параметров
+     *
+     * @return string[]
+     *
+     * @since 3.00
+     */
+    protected function getOptionalParams()
+    {
+        return array('cascade');
     }
 }
 

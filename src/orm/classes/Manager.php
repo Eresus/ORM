@@ -121,8 +121,8 @@ class ORM_Manager
         if (!($plugin instanceof Plugin) && !($plugin instanceof TPlugin))
         {
             throw new InvalidArgumentException(
-                '$plugin must be Plugin or TPlugin instance.'
-            );
+                sprintf('Argument 1 passed to %s must be Plugin or TPlugin instance, %s given',
+                    __METHOD__, is_object($plugin) ? get_class($plugin) : gettype($plugin)));
         }
         $className = get_class($plugin);
         if ($plugin instanceof TPlugin)
@@ -182,7 +182,8 @@ class ORM_Manager
     {
         if ('' === strval($entityClass))
         {
-            throw new InvalidArgumentException('$entityClass can not be blank');
+            throw new InvalidArgumentException(sprintf(
+                'Argument 1 passed to %s can not be blank', __METHOD__));
         }
         $entityPluginName = substr($entityClass, 0, strpos($entityClass, '_'));
         $entityPluginName = strtolower($entityPluginName);
