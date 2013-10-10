@@ -208,11 +208,24 @@ abstract class ORM_Field_Abstract
     }
 
     /**
-     * Добавляет дополнительные таблицы к запросу
+     * Дополнительные действия при формировании раздела SELECT
+     *
+     * @param ezcQuerySelect $query
+     * @param array          $currentSelects  уже сформированные части SELECT
+     *
+     * @return array  изменённый $currentSelects
+     */
+    public function onSelect(ezcQuerySelect $query, array $currentSelects)
+    {
+        return $currentSelects;
+    }
+
+    /**
+     * Дополнительные действия при формировании раздела FROM
      *
      * @param ezcQuerySelect $query
      */
-    public function joinTables(ezcQuerySelect $query)
+    public function onFrom(ezcQuerySelect $query)
     {
     }
 

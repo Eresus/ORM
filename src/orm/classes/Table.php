@@ -465,11 +465,18 @@ abstract class ORM_Table
         if ($fill)
         {
             $columns = $this->getColumns();
-            $q->selectDistinct($this->getName() . '.*');
+
+            $select = array($this->getName() . '.*');
+            foreach ($columns as $column)
+            {
+                $select = $column->onSelect($q, $select);
+            }
+            $q->selectDistinct($select);
+
             $q->from($this->getName());
             foreach ($columns as $column)
             {
-                $column->joinTables($q);
+                $column->onFrom($q);
             }
             if (count($this->getOrdering()) > 0)
             {

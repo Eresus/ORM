@@ -37,6 +37,12 @@
 class ORM_Field_Bindings extends ORM_Field_Abstract
 {
     /**
+     * Связующая таблица
+     * @var ORM_Table_Bindings|null
+     */
+    private $bindingsTable = null;
+
+    /**
      * Возвращает имя типа
      *
      * @return string
@@ -85,7 +91,7 @@ class ORM_Field_Bindings extends ORM_Field_Abstract
     {
         if ($entity->getPrimaryKey())
         {
-            $table = new ORM_Table_Bindings($this->table, $this->getName());
+            $table = $this->getBindingsTable();
 
             $q = DB::getHandler()->createSelectQuery();
             $q->select($this->getName());
@@ -151,17 +157,31 @@ class ORM_Field_Bindings extends ORM_Field_Abstract
     }
 
     /**
-     * Добавляет дополнительные таблицы к запросу
+     * Дополнительные действия при формировании раздела SELECT
+     *
+     * @param ezcQuerySelect $query
+     * @param array          $currentSelects  уже сформированные части SELECT
+     *
+     * @return array  изменённый $currentSelects
+     */
+    public function onSelect(ezcQuerySelect $query, array $currentSelects)
+    {
+        $bindingsTable = $this->getBindingsTable();
+        $currentSelects []= $bindingsTable->getName() . '.' . $this->name;
+        return $currentSelects;
+    }
+
+    /**
+     * Дополнительные действия при формировании раздела FROM
      *
      * @param ezcQuerySelect $query
      */
-    public function joinTables(ezcQuerySelect $query)
+    public function onFrom(ezcQuerySelect $query)
     {
-        $joinTable = new ORM_Table_Bindings($this->table, $this->getName());
-        $query->select($joinTable->getName() . '.' . $this->name);
-        $query->leftJoin($joinTable->getName(), $query->expr->eq(
-            "{$joinTable->getName()}.{$joinTable->getSourceField()}",
-            "{$joinTable->getName()}.{$this->getName()}"
+        $bindingsTable = $this->getBindingsTable();
+        $query->leftJoin($bindingsTable->getName(), $query->expr->eq(
+            "{$bindingsTable->getName()}.{$bindingsTable->getSourceField()}",
+            "{$bindingsTable->getName()}.{$this->getName()}"
         ));
     }
 
@@ -170,7 +190,7 @@ class ORM_Field_Bindings extends ORM_Field_Abstract
      */
     public function afterTableCreate()
     {
-        $table = new ORM_Table_Bindings($this->table, $this->getName());
+        $table = $this->getBindingsTable();
         $table->getDriver()->createTable($table);
     }
 
@@ -179,7 +199,7 @@ class ORM_Field_Bindings extends ORM_Field_Abstract
      */
     public function afterTableDrop()
     {
-        $table = new ORM_Table_Bindings($this->table, $this->getName());
+        $table = $this->getBindingsTable();
         $table->getDriver()->dropTable($table);
     }
 
@@ -197,7 +217,7 @@ class ORM_Field_Bindings extends ORM_Field_Abstract
             $inMemoryBindings[$bindedEntity->getPrimaryKey()] = $bindedEntity;
         }
 
-        $table = new ORM_Table_Bindings($this->table, $this->getName());
+        $table = $this->getBindingsTable();
         $bindingsTableName = $table->getName();
         $sourceField = $table->getSourceField();
 
@@ -274,7 +294,7 @@ class ORM_Field_Bindings extends ORM_Field_Abstract
      */
     public function afterEntityDelete(ORM_Entity $entity)
     {
-        $table = new ORM_Table_Bindings($this->table, $this->getName());
+        $table = $this->getBindingsTable();
         $q = DB::getHandler()->createDeleteQuery();
         $q->deleteFrom($table->getName());
         $q->where($q->expr->eq($table->getSourceField(), $q->bindValue($entity->getPrimaryKey())));
@@ -303,6 +323,20 @@ class ORM_Field_Bindings extends ORM_Field_Abstract
     protected function getOptionalParams()
     {
         return array('reverse');
+    }
+
+    /**
+     * Возвращает таблицу, хранящую привязки
+     *
+     * @return ORM_Table_Bindings
+     */
+    protected function getBindingsTable()
+    {
+        if (null === $this->bindingsTable)
+        {
+            $this->bindingsTable = new ORM_Table_Bindings($this->table, $this->getName());
+        }
+        return $this->bindingsTable;
     }
 }
 

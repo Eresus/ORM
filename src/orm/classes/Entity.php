@@ -101,6 +101,10 @@ abstract class ORM_Entity
     {
         $this->table = $table;
         $this->pdoValues = $pdoValues;
+        if ($this->getPrimaryKey() !== null)
+        {
+            $this->setEntityState(self::IS_PERSISTENT);
+        }
     }
 
     /**
@@ -227,7 +231,7 @@ abstract class ORM_Entity
     }
 
     /**
-     * Возвращает значение основного ключа для этого объкта
+     * Возвращает значение основного ключа для этого объекта
      *
      * @return mixed
      *
