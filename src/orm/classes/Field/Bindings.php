@@ -188,9 +188,6 @@ class ORM_Field_Bindings extends ORM_Field_Abstract
      */
     public function afterEntitySave(ORM_Entity $entity)
     {
-        $bindingsTableName = $this->getBindingsTableName();
-        $sourceField = preg_replace('/^.*?_/', '', $entity->getTable()->getName());
-
         $inMemoryBindings = array();
         foreach ($entity->{$this->getName()} as $bindedEntity)
         {
@@ -198,25 +195,39 @@ class ORM_Field_Bindings extends ORM_Field_Abstract
             $inMemoryBindings[$bindedEntity->getPrimaryKey()] = $bindedEntity;
         }
 
+        $table = new ORM_Table_Bindings($this->table, $this->getName());
+        $bindingsTableName = $table->getName();
+        $sourceField = $table->getSourceField();
+
+        /*
+         * Загружаем список привязок, сохранённых в БД
+         */
         $q = DB::getHandler()->createSelectQuery();
         $q->select('*');
         $q->from($bindingsTableName);
         $q->where($q->expr->eq($sourceField, $q->bindValue($entity->getPrimaryKey())));
         $storedBindings = DB::fetchAll($q);
 
+        /*
+         * Удаляем из $inMemoryBindings те, что уже есть в БД. Добавляем в $toDelete те,
+         * которые есть в БД, но которых нет в $inMemoryBindings.
+         */
         $toDelete = array();
         foreach ($storedBindings as $storedBinding)
         {
-            if (array_key_exists($storedBinding[$this->getName()], $inMemoryBindings))
+            if (array_key_exists($storedBinding[$sourceField], $inMemoryBindings))
             {
-                unset($inMemoryBindings[$storedBinding[$this->getName()]]);
+                unset($inMemoryBindings[$storedBinding[$sourceField]]);
             }
             else
             {
-                $toDelete [] = $storedBinding;
+                $toDelete []= $storedBinding;
             }
         }
 
+        /*
+         * Удаляем из БД привязки, которых нет у объекта
+         */
         if (count($toDelete) > 0)
         {
             $q = DB::getHandler()->createDeleteQuery();
@@ -234,11 +245,15 @@ class ORM_Field_Bindings extends ORM_Field_Abstract
             DB::execute($q);
         }
 
+        /*
+         * Сохраняем в БД те привязки, которых там ещё нет
+         */
         if (count($inMemoryBindings) > 0)
         {
             $q = DB::getHandler()->createInsertQuery();
             $q->insertInto($bindingsTableName);
             $q->set($sourceField, $q->bindValue($entity->getPrimaryKey()));
+            $bindedId = null;
             $q->set($this->getName(), $q->bindParam($bindedId));
             foreach ($inMemoryBindings as $binding)
             {
@@ -278,6 +293,7 @@ class ORM_Field_Bindings extends ORM_Field_Abstract
      * Возвращает имя таблицы привязок для указанного свойства
      *
      * @return string
+     * @deprecated
      */
     protected function getBindingsTableName()
     {
