@@ -123,6 +123,7 @@ class ORM_Field_Bindings extends ORM_Field_Abstract
     public function joinTables(ezcQuerySelect $query)
     {
         $joinTable = new ORM_Table_Bindings($this->table, $this->getName());
+        $query->select($joinTable->getName() . '.' . $this->name);
         $query->leftJoin($joinTable->getName(), $query->expr->eq(
             "{$joinTable->getName()}.{$joinTable->getSourceField()}",
             "{$joinTable->getName()}.{$this->getName()}"
