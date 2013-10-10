@@ -60,6 +60,29 @@ class ORM_Entity_CollectionTest extends PHPUnit_Framework_TestCase
     }
 
     /**
+     * @covers ORM_Entity_Collection::contains
+     */
+    public function testContainsByKey()
+    {
+        $collection = new ORM_Entity_Collection();
+
+        $entity1 = $this->getMockBuilder('ORM_Entity')->disableOriginalConstructor()->
+            setMethods(array('getPrimaryKey'))->getMock();
+        $entity1->expects($this->any())->method('getPrimaryKey')->will($this->returnValue(1));
+        $collection->attach($entity1);
+
+        $entity2 = $this->getMockBuilder('ORM_Entity')->disableOriginalConstructor()->
+            setMethods(array('getPrimaryKey'))->getMock();
+        $entity2->expects($this->any())->method('getPrimaryKey')->will($this->returnValue(2));
+        $collection->attach($entity2);
+
+
+        $this->assertTrue($collection->contains(1));
+        $this->assertFalse($collection->contains(3));
+        $this->assertTrue($collection->contains(2));
+    }
+
+    /**
      * @covers ORM_Entity_Collection::next
      * @covers ORM_Entity_Collection::rewind
      * @covers ORM_Entity_Collection::isCurrentEntityDeleted

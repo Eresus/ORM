@@ -49,16 +49,34 @@ class ORM_Entity_Collection extends SplObjectStorage
     }
 
     /**
-     * @param ORM_Entity $entity
+     * @param ORM_Entity|int $entity
      * @return bool
      */
-    public function contains(ORM_Entity $entity)
+    public function contains($entity)
     {
-        if ($entity->getEntityState() == $entity::IS_DELETED)
+        if ($entity instanceof ORM_Entity)
         {
+            if ($entity->getEntityState() == $entity::IS_DELETED)
+            {
+                return false;
+            }
+            return parent::contains($entity);
+        }
+        else
+        {
+            $id = $entity;
+            $this->rewind();
+            while ($this->valid())
+            {
+                $entity = $this->current();
+                if ($entity->getPrimaryKey() == $id)
+                {
+                    return true;
+                }
+                $this->next();
+            }
             return false;
         }
-        return parent::contains($entity);
     }
 
     /**
