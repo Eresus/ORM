@@ -63,13 +63,11 @@ class ORM_Field_Integer extends ORM_Field_Abstract
     /**
      * Возвращает выражение SQL для описания поля при создании таблицы
      *
-     * @param string $name  имя поля
-     *
      * @return string
      */
-    public function getSqlFieldDefinition($name)
+    public function getSqlFieldDefinition()
     {
-        $sql = $name . ' INT';
+        $sql = $this->getName() . ' INT';
         $length = $this->getParam('length') ?: 10;
         $sql .= '(' . $length . ')';
         if ($this->getParam('unsigned'))

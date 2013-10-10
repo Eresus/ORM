@@ -53,9 +53,21 @@ class ORM_Table_Bindings extends ORM_Table
      */
     public function __construct(ORM_Table $baseTable, $property)
     {
+        assert('is_string($property)');
+        assert('"" != $property');
         $this->baseTable = $baseTable;
         $this->property = $property;
         parent::__construct($baseTable->getPlugin(), $baseTable->getDriver());
+    }
+
+    /**
+     * Возвращает имя поля, относящегося к базовой таблице
+     *
+     * @return string
+     */
+    public function getSourceField()
+    {
+        return preg_replace('/^.*?_/', '', $this->baseTable->getName());
     }
 
     /**
@@ -65,7 +77,7 @@ class ORM_Table_Bindings extends ORM_Table
     {
         $this->setTableName($this->baseTable->getName() . '_' . $this->property);
 
-        $sourceField = preg_replace('/^.*?_/', '', $this->baseTable->getName());
+        $sourceField = $this->getSourceField();
         $this->hasColumns(array(
             $sourceField => array(
                 'type' => 'integer',

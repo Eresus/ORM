@@ -178,18 +178,20 @@ class ORM_TableTest extends PHPUnit_Framework_TestCase
 
         $q = new ezcQuerySelect(null);
         $handler = $this->getMock('stdClass', array('createSelectQuery'));
-        $handler->expects($this->exactly(2))->method('createSelectQuery')->will($this->returnValue($q));
+        $handler->expects($this->exactly(2))->method('createSelectQuery')
+            ->will($this->returnValue($q));
         DB::setHandler($handler);
 
-        $p_ordering = new ReflectionProperty('ORM_Table', 'ordering');
-        $p_ordering->setAccessible(true);
-        $p_ordering->setValue($table, array(array('foo', 'DESC')));
+        $ordering = new ReflectionProperty('ORM_Table', 'ordering');
+        $ordering->setAccessible(true);
+        $ordering->setValue($table, array(array('foo', 'DESC')));
         $table->createSelectQuery();
 
-        $p_ordering->setValue($table, array());
-        $p_columns = new ReflectionProperty('ORM_Table', 'columns');
-        $p_columns->setAccessible(true);
-        $p_columns->setValue($table, array('position' => array()));
+        $ordering->setValue($table, array());
+        $columns = new ReflectionProperty('ORM_Table', 'columns');
+        $columns->setAccessible(true);
+        $columns->setValue($table,
+            array('position' => new ORM_Field_Integer($table, 'position', array())));
         $table->createSelectQuery();
     }
 

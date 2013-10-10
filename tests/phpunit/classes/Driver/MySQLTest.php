@@ -58,20 +58,23 @@ class ORM_Driver_MySQLTest extends PHPUnit_Framework_TestCase
      */
     public function testMySqlSpecificTypes()
     {
+        $table = $this->getMockBuilder('ORM_Table')->setMethods(array('setTableDefinition'))
+            ->disableOriginalConstructor()->getMock();
+        /** @var ORM_Table $table */
         $method = new ReflectionMethod('ORM_Driver_MySQL', 'getFieldDefinition');
         $method->setAccessible(true);
         $driver = new ORM_Driver_MySQL(new ORM_Manager());
 
-        $field = new ORM_Field_Datetime(array(), new ORM_Manager());
-        $this->assertEquals("foo DATETIME", $method->invoke($driver, 'foo', $field));
+        $field = new ORM_Field_Datetime($table, 'foo', array());
+        $this->assertEquals("foo DATETIME", $method->invoke($driver, $field));
 
-        $field = new ORM_Field_Integer(
-            array('length' => 5, 'unsigned' => true, 'autoincrement' => true), new ORM_Manager());
+        $field = new ORM_Field_Integer($table, 'foo',
+            array('length' => 5, 'unsigned' => true, 'autoincrement' => true));
         $this->assertEquals("foo INT(5) UNSIGNED AUTO_INCREMENT",
-            $method->invoke($driver, 'foo', $field));
+            $method->invoke($driver, $field));
 
-        $field = new ORM_Field_String(array('length' => 300), new ORM_Manager());
-        $this->assertEquals("foo TEXT", $method->invoke($driver, 'foo', $field));
+        $field = new ORM_Field_String($table, 'foo', array('length' => 300));
+        $this->assertEquals("foo TEXT", $method->invoke($driver, $field));
     }
 }
 

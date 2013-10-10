@@ -64,18 +64,17 @@ class ORM_Field_Entities extends ORM_Field_Abstract
      * Вычисляет и возвращает значение виртуального поля
      *
      * @param ORM_Entity $entity
-     * @param string     $fieldName
      *
      * @return mixed
      *
-     * @see isVirtual()
      * @since 3.00
      */
-    public function evaluateVirtualValue(ORM_Entity $entity, $fieldName)
+    public function evaluateVirtualValue(ORM_Entity $entity)
     {
         if ($entity->getPrimaryKey())
         {
-            $table = $this->manager->getTableByEntityClass($this->getParam('class'));
+            $table = $this->table->getDriver()->getManager()
+                ->getTableByEntityClass($this->getParam('class'));
             return $table->findAllBy(array(
                 $this->getParam('reference') => $entity->getPrimaryKey()
             ));

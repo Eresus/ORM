@@ -39,13 +39,11 @@ class ORM_Driver_MySQL_Datetime extends ORM_Driver_SQL_Field
     /**
      * Возвращает выражение SQL для описания поля при создании таблицы
      *
-     * @param string $name  имя поля
-     *
      * @return string
      */
-    public function getSqlFieldDefinition($name)
+    public function getSqlFieldDefinition()
     {
-        return $name . ' DATETIME';
+        return $this->field->getName() . ' DATETIME';
     }
 }
 

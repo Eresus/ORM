@@ -63,13 +63,11 @@ class ORM_Field_String extends ORM_Field_Abstract
     /**
      * Возвращает выражение SQL для описания поля при создании таблицы
      *
-     * @param string $name  имя поля
-     *
      * @return string
      */
-    public function getSqlFieldDefinition($name)
+    public function getSqlFieldDefinition()
     {
-        $sql = $name . ' ';
+        $sql = $this->getName() . ' ';
         if ($this->getParam('length') && $this->getParam('length') <= 255)
         {
             $sql .= 'CHARACTER VARYING(' . $this->getParam('length') . ')';

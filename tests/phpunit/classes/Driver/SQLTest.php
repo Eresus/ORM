@@ -60,8 +60,7 @@ class ORM_Driver_SQLTest extends PHPUnit_Framework_TestCase
         $driver = new ORM_Driver_SQL(new ORM_Manager);
         $field = $this->getMockBuilder('ORM_Field_Abstract')->disableOriginalConstructor()
             ->setMethods(array('getTypeName', 'getSqlFieldDefinition', 'hasParam', 'getParam',
-                'getPdoType'))
-            ->getMock();
+                'getPdoType'))->getMock();
         $field->expects($this->any())->method('getSqlFieldDefinition')
             ->will($this->returnArgument(0));
         $field->expects($this->any())->method('hasParam')
@@ -75,23 +74,19 @@ class ORM_Driver_SQLTest extends PHPUnit_Framework_TestCase
 
         $type->value = null;
         $value->value = null;
-        $this->assertEquals("foo DEFAULT NULL",
-            $getFieldDefinition->invoke($driver, 'foo', $field));
+        $this->assertEquals(' DEFAULT NULL', $getFieldDefinition->invoke($driver, $field));
 
         $type->value = PDO::PARAM_STR;
         $value->value = 'bar';
-        $this->assertEquals("foo DEFAULT 'bar'",
-            $getFieldDefinition->invoke($driver, 'foo', $field));
+        $this->assertEquals(" DEFAULT 'bar'", $getFieldDefinition->invoke($driver, $field));
 
         $type->value = PDO::PARAM_BOOL;
         $value->value = false;
-        $this->assertEquals("foo DEFAULT 0",
-            $getFieldDefinition->invoke($driver, 'foo', $field));
+        $this->assertEquals(' DEFAULT 0', $getFieldDefinition->invoke($driver, $field));
 
         $type->value = PDO::PARAM_INT;
         $value->value = 123;
-        $this->assertEquals("foo DEFAULT 123",
-            $getFieldDefinition->invoke($driver, 'foo', $field));
+        $this->assertEquals(' DEFAULT 123', $getFieldDefinition->invoke($driver, $field));
     }
 
     /**

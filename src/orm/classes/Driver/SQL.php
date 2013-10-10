@@ -75,11 +75,11 @@ class ORM_Driver_SQL
         $tableName = $db->options->tableNamePrefix . $table->getName();
 
         $fieldDefinitions = array();
-        foreach ($table->getColumns() as $name => $field)
+        foreach ($table->getColumns() as $field)
         {
             if (!$field->isVirtual())
             {
-                $fieldDefinitions []= $this->getFieldDefinition($name, $field);
+                $fieldDefinitions []= $this->getFieldDefinition($field);
             }
         }
         $primaryKey = $this->getPrimaryKeyDefinition($table->getPrimaryKey());
@@ -159,14 +159,13 @@ class ORM_Driver_SQL
     /**
      * Возвращает выражение SQL для описания поля таблицы
      *
-     * @param string             $name   имя поля
      * @param ORM_Field_Abstract $field  поле
      *
      * @return string  SQL
      */
-    protected function getFieldDefinition($name, ORM_Field_Abstract $field)
+    protected function getFieldDefinition(ORM_Field_Abstract $field)
     {
-        $sql = $this->getDriverFieldType($field)->getSqlFieldDefinition($name);
+        $sql = $this->getDriverFieldType($field)->getSqlFieldDefinition();
         if ($field->hasParam('default'))
         {
             $sql .= ' DEFAULT ';

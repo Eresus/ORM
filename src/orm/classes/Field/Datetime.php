@@ -102,13 +102,11 @@ class ORM_Field_Datetime extends ORM_Field_Abstract
     /**
      * Возвращает выражение SQL для описания поля при создании таблицы
      *
-     * @param string $name  имя поля
-     *
      * @return string
      */
-    public function getSqlFieldDefinition($name)
+    public function getSqlFieldDefinition()
     {
-        return $name . ' TIMESTAMP';
+        return $this->getName() . ' TIMESTAMP';
     }
 }
 

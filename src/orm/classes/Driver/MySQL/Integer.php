@@ -39,13 +39,11 @@ class ORM_Driver_MySQL_Integer extends ORM_Driver_SQL_Field
     /**
      * Возвращает выражение SQL для описания поля при создании таблицы
      *
-     * @param string $name  имя поля
-     *
      * @return string
      */
-    public function getSqlFieldDefinition($name)
+    public function getSqlFieldDefinition()
     {
-        $sql = $name . ' INT';
+        $sql = $this->field->getName() . ' INT';
         $length = $this->field->hasParam('length') ? $this->field->getParam('length') : 10;
         $sql .= '(' . $length . ')';
         if ($this->field->getParam('unsigned'))

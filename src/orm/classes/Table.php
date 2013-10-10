@@ -408,7 +408,7 @@ abstract class ORM_Table
             if (!$columns[$field]->canBeUsedInWhere())
             {
                 throw new LogicException(
-                    sprintf('Filters on virtual fields ("%s") not supported', $field));
+                    sprintf('Field "%s" does not supports filtering', $field));
             }
             $where []= $q->expr->eq($field, $q->bindValue(
                 $columns[$field]->orm2pdo($value),
@@ -465,8 +465,12 @@ abstract class ORM_Table
         if ($fill)
         {
             $columns = $this->getColumns();
-            $q->selectDistinct('*');
+            $q->selectDistinct($this->getName() . '.*');
             $q->from($this->getName());
+            foreach ($columns as $column)
+            {
+                $column->joinTables($q);
+            }
             if (count($this->getOrdering()) > 0)
             {
                 foreach ($this->getOrdering() as $orderBy)
@@ -673,7 +677,12 @@ abstract class ORM_Table
         $this->columns = array();
         foreach ($columns as $name => $attrs)
         {
-            if (!is_string($name) || !preg_match('/^[a-z_]+$/i', $name))
+            if (!is_string($name))
+            {
+                throw new InvalidArgumentException(sprintf(
+                    'Column name must be a string, got "%s"', gettype($name)));
+            }
+            if (!preg_match('/^[a-z_]+$/i', $name))
             {
                 throw new InvalidArgumentException(sprintf(
                     'Column name must be a non empty string consisted of "a-zA-Z" or "_", got "%s"',
@@ -696,7 +705,7 @@ abstract class ORM_Table
             }
             $fieldTypeClass = $fieldTypes[$attrs['type']];
             unset($attrs['type']);
-            $this->columns[$name] = new $fieldTypeClass($attrs, $this->getDriver()->getManager());
+            $this->columns[$name] = new $fieldTypeClass($this, $name, $attrs);
         }
         reset($columns);
         $this->primaryKey = key($columns);

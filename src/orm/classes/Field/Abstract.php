@@ -37,6 +37,13 @@
 abstract class ORM_Field_Abstract
 {
     /**
+     * Имя поля
+     *
+     * @var string
+     */
+    protected $name;
+
+    /**
      * Параметры поля
      *
      * @var array
@@ -44,23 +51,32 @@ abstract class ORM_Field_Abstract
     protected $params;
 
     /**
-     * Менеджер
-     * @var ORM_Manager
+     * Таблица, которой принадлежит поле
+     * @var ORM_Table
      * @since 3.00
      */
-    protected $manager;
+    protected $table;
 
     /**
      * Параметры поля
      *
-     * @param array       $params
-     * @param ORM_Manager $manager
+     * @param ORM_Table $table
+     * @param string    $name
+     * @param array     $params
      */
-    public function __construct(array $params, ORM_Manager $manager)
+    public function __construct(ORM_Table $table, $name, array $params)
     {
+        assert('is_string($name)');
+        assert('"" != $name');
+        $this->table = $table;
+        $this->name = $name;
         $this->checkParams($params);
         $this->params = $params;
-        $this->manager = $manager;
+    }
+
+    public function getName()
+    {
+        return $this->name;
     }
 
     /**
@@ -89,14 +105,13 @@ abstract class ORM_Field_Abstract
      * Вычисляет и возвращает значение виртуального поля
      *
      * @param ORM_Entity $entity
-     * @param string     $fieldName
      *
      * @return mixed
      *
      * @see isVirtual()
      * @since 3.00
      */
-    public function evaluateVirtualValue(ORM_Entity $entity, $fieldName)
+    public function evaluateVirtualValue(ORM_Entity $entity)
     {
         return null;
     }
@@ -193,22 +208,25 @@ abstract class ORM_Field_Abstract
     }
 
     /**
-     * Действия, выполняемые после создания таблицы
+     * Добавляет дополнительные таблицы к запросу
      *
-     * @param ORM_Table $table
-     * @param string    $field
+     * @param ezcQuerySelect $query
      */
-    public function afterTableCreate(ORM_Table $table, $field)
+    public function joinTables(ezcQuerySelect $query)
+    {
+    }
+
+    /**
+     * Действия, выполняемые после создания таблицы
+     */
+    public function afterTableCreate()
     {
     }
 
     /**
      * Действия, выполняемые после удаления таблицы
-     *
-     * @param ORM_Table $table
-     * @param string    $field
      */
-    public function afterTableDrop(ORM_Table $table, $field)
+    public function afterTableDrop()
     {
     }
 
@@ -216,9 +234,8 @@ abstract class ORM_Field_Abstract
      * Действия, выполняемые после сохранения сущности
      *
      * @param ORM_Entity $entity
-     * @param string     $field
      */
-    public function afterEntitySave(ORM_Entity $entity, $field)
+    public function afterEntitySave(ORM_Entity $entity)
     {
     }
 
@@ -226,22 +243,19 @@ abstract class ORM_Field_Abstract
      * Действия, выполняемые после удаления сущности
      *
      * @param ORM_Entity $entity
-     * @param string $field
      */
-    public function afterEntityDelete(ORM_Entity $entity, $field)
+    public function afterEntityDelete(ORM_Entity $entity)
     {
     }
 
     /**
      * Возвращает выражение SQL для описания поля при создании таблицы
      *
-     * @param string $name  имя поля
-     *
      * @throws LogicException
      *
      * @return string
      */
-    public function getSqlFieldDefinition($name)
+    public function getSqlFieldDefinition()
     {
         if (!$this->isVirtual())
         {
@@ -267,16 +281,16 @@ abstract class ORM_Field_Abstract
         if (count($unknown) > 0)
         {
             throw new InvalidArgumentException(
-                sprintf('Unknown option(s) "%s" in field definition of type "%s"',
-                    implode(',', $unknown), $this->getTypeName()));
+                sprintf('Unknown option(s) "%s" in field "%s" definition',
+                    implode(',', $unknown), $this->getName()));
         }
 
         $missed = array_diff($this->getRequiredParams(), array_keys($params));
         if (count($missed) > 0)
         {
             throw new InvalidArgumentException(
-                sprintf('Missed required option(s) "%s" in field definition of type "%s"',
-                    implode(',', $missed), $this->getTypeName()));
+                sprintf('Missed required option(s) "%s" in field "%s" definition',
+                    implode(',', $missed), $this->getName()));
         }
     }
 

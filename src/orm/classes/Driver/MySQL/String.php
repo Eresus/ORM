@@ -39,13 +39,11 @@ class ORM_Driver_MySQL_String extends ORM_Driver_SQL_Field
     /**
      * Возвращает выражение SQL для описания поля при создании таблицы
      *
-     * @param string $name  имя поля
-     *
      * @return string
      */
-    public function getSqlFieldDefinition($name)
+    public function getSqlFieldDefinition()
     {
-        $sql = $name . ' ';
+        $sql = $this->field->getName() . ' ';
         if ($this->field->hasParam('length') && $this->field->getParam('length') <= 255)
         {
             $sql .= 'VARCHAR(' . $this->field->getParam('length') . ')';

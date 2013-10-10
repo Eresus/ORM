@@ -52,10 +52,8 @@ abstract class ORM_Driver_SQL_Field
     /**
      * Возвращает выражение SQL для описания поля при создании таблицы
      *
-     * @param string $name  имя поля
-     *
      * @return string
      */
-    abstract public function getSqlFieldDefinition($name);
+    abstract public function getSqlFieldDefinition();
 }
 

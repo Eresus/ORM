@@ -101,7 +101,8 @@ class ORM_Field_Entity extends ORM_Field_Abstract
      */
     public function pdo2orm($pdoValue)
     {
-        $table = $this->manager->getTableByEntityClass($this->getParam('class'));
+        $table = $this->table->getDriver()->getManager()
+            ->getTableByEntityClass($this->getParam('class'));
         return $table->find($pdoValue);
     }
 
@@ -120,13 +121,11 @@ class ORM_Field_Entity extends ORM_Field_Abstract
     /**
      * Возвращает выражение SQL для описания поля при создании таблицы
      *
-     * @param string $name  имя поля
-     *
      * @return string
      */
-    public function getSqlFieldDefinition($name)
+    public function getSqlFieldDefinition()
     {
-        return $name . ' INTEGER UNSIGNED';
+        return $this->getName() . ' INTEGER UNSIGNED';
     }
 }
 

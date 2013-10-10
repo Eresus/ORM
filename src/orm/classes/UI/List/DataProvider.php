@@ -183,11 +183,13 @@ class ORM_UI_List_DataProvider implements UI_List_DataProvider_Interface
         $andParts = array();
         foreach ($this->filter as $rule)
         {
+            $field = $rule[0];
+            $value = $rule[1];
             $method = null;
             if ($rule[2] == '=')
             {
                 $method = 'eq';
-                if (is_array($rule[1]))
+                if (is_array($value))
                 {
                     $method = 'in';
                 }
@@ -198,8 +200,13 @@ class ORM_UI_List_DataProvider implements UI_List_DataProvider_Interface
             }
             if ($method)
             {
-                $andParts []= $query->expr->$method($rule[0],
-                    is_array($rule[1]) ? $rule[1] : $query->bindValue($rule[1]));
+                if ($value instanceof ORM_Entity)
+                {
+                    $value = $value->getPrimaryKey();
+                }
+
+                $andParts []= $query->expr->$method($field,
+                    is_array($value) ? $value : $query->bindValue($value));
             }
         }
         /*

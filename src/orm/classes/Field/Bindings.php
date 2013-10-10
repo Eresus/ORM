@@ -61,23 +61,33 @@ class ORM_Field_Bindings extends ORM_Field_Abstract
     }
 
     /**
+     * Может ли это поле участвовать в разделе WHERE запросов SQL
+     *
+     * @return bool
+     *
+     * @since 3.00
+     */
+    public function canBeUsedInWhere()
+    {
+        return true;
+    }
+
+    /**
      * Вычисляет и возвращает значение виртуального поля
      *
      * @param ORM_Entity $entity
-     * @param string     $fieldName
      *
      * @return mixed
      *
-     * @see isVirtual()
      * @since 3.00
      */
-    public function evaluateVirtualValue(ORM_Entity $entity, $fieldName)
+    public function evaluateVirtualValue(ORM_Entity $entity)
     {
         if ($entity->getPrimaryKey())
         {
             $q = DB::getHandler()->createSelectQuery();
-            $q->select($fieldName);
-            $q->from($this->getBindingsTableName($entity->getTable(), $fieldName));
+            $q->select($this->getName());
+            $q->from($this->getBindingsTableName());
             $q->where(
                 $q->expr->eq(
                     preg_replace('/^.*?_/', '', $entity->getTable()->getName()),
@@ -87,9 +97,10 @@ class ORM_Field_Bindings extends ORM_Field_Abstract
             $value = array();
             foreach ($bindings as $binding)
             {
-                $value [] = $binding[$fieldName];
+                $value [] = $binding[$this->getName()];
             }
-            $targetTable = $this->manager->getTableByEntityClass($this->getParam('class'));
+            $targetTable = $this->table->getDriver()->getManager()
+                ->getTableByEntityClass($this->getParam('class'));
             $collection = new ORM_Entity_Collection();
             foreach ($value as $item)
             {
@@ -105,26 +116,34 @@ class ORM_Field_Bindings extends ORM_Field_Abstract
     }
 
     /**
-     * Действия, выполняемые после создания таблицы
+     * Добавляет дополнительные таблицы к запросу
      *
-     * @param ORM_Table $table
-     * @param string    $field
+     * @param ezcQuerySelect $query
      */
-    public function afterTableCreate(ORM_Table $table, $field)
+    public function joinTables(ezcQuerySelect $query)
     {
-        $table = new ORM_Table_Bindings($table, $field);
+        $joinTable = new ORM_Table_Bindings($this->table, $this->getName());
+        $query->leftJoin($joinTable->getName(), $query->expr->eq(
+            "{$joinTable->getName()}.{$joinTable->getSourceField()}",
+            "{$joinTable->getName()}.{$this->getName()}"
+        ));
+    }
+
+    /**
+     * Действия, выполняемые после создания таблицы
+     */
+    public function afterTableCreate()
+    {
+        $table = new ORM_Table_Bindings($this->table, $this->getName());
         $table->getDriver()->createTable($table);
     }
 
     /**
      * Действия, выполняемые после удаления таблицы
-     *
-     * @param ORM_Table $table
-     * @param string    $field
      */
-    public function afterTableDrop(ORM_Table $table, $field)
+    public function afterTableDrop()
     {
-        $table = new ORM_Table_Bindings($table, $field);
+        $table = new ORM_Table_Bindings($this->table, $this->getName());
         $table->getDriver()->dropTable($table);
     }
 
@@ -132,15 +151,14 @@ class ORM_Field_Bindings extends ORM_Field_Abstract
      * Действия, выполняемые после сохранения сущности
      *
      * @param ORM_Entity $entity
-     * @param string $field
      */
-    public function afterEntitySave(ORM_Entity $entity, $field)
+    public function afterEntitySave(ORM_Entity $entity)
     {
-        $bindingsTableName = $this->getBindingsTableName($entity->getTable(), $field);
+        $bindingsTableName = $this->getBindingsTableName();
         $sourceField = preg_replace('/^.*?_/', '', $entity->getTable()->getName());
 
         $inMemoryBindings = array();
-        foreach ($entity->{$field} as $bindedEntity)
+        foreach ($entity->{$this->getName()} as $bindedEntity)
         {
             /** @var ORM_Entity $bindedEntity */
             $inMemoryBindings[$bindedEntity->getPrimaryKey()] = $bindedEntity;
@@ -155,9 +173,9 @@ class ORM_Field_Bindings extends ORM_Field_Abstract
         $toDelete = array();
         foreach ($storedBindings as $storedBinding)
         {
-            if (array_key_exists($storedBinding[$field], $inMemoryBindings))
+            if (array_key_exists($storedBinding[$this->getName()], $inMemoryBindings))
             {
-                unset($inMemoryBindings[$storedBinding[$field]]);
+                unset($inMemoryBindings[$storedBinding[$this->getName()]]);
             }
             else
             {
@@ -174,7 +192,8 @@ class ORM_Field_Bindings extends ORM_Field_Abstract
                 $keys []= $q->expr->lAnd(
                     $q->expr->eq($sourceField,
                         $q->bindValue($record[$sourceField], null, PDO::PARAM_INT)),
-                    $q->expr->eq($field, $q->bindValue($record[$field], null, PDO::PARAM_INT))
+                    $q->expr->eq($this->getName(),
+                        $q->bindValue($record[$this->getName()], null, PDO::PARAM_INT))
                 );
             }
             $q->deleteFrom($bindingsTableName)->where($q->expr->lOr($keys));
@@ -186,7 +205,7 @@ class ORM_Field_Bindings extends ORM_Field_Abstract
             $q = DB::getHandler()->createInsertQuery();
             $q->insertInto($bindingsTableName);
             $q->set($sourceField, $q->bindValue($entity->getPrimaryKey()));
-            $q->set($field, $q->bindParam($bindedId));
+            $q->set($this->getName(), $q->bindParam($bindedId));
             foreach ($inMemoryBindings as $binding)
             {
                 /** @var ORM_Entity $binding */
@@ -224,16 +243,13 @@ class ORM_Field_Bindings extends ORM_Field_Abstract
     /**
      * Возвращает имя таблицы привязок для указанного свойства
      *
-     * @param ORM_Table $table
-     * @param string    $fieldName  имя свойства
-     *
      * @return string
      */
-    protected function getBindingsTableName(ORM_Table $table, $fieldName)
+    protected function getBindingsTableName()
     {
         return $this->getParam('reverse')
-            ? $fieldName . '_' . $table->getName()
-            : $table->getName() . '_' . $fieldName;
+            ? $this->getName() . '_' . $this->table->getName()
+            : $this->table->getName() . '_' . $this->getName();
     }
 }
 
