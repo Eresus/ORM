@@ -41,6 +41,11 @@
  * - «cascade» — (массив) определяет, какие действия над этим объектом, должны быть повторены над
  *   объектами, привязанными к нему. Возможные ключевые слова: «persist» (добавление), «update»
  *   (обновление), «delete» (удаление)
+ * - «orderBy» — (массив) определяет порядок сортировки привязанных объектов. Нечётные элементы
+ *   массива должны задавать поля, чётные — направление сортировки.
+ * - «filter» — (массив) фильтр привязанных объектов. Каждый элемент должен в свою очередь быть
+ *   массивом, состоящим из трёх элементов: имя поля, оператор, значение. Оператор — это метод
+ *   класса ezcQueryExpression.
  *
  * @package ORM
  * @since 3.00
@@ -100,9 +105,31 @@ class ORM_Field_Entities extends ORM_Field_Abstract
                     sprintf('Field "%s" can not be used as a reference field', $referenceField));
             }
             $q = $table->createSelectQuery();
-            $q->where($q->expr->eq($referenceField,
+
+            /* Формируем условие выборки */
+            $where = array($q->expr->eq($referenceField,
                 $q->bindValue($entity->getPrimaryKey(), ":$referenceField",
                     $columns[$referenceField]->getPdoType())));
+
+            if ($this->hasParam('filter'))
+            {
+                foreach ($this->getParam('filter') as $filter)
+                {
+                    $where []= call_user_func(array($q->expr, $filter[1]), $filter[0], $filter[2]);
+                }
+            }
+            $q->where($where);
+
+            /* Задаём сортировку */
+            if ($this->hasParam('orderBy'))
+            {
+                $pairs = array_chunk($this->getParam('orderBy'), 2);
+                foreach ($pairs as $pair)
+                {
+                    $q->orderBy(reset($pair), next($pair));
+                }
+            }
+
             return $table->loadFromQuery($q);
         }
         else
@@ -180,7 +207,7 @@ class ORM_Field_Entities extends ORM_Field_Abstract
      */
     protected function getOptionalParams()
     {
-        return array('cascade');
+        return array('cascade', 'filter', 'orderBy');
     }
 }
 
