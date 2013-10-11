@@ -76,6 +76,8 @@ class ORM_Field_Entities extends ORM_Field_Abstract
      *
      * @param ORM_Entity $entity
      *
+     * @throws LogicException
+     *
      * @return mixed
      *
      * @since 3.00
@@ -86,9 +88,22 @@ class ORM_Field_Entities extends ORM_Field_Abstract
         {
             $table = $this->table->getDriver()->getManager()
                 ->getTableByEntityClass($this->getParam('class'));
-            return $table->findAllBy(array(
-                $this->getParam('reference') => $entity->getPrimaryKey()
-            ));
+            $referenceField = $this->getParam('reference');
+            $columns = $table->getColumns();
+            if (!array_key_exists($referenceField, $columns))
+            {
+                throw new LogicException(sprintf('Unknown reference column: %s', $referenceField));
+            }
+            if (!$columns[$referenceField]->canBeUsedInWhere())
+            {
+                throw new LogicException(
+                    sprintf('Field "%s" can not be used as a reference field', $referenceField));
+            }
+            $q = $table->createSelectQuery();
+            $q->where($q->expr->eq($referenceField,
+                $q->bindValue($entity->getPrimaryKey(), ":$referenceField",
+                    $columns[$referenceField]->getPdoType())));
+            return $table->loadFromQuery($q);
         }
         else
         {
