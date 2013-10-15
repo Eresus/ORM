@@ -76,6 +76,9 @@ abstract class ORM_Entity
     /**
      * Необработанные значения свойств (значения PDO)
      *
+     * По мере обращения к свойствам сущности, эти значения трансформируются в значения ORM и
+     * помещаются в {@link $ormValues}.
+     *
      * @var array
      */
     private $pdoValues = array();
@@ -136,6 +139,10 @@ abstract class ORM_Entity
     public function __get($property)
     {
         if (!array_key_exists($property, $this->ormValues))
+        /*
+         * Если значение PDO запрошенного свойства ещё трансформировано в значение ORM, делаем
+         * это сейчас.
+         */
         {
             $pdoValue = $this->getPdoValue($property);
 
@@ -170,7 +177,7 @@ abstract class ORM_Entity
      * "Магический" метод для установки свойств объекта
      *
      * Если есть сеттер (метод, имя которого состоит из префикса "set" и имени свойства), вызывает
-     * его для установки значения. В противном случае вызывает {@link setPdoValue()}.
+     * его для установки значения. В противном случае вызывает {@link setOrmValue()}.
      *
      * @param string $property  имя свойства
      * @param mixed  $value     ORM-значение
@@ -182,20 +189,15 @@ abstract class ORM_Entity
      */
     public function __set($property, $value)
     {
-        unset($this->ormValues[$property]);
         $setter = 'set' . $property;
         if (method_exists($this, $setter))
         {
+            unset($this->ormValues[$property]);
             $this->$setter($value);
         }
         else
         {
-            $columns = $this->getTable()->getColumns();
-            if (array_key_exists($property, $columns))
-            {
-                $value = $columns[$property]->orm2pdo($value);
-            }
-            $this->setPdoValue($property, $value);
+            $this->setOrmValue($property, $value);
         }
         if ($this->getEntityState() == self::IS_PERSISTENT)
         {
@@ -256,6 +258,9 @@ abstract class ORM_Entity
     /**
      * Возвращает PDO-значение свойства
      *
+     * Сначала метод пытается получить значение из {@link $ormValues}, если там значения нет, то
+     * из {@link $pdoValues}.
+     *
      * @param string $property  имя свойства
      *
      * @return mixed  PDO-значение свойства
@@ -264,11 +269,28 @@ abstract class ORM_Entity
      */
     public function getPdoValue($property)
     {
-        return array_key_exists($property, $this->pdoValues) ? $this->pdoValues[$property] : null;
+        if (array_key_exists($property, $this->ormValues))
+        {
+            $value = $this->getOrmValue($property);
+            $columns = $this->getTable()->getColumns();
+            if (array_key_exists($property, $columns))
+            {
+                $value = $columns[$property]->orm2pdo($value);
+            }
+        }
+        else
+        {
+            $value = array_key_exists($property, $this->pdoValues)
+                ? $this->pdoValues[$property]
+                : null;
+        }
+        return $value;
     }
 
     /**
      * Устанавливает PDO-значение свойства
+     *
+     * При этом удаляется значение этого свойства из {@link $ormValues}.
      *
      * @param string $property  имя свойства
      * @param mixed  $value     PDO-значение
@@ -280,6 +302,36 @@ abstract class ORM_Entity
     public function setPdoValue($property, $value)
     {
         $this->pdoValues[$property] = $value;
+        unset($this->ormValues[$property]);
+    }
+
+    /**
+     * Возвращает ORM-значение свойства
+     *
+     * @param string $property  имя свойства
+     *
+     * @return mixed  ORM-значение свойства
+     *
+     * @since 3.00
+     */
+    public function getOrmValue($property)
+    {
+        return array_key_exists($property, $this->ormValues) ? $this->ormValues[$property] : null;
+    }
+
+    /**
+     * Устанавливает ORM-значение свойства
+     *
+     * @param string $property  имя свойства
+     * @param mixed  $value     ORM-значение
+     *
+     * @return void
+     *
+     * @since 3.00
+     */
+    public function setOrmValue($property, $value)
+    {
+        $this->ormValues[$property] = $value;
     }
 
     /**
@@ -305,9 +357,9 @@ abstract class ORM_Entity
      */
     public function afterSave()
     {
-        foreach ($this->getTable()->getColumns() as $key => $column)
+        foreach ($this->getTable()->getColumns() as $column)
         {
-            $column->afterEntitySave($this, $key);
+            $column->afterEntitySave($this);
         }
         $this->setEntityState(self::IS_PERSISTENT);
     }

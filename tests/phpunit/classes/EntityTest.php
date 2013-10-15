@@ -54,13 +54,20 @@ class ORM_EntityTest extends PHPUnit_Framework_TestCase
         $field->expects($this->any())->method('pdo2orm')->will($this->returnArgument(0));
         $field->expects($this->any())->method('orm2pdo')->will($this->returnArgument(0));
 
-        /*$table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()
+        $table = $this->getMockBuilder('ORM_Table')->disableOriginalConstructor()
             ->setMethods(array('setTableDefinition', 'getColumns'))->getMock();
         $table->expects($this->any())->method('getColumns')->will($this->returnValue(array(
             'foo' => $field
-        )));*/
+        )));
 
-        $entity = $this->getMockForAbstractClass('ORM_Entity', array($dbRecord));
+        $entity = $this->getMockBuilder('ORM_Entity')->disableOriginalConstructor()
+            ->setMethods(array('none'))->getMock();
+        $tableProp = new ReflectionProperty('ORM_Entity', 'table');
+        $tableProp->setAccessible(true);
+        $tableProp->setValue($entity, $table);
+        $pdoValues = new ReflectionProperty('ORM_Entity', 'pdoValues');
+        $pdoValues->setAccessible(true);
+        $pdoValues->setValue($entity, $dbRecord);
 
         /** @var ORM_Entity $entity */
         $this->assertEquals('bar', $entity->foo);

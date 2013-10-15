@@ -52,8 +52,13 @@ class ORM_Field_EntitiesTest extends PHPUnit_Framework_TestCase
      */
     public function testPersist()
     {
+        $childEntity = $this->getMockBuilder('ORM_Entity')->disableOriginalConstructor()
+            ->setMethods(array('getEntityState'))->getMock();
+        $childEntity->expects($this->any())->method('getEntityState')
+            ->will($this->returnValue(ORM_Entity::IS_NEW));
+
         $targetTable = $this->getMock('stdClass', array('persist'));
-        $targetTable->expects($this->once())->method('persist')->with('#childEntity#');
+        $targetTable->expects($this->once())->method('persist')->with($childEntity);
 
         $manager = $this->getMock('ORM_Manager', array('getTableByEntityClass'));
         $manager->expects($this->once())->method('getTableByEntityClass')->with('My_Entity_Bar')
@@ -75,7 +80,7 @@ class ORM_Field_EntitiesTest extends PHPUnit_Framework_TestCase
         $entity = $this->getMockBuilder('ORM_Entity')->disableOriginalConstructor()
             ->setMethods(array('__get'))->getMock();
         $entity->expects($this->once())->method('__get')->with('foo')
-            ->will($this->returnValue(array('#childEntity#')));
+            ->will($this->returnValue(array($childEntity)));
 
         /** @var ORM_Field_Entities $field */
         /** @var ORM_Entity $entity */
@@ -87,8 +92,13 @@ class ORM_Field_EntitiesTest extends PHPUnit_Framework_TestCase
      */
     public function testUpdate()
     {
+        $childEntity = $this->getMockBuilder('ORM_Entity')->disableOriginalConstructor()
+            ->setMethods(array('getEntityState'))->getMock();
+        $childEntity->expects($this->any())->method('getEntityState')
+            ->will($this->returnValue(ORM_Entity::IS_DIRTY));
+
         $targetTable = $this->getMock('stdClass', array('update'));
-        $targetTable->expects($this->once())->method('update')->with('#childEntity#');
+        $targetTable->expects($this->once())->method('update')->with($childEntity);
 
         $manager = $this->getMock('ORM_Manager', array('getTableByEntityClass'));
         $manager->expects($this->once())->method('getTableByEntityClass')->with('My_Entity_Bar')
@@ -108,11 +118,9 @@ class ORM_Field_EntitiesTest extends PHPUnit_Framework_TestCase
             ->getMock();
 
         $entity = $this->getMockBuilder('ORM_Entity')->disableOriginalConstructor()
-            ->setMethods(array('__get', 'getEntityState'))->getMock();
+            ->setMethods(array('__get'))->getMock();
         $entity->expects($this->once())->method('__get')->with('foo')
-            ->will($this->returnValue(array('#childEntity#')));
-        $entity->expects($this->any())->method('getEntityState')
-            ->will($this->returnValue(ORM_Entity::IS_DIRTY));
+            ->will($this->returnValue(array($childEntity)));
 
         /** @var ORM_Field_Entities $field */
         /** @var ORM_Entity $entity */

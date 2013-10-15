@@ -145,25 +145,32 @@ class ORM_Field_Entities extends ORM_Field_Abstract
      */
     public function afterEntitySave(ORM_Entity $entity)
     {
-        if ($entity->getEntityState() == $entity::IS_NEW
-            && in_array('persist', $this->getParam('cascade', array())))
+        if (in_array('persist', $this->getParam('cascade', array())))
         {
             $table = $this->table->getDriver()->getManager()
                 ->getTableByEntityClass($this->getParam('class'));
             foreach ($entity->{$this->getName()} as $childEntity)
             {
-                $table->persist($childEntity);
+                /** @var ORM_Entity $childEntity */
+                if ($childEntity->getEntityState() == ORM_Entity::IS_NEW)
+                {
+                    $childEntity->{$this->getParam('reference')} = $entity;
+                    $table->persist($childEntity);
+                }
             }
         }
 
-        if ($entity->getEntityState() == $entity::IS_DIRTY
-            && in_array('update', $this->getParam('cascade', array())))
+        if (in_array('update', $this->getParam('cascade', array())))
         {
             $table = $this->table->getDriver()->getManager()
                 ->getTableByEntityClass($this->getParam('class'));
             foreach ($entity->{$this->getName()} as $childEntity)
             {
-                $table->update($childEntity);
+                /** @var ORM_Entity $childEntity */
+                if ($childEntity->getEntityState() == ORM_Entity::IS_DIRTY)
+                {
+                    $table->update($childEntity);
+                }
             }
         }
     }

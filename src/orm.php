@@ -68,7 +68,7 @@ class ORM extends Plugin
     private $manager = null;
 
     /**
-     * Возвращает менджера ORM
+     * Возвращает менеджера ORM
      * @return ORM_Manager
      */
     public static function getManager()

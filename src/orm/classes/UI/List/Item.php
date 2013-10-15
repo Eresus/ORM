@@ -79,7 +79,7 @@ class ORM_UI_List_Item implements UI_List_Item_Interface
      */
     public function getId()
     {
-        return $this->entity->id;
+        return $this->entity->getPrimaryKey();
     }
 
     /**
@@ -91,7 +91,7 @@ class ORM_UI_List_Item implements UI_List_Item_Interface
      */
     public function isEnabled()
     {
-        return $this->entity->active;
+        return $this->entity->active; //TODO Это надо как-то переделать.
     }
 }
 
