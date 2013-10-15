@@ -37,7 +37,7 @@
 class ORM_Entity_Collection extends SplObjectStorage
 {
     /**
-     * Очишает коллекцию, удаляя все объекты
+     * Очищает коллекцию, удаляя все объекты
      */
     public function clear()
     {

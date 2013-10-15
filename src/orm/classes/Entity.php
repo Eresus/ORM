@@ -99,7 +99,19 @@ abstract class ORM_Entity
     public function __construct(array $pdoValues = array())
     {
         $this->table = ORM::getManager()->getTableByEntityClass(get_class($this));
-        $this->pdoValues = $pdoValues;
+        $columns = $this->getTable()->getColumns();
+        foreach ($pdoValues as $name => $value)
+        {
+            if (!array_key_exists($name, $columns))
+            {
+                continue;
+            }
+            if ($columns[$name]->isVirtual())
+            {
+                continue;
+            }
+            $this->pdoValues[$name] = $value;
+        }
         if ($this->getPrimaryKey() !== null)
         {
             $this->setEntityState(self::IS_PERSISTENT);
