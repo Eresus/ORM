@@ -184,8 +184,8 @@ class ORM_Field_Bindings extends ORM_Field_Abstract
     {
         $bindingsTable = $this->getBindingsTable();
         $query->leftJoin($bindingsTable->getName(), $query->expr->eq(
-            "{$bindingsTable->getName()}.{$bindingsTable->getSourceField()}",
-            "{$bindingsTable->getName()}.{$this->getName()}"
+            "{$this->table->getName()}.{$this->table->getPrimaryKey()}",
+            "{$bindingsTable->getName()}.{$bindingsTable->getSourceField()}"
         ));
     }
 
