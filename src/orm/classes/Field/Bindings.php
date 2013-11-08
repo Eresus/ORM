@@ -180,6 +180,7 @@ class ORM_Field_Bindings extends ORM_Field_Abstract
     {
         $bindingsTable = $this->getBindingsTable();
         $currentSelects []= $bindingsTable->getName() . '.' . $this->name;
+        $query->groupBy($this->table->getName(). '.' . $this->table->getPrimaryKey());
         return $currentSelects;
     }
 
