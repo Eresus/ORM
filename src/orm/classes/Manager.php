@@ -174,7 +174,7 @@ class ORM_Manager
      *
      * @throws InvalidArgumentException
      *
-     * @return ORM_Table
+     * @return ORM_Table|null
      *
      * @since 3.00
      */
@@ -189,6 +189,10 @@ class ORM_Manager
         $entityPluginName = strtolower($entityPluginName);
         $plugin = Eresus_Kernel::app()->getLegacyKernel()->plugins
             ->load($entityPluginName);
+        if (!$plugin)
+        {
+            return null;
+        }
         $entityName = substr($entityClass, strrpos($entityClass, '_') + 1);
         $table = self::getTable($plugin, $entityName);
         return $table;

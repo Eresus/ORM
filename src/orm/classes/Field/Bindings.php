@@ -113,6 +113,10 @@ class ORM_Field_Bindings extends ORM_Field_Abstract
             }
             $targetTable = $this->table->getDriver()->getManager()
                 ->getTableByEntityClass($this->getParam('class'));
+            if (is_null($targetTable))
+            {
+                return array();
+            }
             $collection = new ORM_Entity_Collection();
             foreach ($value as $item)
             {
@@ -149,6 +153,10 @@ class ORM_Field_Bindings extends ORM_Field_Abstract
 
         $manager = $this->table->getDriver()->getManager();
         $table = $manager->getTableByEntityClass($this->getParam('class'));
+        if (is_null($table))
+        {
+            return array();
+        }
 
         foreach ($ormValue as &$element)
         {

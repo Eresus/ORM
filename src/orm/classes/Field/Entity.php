@@ -103,6 +103,10 @@ class ORM_Field_Entity extends ORM_Field_Abstract
     {
         $table = $this->table->getDriver()->getManager()
             ->getTableByEntityClass($this->getParam('class'));
+        if (is_null($table))
+        {
+            return null;
+        }
         return $table->find($pdoValue);
     }
 

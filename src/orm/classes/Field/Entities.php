@@ -93,6 +93,10 @@ class ORM_Field_Entities extends ORM_Field_Abstract
         {
             $table = $this->table->getDriver()->getManager()
                 ->getTableByEntityClass($this->getParam('class'));
+            if (is_null($table))
+            {
+                return array();
+            }
             $referenceField = $this->getParam('reference');
             $columns = $table->getColumns();
             if (!array_key_exists($referenceField, $columns))
@@ -149,6 +153,10 @@ class ORM_Field_Entities extends ORM_Field_Abstract
         {
             $table = $this->table->getDriver()->getManager()
                 ->getTableByEntityClass($this->getParam('class'));
+            if (is_null($table))
+            {
+                return;
+            }
             foreach ($entity->{$this->getName()} as $childEntity)
             {
                 /** @var ORM_Entity $childEntity */
@@ -164,6 +172,10 @@ class ORM_Field_Entities extends ORM_Field_Abstract
         {
             $table = $this->table->getDriver()->getManager()
                 ->getTableByEntityClass($this->getParam('class'));
+            if (is_null($table))
+            {
+                return;
+            }
             foreach ($entity->{$this->getName()} as $childEntity)
             {
                 /** @var ORM_Entity $childEntity */
@@ -186,6 +198,10 @@ class ORM_Field_Entities extends ORM_Field_Abstract
         {
             $table = $this->table->getDriver()->getManager()
                 ->getTableByEntityClass($this->getParam('class'));
+            if (is_null($table))
+            {
+                return;
+            }
             foreach ($entity->{$this->getName()} as $childEntity)
             {
                 $table->delete($childEntity);
