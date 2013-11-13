@@ -106,24 +106,20 @@ class ORM_Field_Bindings extends ORM_Field_Abstract
                     $q->bindValue($entity->getPrimaryKey())
                 ));
             $bindings = DB::fetchAll($q);
-            $value = array();
+            $targetIds = array();
             foreach ($bindings as $binding)
             {
-                $value [] = $binding[$this->getName()];
+                $targetIds [] = $binding[$this->getName()];
             }
             $targetTable = $this->table->getDriver()->getManager()
                 ->getTableByEntityClass($this->getParam('class'));
             if (is_null($targetTable))
             {
-                return array();
+                return new ORM_Entity_Collection();
             }
-            $collection = new ORM_Entity_Collection();
-            foreach ($value as $item)
-            {
-                $collection->attach($targetTable->find($item));
-            }
-            $value = $collection;
-            return $value;
+            $q = $targetTable->createSelectQuery();
+            $q->where($q->expr->in($targetTable->getPrimaryKey(), $targetIds));
+            return $targetTable->loadFromQuery($q);
         }
         else
         {
