@@ -215,7 +215,8 @@ class ORM_Driver_SQL
      */
     protected function getIndexDefinition($name, array $params)
     {
-        return 'KEY ' . $name . ' (' . implode(', ', $params['fields']) . ')';
+        $type = strtoupper(@$params['type']);
+        return $type . ' KEY ' . $name . ' (' . implode(', ', $params['fields']) . ')';
     }
 
     /**
