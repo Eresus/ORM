@@ -479,10 +479,6 @@ abstract class ORM_Table
                     $q->orderBy($orderBy[0], $orderBy[1]);
                 }
             }
-            elseif (isset($columns['position']))
-            {
-                $q->orderBy('position');
-            }
         }
         else
         {
