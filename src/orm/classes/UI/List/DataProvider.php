@@ -82,7 +82,7 @@ class ORM_UI_List_DataProvider implements UI_List_DataProvider_Interface
      *
      * @param string $property  имя свойства
      * @param mixed  $value     значение
-     * @param string $cond      условие (=, <, >, <=, =>)
+     * @param string $cond      условие (=, <, >, <=, >=)
      *
      * @return void
      *
