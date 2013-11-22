@@ -81,7 +81,7 @@ class ORM_Field_Integer extends ORM_Field_Abstract
     public function getSqlFieldDefinition()
     {
         $sql = $this->getName() . ' INT';
-        $length = $this->getParam('length') ?: 10;
+        $length = $this->getParam('length') ? $this->getParam('length') : 10;
         $sql .= '(' . $length . ')';
         if ($this->getParam('unsigned'))
         {
