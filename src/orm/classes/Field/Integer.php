@@ -67,7 +67,7 @@ class ORM_Field_Integer extends ORM_Field_Abstract
      */
     public function afterEntitySave(ORM_Entity $entity)
     {
-        if ($entity->getEntityState() == $entity::IS_NEW && $this->getParam('autoincrement'))
+        if ($entity->getEntityState() == ORM_Entity::IS_NEW && $this->getParam('autoincrement'))
         {
             $entity->{$this->getName()} = DB::getHandler()->lastInsertId();
         }

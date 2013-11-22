@@ -56,7 +56,7 @@ class ORM_Entity_Collection extends SplObjectStorage
     {
         if ($entity instanceof ORM_Entity)
         {
-            if ($entity->getEntityState() == $entity::IS_DELETED)
+            if ($entity->getEntityState() == ORM_Entity::IS_DELETED)
             {
                 return false;
             }
@@ -88,7 +88,7 @@ class ORM_Entity_Collection extends SplObjectStorage
         foreach ($this as $entity)
         {
             /** @var ORM_Entity $entity */
-            if ($entity->getEntityState() != $entity::IS_DELETED)
+            if ($entity->getEntityState() != ORM_Entity::IS_DELETED)
             {
                 $count++;
             }
