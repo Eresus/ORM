@@ -111,6 +111,10 @@ class ORM_Field_Bindings extends ORM_Field_Abstract
             {
                 $targetIds [] = $binding[$this->getName()];
             }
+            if (count($targetIds) == 0)
+            {
+                return new ORM_Entity_Collection();
+            }
             $targetTable = $this->table->getDriver()->getManager()
                 ->getTableByEntityClass($this->getParam('class'));
             if (is_null($targetTable))
