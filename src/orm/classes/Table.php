@@ -220,7 +220,7 @@ abstract class ORM_Table
     }
 
     /**
-     * Назначет основной ключ
+     * Назначает основной ключ
      *
      * @param string|array $key
      *
@@ -568,7 +568,7 @@ abstract class ORM_Table
     abstract protected function setTableDefinition();
 
     /**
-     * Устанавлвиает имя таблицы
+     * Устанавливает имя таблицы
      *
      * @param string $name
      *
