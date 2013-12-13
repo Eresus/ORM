@@ -1,6 +1,6 @@
 <?php
 /**
- * Абстрактный драйвер СУБД
+ * Тесты класса ORM_Manager
  *
  * @version ${product.version}
  *
@@ -25,51 +25,51 @@
  * <http://www.gnu.org/licenses/>
  *
  * @package ORM
+ * @subpackage Tests
  */
+
+require_once __DIR__ . '/../bootstrap.php';
 
 /**
- * Абстрактный драйвер СУБД
- *
  * @package ORM
- * @since 2.01
+ * @subpackage Tests
  */
-abstract class ORM_Driver_Abstract
+class ORM_ManagerTest extends PHPUnit_Framework_TestCase
 {
     /**
-     * Создаёт таблицу
-     *
-     * @param string $tableName   имя таблицы
-     * @param array  $columns     описание столбцов
-     * @param string $primaryKey  первичный ключ
-     * @param array  $indexes     описание индексов
-     *
-     * @return void
-     *
-     * @since 2.01
+     * @covers ORM_Manager::getTable
+     * @expectedException InvalidArgumentException
      */
-    abstract public function createTable($tableName, array $columns, $primaryKey, array $indexes);
+    public function testGetTableInvalidPlugin()
+    {
+        $orm = new ORM_Manager;
+        $orm->getTable(null, 'Foo');
+    }
 
     /**
-     * Удаляет таблицу
-     *
-     * @param string $tableName  имя таблицы
-     *
-     * @return void
-     *
-     * @since 2.01
+     * @covers ORM_Manager::getTable
      */
-    abstract public function dropTable($tableName);
+    public function testGetTablePlugin()
+    {
+        $uid = uniqid();
+        $this->getMockBuilder('ORM_Table')->setMockClassName("Plugin_Entity_Table_{$uid}")
+            ->setMethods(array('setTableDefinition'))->disableOriginalConstructor()->getMock();
+        $plugin = new Plugin();
+        $orm = new ORM_Manager();
+        $this->assertInstanceOf("Plugin_Entity_Table_{$uid}", $orm->getTable($plugin, $uid));
+    }
 
     /**
-     * Преобразует значение поля ORM в значение PDO
-     *
-     * @param mixed  $ormValue      значение поля
-     * @param string $ormFieldType  тип поля
-     *
-     * @return mixed
-     *
-     * @since 2.01
+     * @covers ORM_Manager::getTable
      */
-    abstract public function pdoFieldValue($ormValue, $ormFieldType);
+    public function testGetTableTPlugin()
+    {
+        $uid = uniqid();
+        $this->getMockBuilder('ORM_Table')->setMockClassName("Plugin_Entity_Table_{$uid}")
+            ->setMethods(array('setTableDefinition'))->disableOriginalConstructor()->getMock();
+        $plugin = new TPlugin();
+        $orm = new ORM_Manager();
+        $this->assertInstanceOf("Plugin_Entity_Table_{$uid}", $orm->getTable($plugin, $uid));
+    }
 }
 

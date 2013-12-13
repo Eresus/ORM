@@ -107,7 +107,8 @@ class ORM_Helper_Ordering
         }
         $group []= $e->lt($this->fieldName, $q->bindValue($entity->{$this->fieldName}, null,
             PDO::PARAM_INT));
-        $q->select('*')->where(call_user_func_array(array($e, 'lAnd'), $group))->
+        $q->select('*');
+        $q->where(call_user_func_array(array($e, 'lAnd'), $group))->
             orderBy($this->fieldName, ezcQuerySelect::DESC);
         $swap = $table->loadOneFromQuery($q);
 
@@ -140,7 +141,8 @@ class ORM_Helper_Ordering
         }
         $group []= $e->gt($this->fieldName, $q->bindValue($entity->{$this->fieldName}, null,
             PDO::PARAM_INT));
-        $q->select('*')->where(call_user_func_array(array($e, 'lAnd'), $group))->
+        $q->select('*');
+        $q->where(call_user_func_array(array($e, 'lAnd'), $group))->
             orderBy($this->fieldName, ezcQuerySelect::ASC);
         $swap = $table->loadOneFromQuery($q);
 

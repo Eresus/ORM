@@ -1,6 +1,8 @@
 <?php
 /**
- * Элемент списка {@link UI_List}
+ * ORM
+ *
+ * Модульные тесты
  *
  * @version ${product.version}
  *
@@ -25,73 +27,38 @@
  * <http://www.gnu.org/licenses/>
  *
  * @package ORM
+ * @subpackage Tests
+ *
+ * $Id: bootstrap.php 1849 2011-10-03 17:34:22Z mk $
  */
+
+
+require_once __DIR__ . '/../../bootstrap.php';
 
 /**
- * Элемент списка {@link UI_List}
- *
  * @package ORM
+ * @subpackage Tests
  */
-class ORM_UI_List_Item implements UI_List_Item_Interface
+class ORM_Table_CachedTest extends PHPUnit_Framework_TestCase
 {
     /**
-     * Сущность
-     *
-     * @var ORM_Entity
-     * @since 1.00
+     * @covers ORM_Table_Cached::fillCache
      */
-    private $entity;
-
-    /**
-     * Конструктор элемента
-     *
-     * @param ORM_Entity $entity  сущность
-     *
-     * @return ORM_UI_List_Item
-     *
-     * @since 1.00
-     */
-    public function __construct(ORM_Entity $entity)
+    public function testFillCache()
     {
-        $this->entity = $entity;
-    }
+        $table = $this->getMockBuilder('ORM_Table_Cached')->disableOriginalConstructor()->
+            setMethods(array('setTableDefinition', 'createSelectQuery', 'loadFromQuery'))->getMock();
+        $table->expects($this->once())->method('createSelectQuery')->
+            will($this->returnValue(new ezcQuerySelect()));
+        $item = new stdClass();
+        $item->id = 0;
+        $table->expects($this->once())->method('loadFromQuery')->will($this->returnValue(array($item)));
 
-    /**
-     * Прокси к свойствам сущности
-     *
-     * @param string $property  имя свойства
-     *
-     * @return mixed
-     *
-     * @since 1.00
-     */
-    public function __get($property)
-    {
-        return $this->entity->$property;
-    }
+        $m_fillCache = new ReflectionMethod('ORM_Table_Cached', 'fillCache');
+        $m_fillCache->setAccessible(true);
 
-    /**
-     * Возвращает идентификатор элемента
-     *
-     * @return string
-     *
-     * @since 1.00
-     */
-    public function getId()
-    {
-        return $this->entity->getPrimaryKey();
-    }
-
-    /**
-     * Возвращает состояние элемента (вкл/выкл)
-     *
-     * @return bool
-     *
-     * @since 1.00
-     */
-    public function isEnabled()
-    {
-        return $this->entity->active; //TODO Это надо как-то переделать.
+        $m_fillCache->invoke($table);
+        $m_fillCache->invoke($table);
     }
 }
 

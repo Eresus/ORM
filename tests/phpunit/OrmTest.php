@@ -29,8 +29,6 @@
  */
 
 require_once __DIR__ . '/bootstrap.php';
-require_once TESTS_SRC_DIR . '/orm.php';
-require_once TESTS_SRC_DIR . '/orm/classes/Table.php';
 
 /**
  * @package ORM
@@ -38,37 +36,8 @@ require_once TESTS_SRC_DIR . '/orm/classes/Table.php';
  */
 class OrmTest extends PHPUnit_Framework_TestCase
 {
-    /**
-     * @covers ORM::getTable
-     * @expectedException InvalidArgumentException
-     */
-    public function testGetTableInvalidPlugin()
+    public function testStub()
     {
-        ORM::getTable(null, 'Foo');
-    }
-
-    /**
-     * @covers ORM::getTable
-     */
-    public function testGetTablePlugin()
-    {
-        $uid = uniqid();
-        $this->getMockBuilder('ORM_Table')->setMockClassName("Plugin_Entity_Table_{$uid}")
-            ->setMethods(array('setTableDefinition'))->disableOriginalConstructor()->getMock();
-        $plugin = new Plugin();
-        $this->assertInstanceOf("Plugin_Entity_Table_{$uid}", ORM::getTable($plugin, $uid));
-    }
-
-    /**
-     * @covers ORM::getTable
-     */
-    public function testGetTableTPlugin()
-    {
-        $uid = uniqid();
-        $this->getMockBuilder('ORM_Table')->setMockClassName("Plugin_Entity_Table_{$uid}")
-            ->setMethods(array('setTableDefinition'))->disableOriginalConstructor()->getMock();
-        $plugin = new TPlugin();
-        $this->assertInstanceOf("Plugin_Entity_Table_{$uid}", ORM::getTable($plugin, $uid));
     }
 }
 

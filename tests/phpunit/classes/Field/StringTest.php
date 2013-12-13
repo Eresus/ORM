@@ -1,10 +1,10 @@
 <?php
 /**
- * Элемент списка {@link UI_List}
+ * Тесты класса ORM_Field_String
  *
  * @version ${product.version}
  *
- * @copyright 2011, Михаил Красильников <m.krasilnikov@yandex.ru>
+ * @copyright 2013, Михаил Красильников <m.krasilnikov@yandex.ru>
  * @license http://www.gnu.org/licenses/gpl.txt	GPL License 3
  * @author Михаил Красильников <m.krasilnikov@yandex.ru>
  *
@@ -25,73 +25,28 @@
  * <http://www.gnu.org/licenses/>
  *
  * @package ORM
+ * @subpackage Tests
  */
+
+require_once __DIR__ . '/../../bootstrap.php';
 
 /**
- * Элемент списка {@link UI_List}
- *
  * @package ORM
+ * @subpackage Tests
  */
-class ORM_UI_List_Item implements UI_List_Item_Interface
+class ORM_Field_StringTest extends PHPUnit_Framework_TestCase
 {
     /**
-     * Сущность
-     *
-     * @var ORM_Entity
-     * @since 1.00
+     * @covers ORM_Field_String::getTypeName
+     * @covers ORM_Field_String::getPdoType
      */
-    private $entity;
-
-    /**
-     * Конструктор элемента
-     *
-     * @param ORM_Entity $entity  сущность
-     *
-     * @return ORM_UI_List_Item
-     *
-     * @since 1.00
-     */
-    public function __construct(ORM_Entity $entity)
+    public function testGetTypes()
     {
-        $this->entity = $entity;
-    }
-
-    /**
-     * Прокси к свойствам сущности
-     *
-     * @param string $property  имя свойства
-     *
-     * @return mixed
-     *
-     * @since 1.00
-     */
-    public function __get($property)
-    {
-        return $this->entity->$property;
-    }
-
-    /**
-     * Возвращает идентификатор элемента
-     *
-     * @return string
-     *
-     * @since 1.00
-     */
-    public function getId()
-    {
-        return $this->entity->getPrimaryKey();
-    }
-
-    /**
-     * Возвращает состояние элемента (вкл/выкл)
-     *
-     * @return bool
-     *
-     * @since 1.00
-     */
-    public function isEnabled()
-    {
-        return $this->entity->active; //TODO Это надо как-то переделать.
+        $field = $this->getMockBuilder('ORM_Field_String')->disableOriginalConstructor()
+            ->setMethods(array('none'))->getMock();
+        /** @var ORM_Field_String $field */
+        $this->assertEquals('string', $field->getTypeName());
+        $this->assertEquals(PDO::PARAM_STR, $field->getPdoType());
     }
 }
 

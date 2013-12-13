@@ -1,10 +1,10 @@
 <?php
 /**
- * Элемент списка {@link UI_List}
+ * Поле типа «integer»
  *
  * @version ${product.version}
  *
- * @copyright 2011, Михаил Красильников <m.krasilnikov@yandex.ru>
+ * @copyright 2013, Михаил Красильников <m.krasilnikov@yandex.ru>
  * @license http://www.gnu.org/licenses/gpl.txt	GPL License 3
  * @author Михаил Красильников <m.krasilnikov@yandex.ru>
  *
@@ -27,71 +27,83 @@
  * @package ORM
  */
 
+
 /**
- * Элемент списка {@link UI_List}
+ * Поле типа «integer»
  *
  * @package ORM
+ * @since 3.00
  */
-class ORM_UI_List_Item implements UI_List_Item_Interface
+class ORM_Field_Integer extends ORM_Field_Abstract
 {
     /**
-     * Сущность
-     *
-     * @var ORM_Entity
-     * @since 1.00
-     */
-    private $entity;
-
-    /**
-     * Конструктор элемента
-     *
-     * @param ORM_Entity $entity  сущность
-     *
-     * @return ORM_UI_List_Item
-     *
-     * @since 1.00
-     */
-    public function __construct(ORM_Entity $entity)
-    {
-        $this->entity = $entity;
-    }
-
-    /**
-     * Прокси к свойствам сущности
-     *
-     * @param string $property  имя свойства
-     *
-     * @return mixed
-     *
-     * @since 1.00
-     */
-    public function __get($property)
-    {
-        return $this->entity->$property;
-    }
-
-    /**
-     * Возвращает идентификатор элемента
+     * Возвращает имя типа
      *
      * @return string
      *
-     * @since 1.00
+     * @since 3.00
      */
-    public function getId()
+    public function getTypeName()
     {
-        return $this->entity->getPrimaryKey();
+        return 'integer';
     }
 
     /**
-     * Возвращает состояние элемента (вкл/выкл)
+     * Возвращает соответствующий тип PDO (PDO::PARAM_…) или null
      *
-     * @return bool
+     * @return null|int
      *
-     * @since 1.00
+     * @since 3.00
      */
-    public function isEnabled()
+    public function getPdoType()
     {
-        return $this->entity->active; //TODO Это надо как-то переделать.
+        return PDO::PARAM_INT;
+    }
+
+    /**
+     * Действия, выполняемые после сохранения сущности
+     *
+     * @param ORM_Entity $entity
+     */
+    public function afterEntitySave(ORM_Entity $entity)
+    {
+        if ($entity->getEntityState() == ORM_Entity::IS_NEW && $this->getParam('autoincrement'))
+        {
+            $entity->{$this->getName()} = DB::getHandler()->lastInsertId();
+        }
+    }
+
+    /**
+     * Возвращает выражение SQL для описания поля при создании таблицы
+     *
+     * @return string
+     */
+    public function getSqlFieldDefinition()
+    {
+        $sql = $this->getName() . ' INT';
+        $length = $this->getParam('length') ? $this->getParam('length') : 10;
+        $sql .= '(' . $length . ')';
+        if ($this->getParam('unsigned'))
+        {
+            $sql .= ' UNSIGNED';
+        }
+        if ($this->getParam('autoincrement'))
+        {
+            $sql .= ' AUTO_INCREMENT';
+        }
+        return $sql;
+    }
+
+    /**
+     * Возвращает список возможных необязательных параметров
+     *
+     * @return string[]
+     *
+     * @since 3.00
+     */
+    protected function getOptionalParams()
+    {
+        return array('autoincrement', 'length', 'unsigned');
     }
 }
 

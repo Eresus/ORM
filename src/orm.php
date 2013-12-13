@@ -2,7 +2,7 @@
 /**
  * ORM
  *
- * Объектно-реляционное отображение.
+ * Простое объектно-реляционное отображение для Eresus.
  *
  * @version ${product.version}
  *
@@ -61,64 +61,52 @@ class ORM extends Plugin
     public $description = 'Средства ORM для использования в других плагинах';
 
     /**
-     * Кэш таблиц
-     *
-     * @var array
-     * @since 1.00
+     * Менеджер
+     * @var ORM_Manager
+     * @since 3.00
      */
-    private static $tables = array();
+    private $manager = null;
 
     /**
-     * Типы полей
-     *
-     * @var array
-     * @since 1.00
+     * Возвращает менеджера ORM
+     * @return ORM_Manager
      */
-    private static $filedTypes = array('boolean', 'date', 'float', 'integer', 'string', 'time',
-        'timestamp');
+    public static function getManager()
+    {
+        /** @var ORM $orm */
+        $orm = Eresus_Kernel::app()->getLegacyKernel()->plugins->load('orm');
+        if (null === $orm->manager)
+        {
+            $orm->manager = new ORM_Manager();
+        }
+        return $orm->manager;
+    }
 
     /**
      * Возвращает объект таблицы для указанной сущности указанного плагина
      *
-     * @param Plugin|TPlugin $plugin      плагин, которому принадлежит сущность
-     * @param string         $entityName  имя сущности (без имени плагина и слова «Entity»)
+     * @param Plugin|TPlugin|string $plugin      плагин, которому принадлежит сущность
+     * @param string                $entityName  имя сущности (без имени плагина и слова «Entity»)
      *
      * @return ORM_Table
      *
      * @throws InvalidArgumentException
+     * @throws RuntimeException
      *
      * @since 1.00
      */
     public static function getTable($plugin, $entityName)
     {
-        if (!($plugin instanceof Plugin) && !($plugin instanceof TPlugin))
+        if (is_string($plugin))
         {
-            throw new InvalidArgumentException('$plugin must be Plugin or TPlugin instance.');
+            $name = $plugin;
+            $plugin = Eresus_Kernel::app()->getLegacyKernel()->plugins->load($plugin);
+            if (false === $plugin)
+            {
+                throw new RuntimeException(sprintf('Plugin "%s" not found or inactive', $name));
+            }
         }
-        $className = get_class($plugin);
-        if ($plugin instanceof TPlugin)
-        {
-            // Удаляем букву «T» из начала имени класса
-            $className = substr($className, 1);
-        }
-        $className .= '_Entity_Table_' . $entityName;
-        if (!isset(self::$tables[$className]))
-        {
-            self::$tables[$className] = new $className($plugin);
-        }
-        return self::$tables[$className];
-    }
-
-    /**
-     * Возвращает возможные типы полей
-     *
-     * @return array
-     *
-     * @since 1.00
-     */
-    public static function fieldTypes()
-    {
-        return self::$filedTypes;
+        return self::getManager()->getTable($plugin, $entityName);
     }
 }
 

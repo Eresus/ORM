@@ -1,10 +1,10 @@
 <?php
 /**
- * Элемент списка {@link UI_List}
+ * Поле типа «string» для MySQL
  *
  * @version ${product.version}
  *
- * @copyright 2011, Михаил Красильников <m.krasilnikov@yandex.ru>
+ * @copyright 2013, Михаил Красильников <m.krasilnikov@yandex.ru>
  * @license http://www.gnu.org/licenses/gpl.txt	GPL License 3
  * @author Михаил Красильников <m.krasilnikov@yandex.ru>
  *
@@ -27,71 +27,36 @@
  * @package ORM
  */
 
+
 /**
- * Элемент списка {@link UI_List}
+ * Поле типа «string» для MySQL
  *
  * @package ORM
+ * @since 3.00
  */
-class ORM_UI_List_Item implements UI_List_Item_Interface
+class ORM_Driver_MySQL_String extends ORM_Driver_SQL_Field
 {
     /**
-     * Сущность
-     *
-     * @var ORM_Entity
-     * @since 1.00
-     */
-    private $entity;
-
-    /**
-     * Конструктор элемента
-     *
-     * @param ORM_Entity $entity  сущность
-     *
-     * @return ORM_UI_List_Item
-     *
-     * @since 1.00
-     */
-    public function __construct(ORM_Entity $entity)
-    {
-        $this->entity = $entity;
-    }
-
-    /**
-     * Прокси к свойствам сущности
-     *
-     * @param string $property  имя свойства
-     *
-     * @return mixed
-     *
-     * @since 1.00
-     */
-    public function __get($property)
-    {
-        return $this->entity->$property;
-    }
-
-    /**
-     * Возвращает идентификатор элемента
+     * Возвращает выражение SQL для описания поля при создании таблицы
      *
      * @return string
-     *
-     * @since 1.00
      */
-    public function getId()
+    public function getSqlFieldDefinition()
     {
-        return $this->entity->getPrimaryKey();
-    }
-
-    /**
-     * Возвращает состояние элемента (вкл/выкл)
-     *
-     * @return bool
-     *
-     * @since 1.00
-     */
-    public function isEnabled()
-    {
-        return $this->entity->active; //TODO Это надо как-то переделать.
+        $sql = $this->field->getName() . ' ';
+        if ($this->field->hasParam('length') && $this->field->getParam('length') <= 255)
+        {
+            $sql .= 'VARCHAR(' . $this->field->getParam('length') . ')';
+        }
+        elseif (!$this->field->hasParam('length') || $this->field->getParam('length') <= 65535)
+        {
+            $sql .= 'TEXT';
+        }
+        else
+        {
+            $sql .= 'LONGTEXT';
+        }
+        return $sql;
     }
 }
 

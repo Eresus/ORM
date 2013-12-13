@@ -1,12 +1,10 @@
 <?php
 /**
- * ORM
- *
- * Модульные тесты
+ * Поле типа «integer» для MySQL
  *
  * @version ${product.version}
  *
- * @copyright 2011, Михаил Красильников <m.krasilnikov@yandex.ru>
+ * @copyright 2013, Михаил Красильников <m.krasilnikov@yandex.ru>
  * @license http://www.gnu.org/licenses/gpl.txt	GPL License 3
  * @author Михаил Красильников <m.krasilnikov@yandex.ru>
  *
@@ -27,40 +25,36 @@
  * <http://www.gnu.org/licenses/>
  *
  * @package ORM
- * @subpackage Tests
- *
- * $Id: bootstrap.php 1849 2011-10-03 17:34:22Z mk $
  */
 
-
-require_once __DIR__ . '/../../bootstrap.php';
-require_once TESTS_SRC_DIR . '/orm/classes/Table.php';
-require_once TESTS_SRC_DIR . '/orm/classes/Table/Cached.php';
 
 /**
+ * Поле типа «integer» для MySQL
+ *
  * @package ORM
- * @subpackage Tests
+ * @since 3.00
  */
-class ORM_Table_Cached_Test extends PHPUnit_Framework_TestCase
+class ORM_Driver_MySQL_Integer extends ORM_Driver_SQL_Field
 {
     /**
-     * @covers ORM_Table_Cached::fillCache
+     * Возвращает выражение SQL для описания поля при создании таблицы
+     *
+     * @return string
      */
-    public function testFillCache()
+    public function getSqlFieldDefinition()
     {
-        $table = $this->getMockBuilder('ORM_Table_Cached')->disableOriginalConstructor()->
-            setMethods(array('setTableDefinition', 'createSelectQuery', 'loadFromQuery'))->getMock();
-        $table->expects($this->once())->method('createSelectQuery')->
-            will($this->returnValue(new ezcQuerySelect()));
-        $item = new stdClass();
-        $item->id = 0;
-        $table->expects($this->once())->method('loadFromQuery')->will($this->returnValue(array($item)));
-
-        $m_fillCache = new ReflectionMethod('ORM_Table_Cached', 'fillCache');
-        $m_fillCache->setAccessible(true);
-
-        $m_fillCache->invoke($table);
-        $m_fillCache->invoke($table);
+        $sql = $this->field->getName() . ' INT';
+        $length = $this->field->hasParam('length') ? $this->field->getParam('length') : 10;
+        $sql .= '(' . $length . ')';
+        if ($this->field->getParam('unsigned'))
+        {
+            $sql .= ' UNSIGNED';
+        }
+        if ($this->field->hasParam('autoincrement'))
+        {
+            $sql .= ' AUTO_INCREMENT';
+        }
+        return $sql;
     }
 }
 

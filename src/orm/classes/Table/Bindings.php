@@ -1,10 +1,10 @@
 <?php
 /**
- * Элемент списка {@link UI_List}
+ * Таблица привязок
  *
  * @version ${product.version}
  *
- * @copyright 2011, Михаил Красильников <m.krasilnikov@yandex.ru>
+ * @copyright 2013, Михаил Красильников <m.krasilnikov@yandex.ru>
  * @license http://www.gnu.org/licenses/gpl.txt	GPL License 3
  * @author Михаил Красильников <m.krasilnikov@yandex.ru>
  *
@@ -28,70 +28,67 @@
  */
 
 /**
- * Элемент списка {@link UI_List}
+ * Таблица привязок
  *
  * @package ORM
+ * @since 3.00
  */
-class ORM_UI_List_Item implements UI_List_Item_Interface
+class ORM_Table_Bindings extends ORM_Table
 {
     /**
-     * Сущность
-     *
-     * @var ORM_Entity
-     * @since 1.00
+     * @var ORM_Table
      */
-    private $entity;
+    private $baseTable;
 
     /**
-     * Конструктор элемента
-     *
-     * @param ORM_Entity $entity  сущность
-     *
-     * @return ORM_UI_List_Item
-     *
-     * @since 1.00
+     * @var string
      */
-    public function __construct(ORM_Entity $entity)
+    private $property;
+
+    /**
+     * Конструктор
+     *
+     * @param ORM_Table $baseTable  таблица, хранящая базовые объекты
+     * @param string    $property   свойство, привязки к которому хранит таблица
+     */
+    public function __construct(ORM_Table $baseTable, $property)
     {
-        $this->entity = $entity;
+        assert('is_string($property)');
+        assert('"" != $property');
+        $this->baseTable = $baseTable;
+        $this->property = $property;
+        parent::__construct($baseTable->getPlugin(), $baseTable->getDriver());
     }
 
     /**
-     * Прокси к свойствам сущности
-     *
-     * @param string $property  имя свойства
-     *
-     * @return mixed
-     *
-     * @since 1.00
-     */
-    public function __get($property)
-    {
-        return $this->entity->$property;
-    }
-
-    /**
-     * Возвращает идентификатор элемента
+     * Возвращает имя поля, относящегося к базовой таблице
      *
      * @return string
-     *
-     * @since 1.00
      */
-    public function getId()
+    public function getSourceField()
     {
-        return $this->entity->getPrimaryKey();
+        return preg_replace('/^.*?_/', '', $this->baseTable->getName());
     }
 
     /**
-     * Возвращает состояние элемента (вкл/выкл)
-     *
-     * @return bool
-     *
-     * @since 1.00
+     * Описание таблицы
      */
-    public function isEnabled()
+    protected function setTableDefinition()
     {
-        return $this->entity->active; //TODO Это надо как-то переделать.
+        $this->setTableName($this->baseTable->getName() . '_' . $this->property);
+
+        $sourceField = $this->getSourceField();
+        $this->hasColumns(array(
+            $sourceField => array(
+                'type' => 'integer',
+                'unsigned' => true
+            ),
+            $this->property => array(
+                'type' => 'integer',
+                'unsigned' => true
+            ),
+        ));
+        $this->setPrimaryKey(array($sourceField, $this->property));
     }
 }
 

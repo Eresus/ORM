@@ -12,22 +12,12 @@ use Mekras\TestDoubles\MockFacade;
 require_once __DIR__ . '/../../vendor/autoload.php';
 
 /**
- * Заглушка для класса Eresus_Plugin
- *
- * @package Eresus
- * @subpackage Tests
- */
-class Eresus_Plugin extends UniversalStub
-{
-}
-
-/**
  * Заглушка для класса Plugin
  *
  * @package Eresus
  * @subpackage Tests
  */
-class Plugin extends Eresus_Plugin
+class Plugin extends UniversalStub
 {
 }
 
@@ -69,6 +59,17 @@ class Eresus_CMS extends MockFacade
  */
 class DB extends MockFacade
 {
+    private static $handler;
+
+    public static function setHandler($handler)
+    {
+        self::$handler = $handler;
+    }
+
+    public static function getHandler()
+    {
+        return self::$handler;
+    }
 }
 
 /**
@@ -91,6 +92,26 @@ class ezcQuerySelect extends ezcQuery
 {
     const ASC = 'ASC';
     const DESC = 'DESC';
+}
+
+/**
+ * Заглушка для класса ezcQueryInsert
+ *
+ * @package Eresus
+ * @subpackage Tests
+ */
+class ezcQueryInsert extends ezcQuery
+{
+}
+
+/**
+ * Заглушка для класса ezcQueryUpdate
+ *
+ * @package Eresus
+ * @subpackage Tests
+ */
+class ezcQueryUpdate extends ezcQuery
+{
 }
 
 class EresusRuntimeException extends Exception

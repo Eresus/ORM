@@ -1,10 +1,10 @@
 <?php
 /**
- * Элемент списка {@link UI_List}
+ * Поле типа «timestamp»
  *
  * @version ${product.version}
  *
- * @copyright 2011, Михаил Красильников <m.krasilnikov@yandex.ru>
+ * @copyright 2013, Михаил Красильников <m.krasilnikov@yandex.ru>
  * @license http://www.gnu.org/licenses/gpl.txt	GPL License 3
  * @author Михаил Красильников <m.krasilnikov@yandex.ru>
  *
@@ -27,71 +27,89 @@
  * @package ORM
  */
 
+
 /**
- * Элемент списка {@link UI_List}
+ * Поле типа «timestamp»
  *
  * @package ORM
+ * @since 3.00
  */
-class ORM_UI_List_Item implements UI_List_Item_Interface
+class ORM_Field_Timestamp extends ORM_Field_Abstract
 {
     /**
-     * Сущность
-     *
-     * @var ORM_Entity
-     * @since 1.00
-     */
-    private $entity;
-
-    /**
-     * Конструктор элемента
-     *
-     * @param ORM_Entity $entity  сущность
-     *
-     * @return ORM_UI_List_Item
-     *
-     * @since 1.00
-     */
-    public function __construct(ORM_Entity $entity)
-    {
-        $this->entity = $entity;
-    }
-
-    /**
-     * Прокси к свойствам сущности
-     *
-     * @param string $property  имя свойства
-     *
-     * @return mixed
-     *
-     * @since 1.00
-     */
-    public function __get($property)
-    {
-        return $this->entity->$property;
-    }
-
-    /**
-     * Возвращает идентификатор элемента
+     * Возвращает имя типа
      *
      * @return string
      *
-     * @since 1.00
+     * @since 3.00
      */
-    public function getId()
+    public function getTypeName()
     {
-        return $this->entity->getPrimaryKey();
+        return 'timestamp';
     }
 
     /**
-     * Возвращает состояние элемента (вкл/выкл)
+     * Возвращает соответствующий тип PDO (PDO::PARAM_…) или null
      *
-     * @return bool
+     * @return null|int
      *
-     * @since 1.00
+     * @since 3.00
      */
-    public function isEnabled()
+    public function getPdoType()
     {
-        return $this->entity->active; //TODO Это надо как-то переделать.
+        return PDO::PARAM_INT;
+    }
+
+    /**
+     * Преобразует значение ORM в значение PDO
+     *
+     * @param mixed $ormValue
+     *
+     * @throws InvalidArgumentException
+     *
+     * @return mixed
+     *
+     * @since 3.00
+     */
+    public function orm2pdo($ormValue)
+    {
+        if (is_null($ormValue))
+        {
+            return null;
+        }
+        if ($ormValue instanceof DateTime)
+        {
+            /* @var DateTime $ormValue */
+            return $ormValue->getTimestamp();
+        }
+        else
+        {
+            return intval($ormValue);
+        }
+    }
+
+    /**
+     * Преобразует значение PDO в значение ORM
+     *
+     * @param mixed $pdoValue
+     *
+     * @return mixed
+     *
+     * @since 3.00
+     */
+    public function pdo2orm($pdoValue)
+    {
+        return new DateTime('@' . strval($pdoValue));
+    }
+
+    /**
+     * Возвращает выражение SQL для описания поля при создании таблицы
+     *
+     * @return string
+     */
+    public function getSqlFieldDefinition()
+    {
+        return $this->getName() . ' TIMESTAMP';
     }
 }
 

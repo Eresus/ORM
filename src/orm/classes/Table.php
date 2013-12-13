@@ -40,11 +40,11 @@ abstract class ORM_Table
      *
      * @var Plugin|TPlugin
      */
-    protected $plugin;
+    private $plugin;
 
     /**
      * Драйвер СУБД
-     * @var ORM_Driver_Abstract
+     * @var ORM_Driver_SQL
      * @since 2.01
      */
     private $driver;
@@ -55,6 +55,16 @@ abstract class ORM_Table
      * @var string
      */
     private $tableName;
+
+    /**
+     * Признак того, что таблица является псевдонимом другой
+     *
+     * В этом случае в {@link tableName} хранится имя основной таблицы
+     *
+     * @var bool
+     * @since 3.00
+     */
+    private $isAlias = false;
 
     /**
      * Описание столбцов
@@ -75,7 +85,7 @@ abstract class ORM_Table
      *
      * @var string
      */
-    private $primaryKey = null;
+    private $primaryKey = 'id';
 
     /**
      * Порядок сортировки
@@ -94,49 +104,167 @@ abstract class ORM_Table
     private $indexes = array();
 
     /**
+     * Реестр объектов
+     *
+     * @var ORM_Entity[]
+     *
+     * @since 3.00
+     */
+    private $registry = array();
+
+    /**
      * Конструктор
      *
-     * @param Plugin|TPlugin      $plugin
-     * @param ORM_Driver_Abstract $driver
+     * @param Plugin|TPlugin $plugin
+     * @param ORM_Driver_SQL $driver
      *
      * @return ORM_Table
      *
      * @since 1.00
      */
-    public function __construct($plugin, ORM_Driver_Abstract $driver = null)
+    public function __construct($plugin, ORM_Driver_SQL $driver)
     {
         $this->plugin = $plugin;
-        if (null === $driver)
-        {
-            $driver = new ORM_Driver_MySQL();
-        }
         $this->driver = $driver;
         $this->setTableDefinition();
     }
 
     /**
-     * Создаёт таблицу в БД
+     * Возвращает модуль-владелец
      *
-     * @return void
+     * @return Plugin|TPlugin
      *
-     * @since 1.00
+     * @since 3.00
      */
-    public function create()
+    public function getPlugin()
     {
-        $this->driver->createTable($this->getTableName(), $this->columns, $this->getPrimaryKey(),
-            $this->indexes);
+        return $this->plugin;
     }
 
     /**
-     * Удаляет таблицу из БД
+     * Возвращает драйвер СУБД
      *
-     * @return void
+     * @return ORM_Driver_SQL
      *
-     * @since 1.00
+     * @since 3.00
      */
-    public function drop()
+    public function getDriver()
     {
-        $this->driver->dropTable($this->getTableName());
+        return $this->driver;
+    }
+
+    /**
+     * Возвращает имя таблицы
+     *
+     * @return string
+     *
+     * @since 3.00
+     */
+    public function getName()
+    {
+        return $this->tableName;
+    }
+
+    /**
+     * Возвращает имя таблицы
+     *
+     * @return string
+     *
+     * @since 1.00, публичный с 3.00
+     * @deprecated используйте {@link getName()}
+     */
+    public function getTableName()
+    {
+        return $this->getName();
+    }
+
+    /**
+     * Возвращает имя класса сущности
+     *
+     * @return string
+     *
+     * @since 1.00, публичный с 3.00
+     */
+    public function getEntityClass()
+    {
+        if (is_null($this->entityClass))
+        {
+            $thisClass = get_class($this);
+            $this->entityClass = str_replace('_Table_', '_', $thisClass);
+        }
+        return $this->entityClass;
+    }
+
+    /**
+     * Возвращает поля таблицы
+     *
+     * @return ORM_Field_Abstract[]
+     *
+     * @since 3.00
+     */
+    public function getColumns()
+    {
+        return $this->columns;
+    }
+
+    /**
+     * Возвращает имя основного ключа
+     *
+     * @return string
+     *
+     * @since 1.00, публичный с 3.00
+     */
+    public function getPrimaryKey()
+    {
+        return $this->primaryKey;
+    }
+
+    /**
+     * Назначет основной ключ
+     *
+     * @param string|array $key
+     *
+     * @since 3.00
+     */
+    protected function setPrimaryKey($key)
+    {
+        $this->primaryKey = $key;
+    }
+
+    /**
+     * Возвращает сортировку
+     *
+     * @return array
+     *
+     * @since 3.00
+     */
+    public function getOrdering()
+    {
+        return $this->ordering;
+    }
+
+    /**
+     * Возвращает индексы
+     *
+     * @return array
+     *
+     * @since 3.00
+     */
+    public function getIndexes()
+    {
+        return $this->indexes;
+    }
+
+    /**
+     * Возвращает true если этот класс является псевдонимом другой таблицы
+     *
+     * @return bool
+     *
+     * @since 3.00
+     */
+    public function isAlias()
+    {
+        return $this->isAlias;
     }
 
     /**
@@ -147,26 +275,18 @@ abstract class ORM_Table
      * @return void
      *
      * @since 1.00
-     * @uses ORM_Entity::afterSave()
-     * @uses DB::createInsertQuery()
-     * @uses DB::execute()
-     * @uses ezcQueryInsert::insertInto()
-     * @uses ezcQueryInsert::set()
-     * @uses ezcQueryInsert::bindValue()
-     * @uses DB::getHandler()
-     * @uses ezcDbHandler::lastInsertId()
      */
     public function persist(ORM_Entity $entity)
     {
         $q = DB::getHandler()->createInsertQuery();
-        $q->insertInto($this->getTableName());
+        $q->insertInto($this->getName());
         $this->bindValuesToQuery($entity, $q);
-        $entity->beforeSave($q);
-        DB::execute($q);
-        if (@$this->columns[$this->primaryKey]['autoincrement'])
+        $newQuery = $entity->beforeSave($q);
+        if ($newQuery instanceof ezcQuery)
         {
-            $entity->{$this->primaryKey} = DB::getHandler()->lastInsertId();
+            $q = $newQuery;
         }
+        DB::execute($q);
         $entity->afterSave();
     }
 
@@ -178,23 +298,22 @@ abstract class ORM_Table
      * @return void
      *
      * @since 1.00
-     * @uses ORM_Entity::afterSave()
-     * @uses DB::createUpdateQuery()
-     * @uses DB::execute()
-     * @uses ezcQueryUpdate::update()
-     * @uses ezcQueryUpdate::$expr
-     * @uses ezcQueryUpdate::bindValue()
      */
     public function update(ORM_Entity $entity)
     {
         $pKey = $this->getPrimaryKey();
+        $columns = $this->getColumns();
         $q = DB::getHandler()->createUpdateQuery();
-        $q->update($this->getTableName())->
+        $q->update($this->getName())->
             where($q->expr->eq($pKey,
-                $q->bindValue($entity->$pKey, null, $this->pdoFieldType(@$this->columns[$pKey]['type']))
+                $q->bindValue($entity->$pKey, null, $columns[$pKey]->getPdoType())
             ));
         $this->bindValuesToQuery($entity, $q);
-        $entity->beforeSave($q);
+        $newQuery = $entity->beforeSave($q);
+        if ($newQuery instanceof ezcQuery)
+        {
+            $q = $newQuery;
+        }
         DB::execute($q);
         $entity->afterSave();
     }
@@ -211,10 +330,11 @@ abstract class ORM_Table
     public function delete(ORM_Entity $entity)
     {
         $pKey = $this->getPrimaryKey();
+        $columns = $this->getColumns();
         $q = DB::getHandler()->createDeleteQuery();
-        $q->deleteFrom($this->getTableName())->
+        $q->deleteFrom($this->getName())->
             where($q->expr->eq($pKey,
-                $q->bindValue($entity->$pKey, null, $this->pdoFieldType(@$this->columns[$pKey]['type']))
+                $q->bindValue($entity->getPrimaryKey(), null, $columns[$pKey]->getPdoType())
             ));
         $entity->beforeDelete($q);
         DB::execute($q);
@@ -259,6 +379,43 @@ abstract class ORM_Table
     }
 
     /**
+     * Возвращает все записи, удовлетворяющие фильтру
+     *
+     * @param array $filter  набор пар «поле => значение»
+     *
+     * @throws LogicException
+     *
+     * @return ORM_Entity[]
+     *
+     * @since 3.00
+     */
+    public function findAllBy(array $filter)
+    {
+        $q = $this->createSelectQuery();
+        $where = array();
+        $columns = $this->getColumns();
+        foreach ($filter as $field => $value)
+        {
+            if (!array_key_exists($field, $columns))
+            {
+                throw new LogicException(sprintf('Unknown column "%s" in filter', $field));
+            }
+            if (!$columns[$field]->canBeUsedInWhere())
+            {
+                throw new LogicException(
+                    sprintf('Field "%s" does not supports filtering', $field));
+            }
+            $where []= $q->expr->eq($field, $q->bindValue(
+                $columns[$field]->orm2pdo($value),
+                ":$field",
+                $columns[$field]->getPdoType())
+            );
+        }
+        $q->where($q->expr->lAnd($where));
+        return $this->loadFromQuery($q);
+    }
+
+    /**
      * Возвращает сущность по основному ключу
      *
      * @param mixed $id
@@ -269,11 +426,22 @@ abstract class ORM_Table
      */
     public function find($id)
     {
+        if (array_key_exists($id, $this->registry))
+        {
+            return $this->registry[$id];
+        }
+
+        $columns = $this->getColumns();
         $pKey = $this->getPrimaryKey();
         $q = $this->createSelectQuery();
-        $q->where($q->expr->eq($pKey,
-            $q->bindValue($id, null, $this->pdoFieldType(@$this->columns[$pKey]['type']))));
-        return $this->loadOneFromQuery($q);
+        $q->where($q->expr->eq($pKey, $q->bindValue($id, null, $columns[$pKey]->getPdoType())));
+        $entity = $this->loadOneFromQuery($q);
+
+        if (null !== $entity)
+        {
+            $this->registry[$id] = $entity;
+        }
+        return $entity;
     }
 
     /**
@@ -288,21 +456,33 @@ abstract class ORM_Table
     public function createSelectQuery($fill = true)
     {
         $q = DB::getHandler()->createSelectQuery();
-        $q->from($this->getTableName());
         if ($fill)
         {
-            $q->select('*');
-            if (count($this->ordering))
+            $columns = $this->getColumns();
+
+            $select = array($this->getName() . '.*');
+            foreach ($columns as $column)
             {
-                foreach ($this->ordering as $orderBy)
+                $select = $column->onSelect($q, $select);
+            }
+            $q->selectDistinct($select);
+
+            $q->from($this->getName());
+            foreach ($columns as $column)
+            {
+                $column->onFrom($q);
+            }
+            if (count($this->getOrdering()) > 0)
+            {
+                foreach ($this->getOrdering() as $orderBy)
                 {
-                    call_user_func_array(array($q, 'orderBy'), $orderBy);
+                    $q->orderBy($orderBy[0], $orderBy[1]);
                 }
             }
-            elseif (isset($this->columns['position']))
-            {
-                $q->orderBy('position');
-            }
+        }
+        else
+        {
+            $q->from($this->getName());
         }
         return $q;
     }
@@ -318,7 +498,7 @@ abstract class ORM_Table
     {
         $q = DB::getHandler()->createSelectQuery();
         $q->select($q->alias($q->expr->count('*'), 'record_count'));
-        $q->from($this->getTableName());
+        $q->from($this->getName());
         $q->limit(1);
         return $q;
     }
@@ -330,7 +510,7 @@ abstract class ORM_Table
      * @param int            $limit   максимум элементов, который следует вернуть
      * @param int            $offset  сколько элементов пропустить
      *
-     * @return array
+     * @return ORM_Entity_Collection
      *
      * @since 1.00
      */
@@ -341,12 +521,12 @@ abstract class ORM_Table
             $query->limit($limit, $offset);
         }
         $raw = DB::fetchAll($query);
-        $items = array();
+        $items = new ORM_Entity_Collection();
         if ($raw)
         {
             foreach ($raw as $attrs)
             {
-                $items []= $this->entityFactory($attrs);
+                $items->attach($this->entityFactory($attrs));
             }
         }
         return $items;
@@ -372,7 +552,6 @@ abstract class ORM_Table
         return null;
     }
 
-    //@codeCoverageIgnoreStart
     /**
      * Метод должен устанавливать свойства таблицы БД
      *
@@ -387,32 +566,66 @@ abstract class ORM_Table
      * @since 1.00
      */
     abstract protected function setTableDefinition();
-    //@codeCoverageIgnoreEnd
 
     /**
      * Устанавлвиает имя таблицы
      *
      * @param string $name
      *
+     * @throws LogicException  если перед setTableName() был вызван {@link isAlias()} или
+     *                         setTableName() вызван повторно
      * @return void
      *
      * @since 1.00
      */
     protected function setTableName($name)
     {
+        if (null !== $this->tableName)
+        {
+            if ($this->isAlias)
+            {
+                throw new LogicException(
+                    'Method setTableName() can not be executed after isAlias()');
+            }
+            else
+            {
+                throw new LogicException(
+                    'Method setTableName() can not be executed more then once');
+            }
+        }
         $this->tableName = $name;
     }
 
     /**
-     * Возвращает имя таблицы
+     * Объявляет таблицу псевдонимом другой таблицы
      *
-     * @return string
+     * Если вы используете этот метод в {@link setTableDefinition()}, то методы
+     * {@link setTableName()} и {@link index()} использовать нельзя.
      *
-     * @since 1.00
+     * @param string $tableName  имя основной таблицы (это имя именно таблицы БД, а не её класса)
+     *
+     * @throws LogicException  если перед isAlias() был вызван {@link setTableName()} или isAlias()
+     *                         вызван повторно
+     *
+     * @since 3.00
      */
-    protected function getTableName()
+    protected function isAliasFor($tableName)
     {
-        return $this->tableName;
+        if (null !== $this->tableName)
+        {
+            if ($this->isAlias)
+            {
+                throw new LogicException(
+                    'Method isAlias() can not be executed more then once');
+            }
+            else
+            {
+                throw new LogicException(
+                    'Method isAlias() can not be executed after setTableName()');
+            }
+        }
+        $this->tableName = $tableName;
+        $this->isAlias = true;
     }
 
     /**
@@ -424,23 +637,32 @@ abstract class ORM_Table
      * котором можно использовать следующие ключи:
      *
      * - type (string) — тип поля (см. ниже).
-     * - autoincrement (bool) — Автоинкримент. Допустим только у первого столбца.
+     * - autoincrement (bool) — Автоинкрементное. Допустим только у первого столбца.
      * - length (int) — размер столбца.
      * - unsigned (bool) — беззнаковое число.
      *
-     * Первый столбцец всегда назначается основным ключом.
+     * Первый столбец всегда назначается основным ключом.
      *
      * Возможные типы полей:
      *
+     * - bindings — список привязок к другим сущностям
      * - boolean
-     * - integer
-     * - float
-     * - string
-     * - timestamp
-     * - time
      * - date
+     * - datetime
+     * - entity — ссылка на другую сущность
+     * - entities — коллекция других сущностей
+     * - float
+     * - integer
+     * - string
+     * - time
+     * - timestamp — хранится как целое число
+     *
+     * Более подробные описания этих типов можно найти в документации по соответствующим классам
+     * ORM_Field_xxx.
      *
      * @param array $columns
+     *
+     * @throws InvalidArgumentException
      *
      * @return void
      *
@@ -448,7 +670,40 @@ abstract class ORM_Table
      */
     protected function hasColumns(array $columns)
     {
-        $this->columns = $columns;
+        $fieldTypes = $this->getDriver()->getManager()->getFieldTypes();
+        $this->columns = array();
+        foreach ($columns as $name => $attrs)
+        {
+            if (!is_string($name))
+            {
+                throw new InvalidArgumentException(sprintf(
+                    'Column name must be a string, got "%s"', gettype($name)));
+            }
+            if (!preg_match('/^[a-z_]+$/i', $name))
+            {
+                throw new InvalidArgumentException(sprintf(
+                    'Column name must be a non empty string consisted of "a-zA-Z" or "_", got "%s"',
+                    $name));
+            }
+            if (!is_array($attrs))
+            {
+                throw new InvalidArgumentException(
+                    sprintf('Definition of column "%s" is not an array', $name));
+            }
+            if (!array_key_exists('type', $attrs))
+            {
+                throw new InvalidArgumentException(
+                    sprintf('No "type" element in "%s" definition', $name));
+            }
+            if (!array_key_exists($attrs['type'], $fieldTypes))
+            {
+                throw new InvalidArgumentException(
+                    sprintf('Unsupported type "%s" in "%s" definition', $attrs['type'], $name));
+            }
+            $fieldTypeClass = $fieldTypes[$attrs['type']];
+            unset($attrs['type']);
+            $this->columns[$name] = new $fieldTypeClass($this, $name, $attrs);
+        }
         reset($columns);
         $this->primaryKey = key($columns);
     }
@@ -469,39 +724,10 @@ abstract class ORM_Table
     }
 
     /**
-     * Возвращает имя класса сущности
-     *
-     * @return string
-     *
-     * @since 1.00
-     */
-    protected function getEntityClass()
-    {
-        if (is_null($this->entityClass))
-        {
-            $thisClass = get_class($this);
-            $this->entityClass = str_replace('_Table_', '_', $thisClass);
-        }
-        return $this->entityClass;
-    }
-
-    /**
-     * Возвращает имя основного ключа
-     *
-     * @return string
-     *
-     * @since 1.00
-     */
-    protected function getPrimaryKey()
-    {
-        return $this->primaryKey;
-    }
-
-    /**
      * Задаёт порядок сортировки по умолчанию
      *
      * Если порядок сортировки не задан, но есть поле «position» сортировка будет осуществляться по
-     * нему по умочланию.
+     * нему по умолчанию.
      *
      * Примеры:
      * <code>
@@ -513,14 +739,11 @@ abstract class ORM_Table
      * $this->setOrdering('title', 'ASC', 'date', 'DESC');
      * </code>
      *
-     * @param string $field
-     * @param string $dir
-     *
      * @return void
      *
      * @since 1.00
      */
-    protected function setOrdering($field, $dir = ezcQuerySelect::ASC)
+    protected function setOrdering()
     {
         $args = func_get_args();
         if (count($args) % 2 != 0)
@@ -537,74 +760,11 @@ abstract class ORM_Table
     }
 
     /**
-     * Возвращает тип поля PDO на основе типа поля ORM
-     *
-     * @param string $ormFieldType
-     *
-     * @throws InvalidArgumentException если $ormFieldType не строка или содержит неизвестный тип
-     *
-     * @return int|null
-     *
-     * @since 1.00
-     */
-    protected function pdoFieldType($ormFieldType)
-    {
-        if (!is_string($ormFieldType))
-        {
-            throw new InvalidArgumentException('$ormFieldType must be of type string, ' .
-                gettype($ormFieldType) . ' given');
-        }
-
-        switch ($ormFieldType)
-        {
-            case 'boolean':
-                $type = PDO::PARAM_BOOL;
-                break;
-            case 'integer':
-                $type = PDO::PARAM_INT;
-                break;
-            case 'float':
-                $type = null;
-                break;
-            case 'string':
-            case 'timestamp':
-            case 'time':
-            case 'date':
-                $type = PDO::PARAM_STR;
-                break;
-            default:
-                throw new InvalidArgumentException('Unknown field type: ' . $ormFieldType);
-        }
-        return $type;
-    }
-
-    /**
-     * Возвращает значение поля, пригодное для использования с PDO
-     *
-     * @param mixed  $ormValue      значение поля
-     * @param string $ormFieldType  см. {@link hasColumns()}
-     *
-     * @throws InvalidArgumentException
-     *
-     * @return mixed
-     *
-     * @since 1.00
-     */
-    protected function pdoFieldValue($ormValue, $ormFieldType)
-    {
-        if (!is_string($ormFieldType))
-        {
-            throw new InvalidArgumentException('$ormFieldType must be of type string, ' .
-                gettype($ormFieldType) . ' given');
-        }
-
-        return $this->driver->pdoFieldValue($ormValue, $ormFieldType);
-    }
-
-    /**
      * Фабрика сущностей
      *
      * @param array $values
+     *
+     * @throws InvalidArgumentException
      *
      * @return ORM_Entity
      *
@@ -612,19 +772,20 @@ abstract class ORM_Table
      */
     protected function entityFactory(array $values)
     {
-        $entityClass = $this->getEntityClass();
-        foreach ($this->columns as $name => $attrs)
+        if (!array_key_exists($this->getPrimaryKey(), $values))
         {
-            switch (@$attrs['type'])
-            {
-                case 'date':
-                case 'time':
-                case 'timestamp':
-                    $values[$name] = new DateTime($values[$name]);
-                    break;
-            }
+            throw new InvalidArgumentException('Primary key not found in a given array');
         }
-        $entity = new $entityClass($this->plugin, $values);
+
+        $id = $values[$this->getPrimaryKey()];
+        if (array_key_exists($id, $this->registry))
+        {
+            return $this->registry[$id];
+        }
+
+        $entityClass = $this->getEntityClass();
+        $entity = new $entityClass($values);
+        $this->registry[$id] = $entity;
         return $entity;
     }
 
@@ -634,14 +795,17 @@ abstract class ORM_Table
      * @param ORM_Entity $entity  объект
      * @param ezcQuery   $query   запрос
      */
-    private function bindValuesToQuery(ORM_Entity $entity, ezcQuery $query)
+    protected function bindValuesToQuery(ORM_Entity $entity, ezcQuery $query)
     {
         /** @var ezcQueryInsert|ezcQueryUpdate $query */
-        foreach ($this->columns as $name => $attrs)
+        foreach ($this->getColumns() as $name => $column)
         {
-            $type = $this->pdoFieldType(@$attrs['type']);
-            $value = $this->pdoFieldValue($entity->getProperty($name), @$attrs['type']);
-            $query->set($name, $query->bindValue($value, ":$name", $type));
+            if ($column->isVirtual())
+            {
+                continue;
+            }
+            $value = $entity->getPdoValue($name);
+            $query->set($name, $query->bindValue($value, ":$name", $column->getPdoType()));
         }
     }
 }
