@@ -69,7 +69,7 @@ class ORM_Field_Integer extends ORM_Field_Abstract
     {
         if ($entity->getEntityState() == ORM_Entity::IS_NEW && $this->getParam('autoincrement'))
         {
-            $entity->{$this->getName()} = DB::getHandler()->lastInsertId();
+            $entity->{$this->getName()} = Eresus_DB::getHandler()->lastInsertId();
         }
     }
 

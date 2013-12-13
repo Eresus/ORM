@@ -71,7 +71,7 @@ class ORM_Driver_SQL
         {
             return;
         }
-        $db = DB::getHandler();
+        $db = Eresus_DB::getHandler();
         $tableName = $db->options->tableNamePrefix . $table->getName();
 
         $fieldDefinitions = array();
@@ -114,7 +114,7 @@ class ORM_Driver_SQL
         {
             return;
         }
-        $db = DB::getHandler();
+        $db = Eresus_DB::getHandler();
         $tableName = $db->options->tableNamePrefix . $table->getName();
 
         $sql = $this->getDropTableDefinition($tableName);
@@ -215,8 +215,12 @@ class ORM_Driver_SQL
      */
     protected function getIndexDefinition($name, array $params)
     {
-        $type = strtoupper(@$params['type']);
-        return $type . ' KEY ' . $name . ' (' . implode(', ', $params['fields']) . ')';
+        $sql = 'KEY ' . $name . ' (' . implode(', ', $params['fields']) . ')';
+        if (array_key_exists('type', $params))
+        {
+            $sql = strtoupper(@$params['type']) . ' ' . $sql;
+        }
+        return $sql;
     }
 
     /**

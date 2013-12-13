@@ -113,8 +113,12 @@ class ORM_Field_BindingsTest extends PHPUnit_Framework_TestCase
 
         $db = $this->getMock('stdClass', array('createSelectQuery', 'createDeleteQuery',
             'createInsertQuery'));
-        $db->expects($this->once())->method('createSelectQuery')
-            ->will($this->returnValue(new \Mekras\TestDoubles\UniversalStub()));
+        $qs = $this->getMock('\Mekras\TestDoubles\UniversalStub', array('fetchAll'));
+        $qs->expects($this->once())->method('fetchAll')->will($this->returnValue(array(
+            array('main' => 1, 'slave' => 10),
+            array('main' => 3, 'slave' => 30)
+        )));
+        $db->expects($this->once())->method('createSelectQuery')->will($this->returnValue($qs));
 
         $dq = $this->getMock('\Mekras\TestDoubles\UniversalStub', array('bindValue'));
         $dq->expects($this->any())->method('bindValue')->will($this->returnArgument(0));
@@ -138,13 +142,7 @@ class ORM_Field_BindingsTest extends PHPUnit_Framework_TestCase
         ));
         $db->expects($this->once())->method('createInsertQuery')->will($this->returnValue($iq));
 
-        DB::setHandler($db);
-        $DB = $this->getMock('stdClass', array('fetchAll'));
-        $DB->expects($this->once())->method('fetchAll')->will($this->returnValue(array(
-            array('main' => 1, 'slave' => 10),
-            array('main' => 3, 'slave' => 30)
-        )));
-        DB::setMock($DB);
+        Eresus_DB::setHandler($db);
 
         /** @var ORM_Field_Bindings $field */
         $field->afterEntitySave($entity);

@@ -52,24 +52,11 @@ class ORM_ManagerTest extends PHPUnit_Framework_TestCase
     public function testGetTablePlugin()
     {
         $uid = uniqid();
-        $this->getMockBuilder('ORM_Table')->setMockClassName("Plugin_Entity_Table_{$uid}")
+        $this->getMockBuilder('ORM_Table')->setMockClassName("Plugin_{$uid}_Entity_Table_{$uid}")
             ->setMethods(array('setTableDefinition'))->disableOriginalConstructor()->getMock();
-        $plugin = new Plugin();
+        $plugin = $this->getMockForAbstractClass('Eresus_Plugin', array(), 'Plugin_' . $uid);
         $orm = new ORM_Manager();
-        $this->assertInstanceOf("Plugin_Entity_Table_{$uid}", $orm->getTable($plugin, $uid));
-    }
-
-    /**
-     * @covers ORM_Manager::getTable
-     */
-    public function testGetTableTPlugin()
-    {
-        $uid = uniqid();
-        $this->getMockBuilder('ORM_Table')->setMockClassName("Plugin_Entity_Table_{$uid}")
-            ->setMethods(array('setTableDefinition'))->disableOriginalConstructor()->getMock();
-        $plugin = new TPlugin();
-        $orm = new ORM_Manager();
-        $this->assertInstanceOf("Plugin_Entity_Table_{$uid}", $orm->getTable($plugin, $uid));
+        $this->assertInstanceOf("Plugin_{$uid}_Entity_Table_{$uid}", $orm->getTable($plugin, $uid));
     }
 }
 

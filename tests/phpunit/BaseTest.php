@@ -62,7 +62,7 @@ class BaseTest extends PHPUnit_Framework_TestCase
             ->will($this->returnValue(new \Mekras\TestDoubles\UniversalStub()));
         $db->options = new stdClass;
         $db->options->tableNamePrefix = 'prf_';
-        DB::setHandler($db);
+        Eresus_DB::setHandler($db);
     }
 
     /**
@@ -71,7 +71,8 @@ class BaseTest extends PHPUnit_Framework_TestCase
     public function testCreateDropComplexTable()
     {
         $manager = new ORM_Manager();
-        $plugin = new Plugin;
+        /** @var Eresus_Plugin $plugin */
+        $plugin = $this->getMockForAbstractClass('Eresus_Plugin');
         $driver = $this->getMock('ORM_Driver_MySQL', array('none'), array($manager));
         /** @var ORM_Driver_MySQL $driver */
         $manager->setDriver($driver);

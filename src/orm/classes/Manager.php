@@ -107,8 +107,8 @@ class ORM_Manager
     /**
      * Возвращает объект таблицы для указанной сущности указанного плагина
      *
-     * @param Plugin|TPlugin $plugin      плагин, которому принадлежит сущность
-     * @param string         $entityName  имя сущности (без имени плагина и слова «Entity»)
+     * @param Eresus_Plugin $plugin      плагин, которому принадлежит сущность
+     * @param string        $entityName  имя сущности (без имени плагина и слова «Entity»)
      *
      * @return ORM_Table
      *
@@ -118,18 +118,13 @@ class ORM_Manager
      */
     public function getTable($plugin, $entityName)
     {
-        if (!($plugin instanceof Plugin) && !($plugin instanceof TPlugin))
+        if (!($plugin instanceof Eresus_Plugin))
         {
             throw new InvalidArgumentException(
-                sprintf('Argument 1 passed to %s must be Plugin or TPlugin instance, %s given',
+                sprintf('Argument 1 passed to %s must be an instance of Eresus_Plugin, %s given',
                     __METHOD__, is_object($plugin) ? get_class($plugin) : gettype($plugin)));
         }
         $className = get_class($plugin);
-        if ($plugin instanceof TPlugin)
-        {
-            // Удаляем букву «T» из начала имени класса
-            $className = substr($className, 1);
-        }
         $className .= '_Entity_Table_' . $entityName;
         if (!array_key_exists($className, $this->tables))
         {
@@ -187,8 +182,7 @@ class ORM_Manager
         }
         $entityPluginName = substr($entityClass, 0, strpos($entityClass, '_'));
         $entityPluginName = strtolower($entityPluginName);
-        $plugin = Eresus_Kernel::app()->getLegacyKernel()->plugins
-            ->load($entityPluginName);
+        $plugin = Eresus_Plugin_Registry::getInstance()->load($entityPluginName);
         if (!$plugin)
         {
             return null;
