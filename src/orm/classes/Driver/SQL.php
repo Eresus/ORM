@@ -36,11 +36,15 @@
 class ORM_Driver_SQL
 {
     /**
+     * Менеджер ORM
+     *
      * @var ORM_Manager
      */
     private $manager;
 
     /**
+     * Конструктор драйвера
+     *
      * @param ORM_Manager $manager
      */
     public function __construct(ORM_Manager $manager)
@@ -49,6 +53,8 @@ class ORM_Driver_SQL
     }
 
     /**
+     * Возвращает используемый менеджер ORM
+     *
      * @return ORM_Manager
      */
     public function getManager()
@@ -224,6 +230,8 @@ class ORM_Driver_SQL
     }
 
     /**
+     * Возвращает объявление типа поля
+     *
      * @param ORM_Field_Abstract $field
      *
      * @return ORM_Field_Abstract|ORM_Driver_SQL_Field

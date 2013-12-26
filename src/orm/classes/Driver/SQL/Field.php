@@ -37,11 +37,15 @@
 abstract class ORM_Driver_SQL_Field
 {
     /**
+     * Поле, для которого требуется создание SQL
+     *
      * @var ORM_Field_Abstract
      */
     protected $field;
 
     /**
+     * Конструктор
+     *
      * @param ORM_Field_Abstract $field
      */
     public function __construct(ORM_Field_Abstract $field)

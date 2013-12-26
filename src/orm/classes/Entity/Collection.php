@@ -49,6 +49,8 @@ class ORM_Entity_Collection extends SplObjectStorage
     }
 
     /**
+     * Возвращает true если в коллекции содержится указанный объект или объект с указанным ID
+     *
      * @param ORM_Entity|int $entity
      * @return bool
      */
@@ -80,6 +82,10 @@ class ORM_Entity_Collection extends SplObjectStorage
     }
 
     /**
+     * Возвращает количество объектов в коллекции
+     *
+     * Объекты со статусом IS_DELETED при подсчёте не учитываются
+     *
      * @return int
      */
     public function count()
@@ -97,6 +103,10 @@ class ORM_Entity_Collection extends SplObjectStorage
     }
 
     /**
+     * Перемещает внутренний указатель к следующему объекту
+     *
+     * Объекты со статусом IS_DELETED пропускаются
+     *
      * @return void
      */
     public function next()
@@ -109,6 +119,10 @@ class ORM_Entity_Collection extends SplObjectStorage
     }
 
     /**
+     * Перемещает внутренний указатель к началу списка
+     *
+     * Объекты со статусом IS_DELETED пропускаются
+     *
      * @return void
      */
     public function rewind()
@@ -121,6 +135,8 @@ class ORM_Entity_Collection extends SplObjectStorage
     }
 
     /**
+     * Возвращает объект по объекту (да, по самому себе :) или его индексу
+     *
      * @param int|object $offset
      *
      * @throws OutOfBoundsException
@@ -154,6 +170,7 @@ class ORM_Entity_Collection extends SplObjectStorage
 
     /**
      * Возвращает true если текущая сущность помечена как удалённая
+     *
      * @return bool
      */
     private function isCurrentEntityDeleted()

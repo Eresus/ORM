@@ -649,7 +649,7 @@ abstract class ORM_Table
      * - boolean
      * - date
      * - datetime
-     * - entity — ссылка на другую сущность
+     * - entity — {@link ORM_Field_Entities ссылка на другую сущность}
      * - entities — коллекция других сущностей
      * - float
      * - integer

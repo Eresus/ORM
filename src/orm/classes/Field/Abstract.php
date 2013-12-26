@@ -74,6 +74,11 @@ abstract class ORM_Field_Abstract
         $this->params = $params;
     }
 
+    /**
+     * Возвращает имя поля
+     *
+     * @return string
+     */
     public function getName()
     {
         return $this->name;
