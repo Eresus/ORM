@@ -36,6 +36,20 @@
 class ORM_Driver_MySQL extends ORM_Driver_SQL
 {
     /**
+     * Возвращает выражение SQL для описания поля таблицы
+     *
+     * @param ORM_Field_Abstract $field  поле
+     *
+     * @return string  SQL
+     */
+    protected function getFieldDefinition(ORM_Field_Abstract $field)
+    {
+        $sql = parent::getFieldDefinition($field);
+        $sql = preg_replace('/^(\w+)/', '`$1`', $sql);
+        return $sql;
+    }
+
+    /**
      * Возвращает выражение SQL для создания таблицы
      *
      * @param string   $name        имя таблицы
@@ -50,6 +64,24 @@ class ORM_Driver_MySQL extends ORM_Driver_SQL
         return "CREATE TABLE $name ("
         . implode(', ', array_merge($fields, array($primaryKey), $indexes))
         . ') ENGINE InnoDB DEFAULT CHARSET=utf8';
+    }
+
+    /**
+     * Возвращает объявление индекса
+     *
+     * @param string $name
+     * @param array  $params
+     *
+     * @return string  SQL
+     */
+    protected function getIndexDefinition($name, array $params)
+    {
+        foreach ($params['fields'] as &$fieldName)
+        {
+            $fieldName = "`$fieldName`";
+        }
+        $sql = parent::getIndexDefinition($name, $params);
+        return $sql;
     }
 }
 

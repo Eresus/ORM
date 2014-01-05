@@ -83,19 +83,19 @@ class BaseTest extends PHPUnit_Framework_TestCase
 
         $this->assertEquals(
             'CREATE TABLE prf_foo (' .
-                'id INT(10) UNSIGNED AUTO_INCREMENT, ' .
-                'active BOOLEAN DEFAULT 0, ' .
-                'entity INTEGER UNSIGNED, ' .
+                '`id` INT(10) UNSIGNED AUTO_INCREMENT, ' .
+                '`active` BOOLEAN DEFAULT 0, ' .
+                '`entity` INTEGER UNSIGNED, ' .
                 'PRIMARY KEY (id), ' .
-                'KEY active_idx (active)' .
+                'KEY active_idx (`active`)' .
             ') ENGINE InnoDB DEFAULT CHARSET=utf8',
             $this->queries->dequeue()
         );
 
         $this->assertEquals(
             'CREATE TABLE prf_foo_bindings (' .
-            'foo INT(10) UNSIGNED, ' .
-            'bindings INT(10) UNSIGNED, ' .
+            '`foo` INT(10) UNSIGNED, ' .
+            '`bindings` INT(10) UNSIGNED, ' .
             'PRIMARY KEY (foo, bindings)' .
             ') ENGINE InnoDB DEFAULT CHARSET=utf8',
             $this->queries->dequeue()
