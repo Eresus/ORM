@@ -69,6 +69,8 @@ class ORM_Driver_SQL
      *
      * @return void
      *
+     * @throws Eresus_DB_Exception_QueryFailed
+     *
      * @since 3.00
      */
     public function createTable(ORM_Table $table)
@@ -96,7 +98,14 @@ class ORM_Driver_SQL
         }
         $sql = $this->getCreateTableDefinition($tableName, $fieldDefinitions, $primaryKey,
             $indexDefinitions);
-        $db->exec($sql);
+        try
+        {
+            $db->exec($sql);
+        }
+        catch (PDOException $e)
+        {
+            throw Eresus_DB_Exception_QueryFailed::create($sql, $e);
+        }
 
         $columns = $table->getColumns();
         foreach ($columns as $name => $column)
@@ -112,6 +121,8 @@ class ORM_Driver_SQL
      *
      * @return void
      *
+     * @throws Eresus_DB_Exception_QueryFailed
+     *
      * @since 3.00
      */
     public function dropTable(ORM_Table $table)
@@ -124,7 +135,14 @@ class ORM_Driver_SQL
         $tableName = $db->options->tableNamePrefix . $table->getName();
 
         $sql = $this->getDropTableDefinition($tableName);
-        $db->exec($sql);
+        try
+        {
+            $db->exec($sql);
+        }
+        catch (PDOException $e)
+        {
+            throw Eresus_DB_Exception_QueryFailed::create($sql, $e);
+        }
 
         $columns = $table->getColumns();
         foreach ($columns as $name => $column)
