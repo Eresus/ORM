@@ -36,11 +36,15 @@
 class ORM_Driver_SQL
 {
     /**
+     * Менеджер ORM
+     *
      * @var ORM_Manager
      */
     private $manager;
 
     /**
+     * Конструктор драйвера
+     *
      * @param ORM_Manager $manager
      */
     public function __construct(ORM_Manager $manager)
@@ -49,6 +53,8 @@ class ORM_Driver_SQL
     }
 
     /**
+     * Возвращает используемый менеджер ORM
+     *
      * @return ORM_Manager
      */
     public function getManager()
@@ -63,6 +69,8 @@ class ORM_Driver_SQL
      *
      * @return void
      *
+     * @throws Eresus_DB_Exception_QueryFailed
+     *
      * @since 3.00
      */
     public function createTable(ORM_Table $table)
@@ -71,7 +79,7 @@ class ORM_Driver_SQL
         {
             return;
         }
-        $db = DB::getHandler();
+        $db = Eresus_DB::getHandler();
         $tableName = $db->options->tableNamePrefix . $table->getName();
 
         $fieldDefinitions = array();
@@ -90,7 +98,14 @@ class ORM_Driver_SQL
         }
         $sql = $this->getCreateTableDefinition($tableName, $fieldDefinitions, $primaryKey,
             $indexDefinitions);
-        $db->exec($sql);
+        try
+        {
+            $db->exec($sql);
+        }
+        catch (PDOException $e)
+        {
+            throw Eresus_DB_Exception_QueryFailed::create($sql, $e);
+        }
 
         $columns = $table->getColumns();
         foreach ($columns as $name => $column)
@@ -106,6 +121,8 @@ class ORM_Driver_SQL
      *
      * @return void
      *
+     * @throws Eresus_DB_Exception_QueryFailed
+     *
      * @since 3.00
      */
     public function dropTable(ORM_Table $table)
@@ -114,11 +131,18 @@ class ORM_Driver_SQL
         {
             return;
         }
-        $db = DB::getHandler();
+        $db = Eresus_DB::getHandler();
         $tableName = $db->options->tableNamePrefix . $table->getName();
 
         $sql = $this->getDropTableDefinition($tableName);
-        $db->exec($sql);
+        try
+        {
+            $db->exec($sql);
+        }
+        catch (PDOException $e)
+        {
+            throw Eresus_DB_Exception_QueryFailed::create($sql, $e);
+        }
 
         $columns = $table->getColumns();
         foreach ($columns as $name => $column)
@@ -215,11 +239,17 @@ class ORM_Driver_SQL
      */
     protected function getIndexDefinition($name, array $params)
     {
-        $type = strtoupper(@$params['type']);
-        return $type . ' KEY ' . $name . ' (' . implode(', ', $params['fields']) . ')';
+        $sql = 'KEY ' . $name . ' (' . implode(', ', $params['fields']) . ')';
+        if (array_key_exists('type', $params))
+        {
+            $sql = strtoupper(@$params['type']) . ' ' . $sql;
+        }
+        return $sql;
     }
 
     /**
+     * Возвращает объявление типа поля
+     *
      * @param ORM_Field_Abstract $field
      *
      * @return ORM_Field_Abstract|ORM_Driver_SQL_Field

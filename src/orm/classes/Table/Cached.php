@@ -47,6 +47,12 @@ abstract class ORM_Table_Cached extends ORM_Table
     protected $cache = null;
 
     /**
+     * Возвращает сущность по основному ключу
+     *
+     * @param mixed $id
+     *
+     * @return ORM_Entity
+     *
      * @see ORM_Table::find()
      */
     public function find($id)

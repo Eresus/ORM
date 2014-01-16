@@ -66,15 +66,15 @@ class ORM_Driver_MySQLTest extends PHPUnit_Framework_TestCase
         $driver = new ORM_Driver_MySQL(new ORM_Manager());
 
         $field = new ORM_Field_Datetime($table, 'foo', array());
-        $this->assertEquals("foo DATETIME", $method->invoke($driver, $field));
+        $this->assertEquals("`foo` DATETIME", $method->invoke($driver, $field));
 
         $field = new ORM_Field_Integer($table, 'foo',
             array('length' => 5, 'unsigned' => true, 'autoincrement' => true));
-        $this->assertEquals("foo INT(5) UNSIGNED AUTO_INCREMENT",
+        $this->assertEquals("`foo` INT(5) UNSIGNED AUTO_INCREMENT",
             $method->invoke($driver, $field));
 
         $field = new ORM_Field_String($table, 'foo', array('length' => 300));
-        $this->assertEquals("foo TEXT", $method->invoke($driver, $field));
+        $this->assertEquals("`foo` TEXT", $method->invoke($driver, $field));
     }
 }
 

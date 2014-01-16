@@ -150,8 +150,8 @@ class ORM_UI_List_DataProviderTest extends PHPUnit_Framework_TestCase
     }
 }
 
-class ORM_UI_List_DataProvider_Test_Pluign extends Plugin {};
-class ORM_UI_List_DataProvider_Test_Pluign_Entity_Table_foo extends ORM_Table
+class ORM_UI_List_DataProvider_Test_Plugin extends Eresus_Plugin {};
+class ORM_UI_List_DataProvider_Test_Plugin_Entity_Table_foo extends ORM_Table
 {
     protected function setTableDefinition()
     {

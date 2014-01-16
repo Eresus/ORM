@@ -61,6 +61,8 @@ abstract class ORM_Entity
     const IS_DELETED = 4;
 
     /**
+     * Таблица, где хранится этот объект
+     *
      * @var ORM_Table
      */
     private $table;

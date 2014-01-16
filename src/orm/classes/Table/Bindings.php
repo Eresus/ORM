@@ -36,11 +36,14 @@
 class ORM_Table_Bindings extends ORM_Table
 {
     /**
+     * Основная таблица
+     *
      * @var ORM_Table
      */
     private $baseTable;
 
     /**
+     * Поле, по которому производится связывание
      * @var string
      */
     private $property;

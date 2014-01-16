@@ -38,7 +38,7 @@ abstract class ORM_Table
     /**
      * Модуль
      *
-     * @var Plugin|TPlugin
+     * @var Eresus_Plugin
      */
     private $plugin;
 
@@ -115,7 +115,7 @@ abstract class ORM_Table
     /**
      * Конструктор
      *
-     * @param Plugin|TPlugin $plugin
+     * @param Eresus_Plugin  $plugin
      * @param ORM_Driver_SQL $driver
      *
      * @return ORM_Table
@@ -132,7 +132,7 @@ abstract class ORM_Table
     /**
      * Возвращает модуль-владелец
      *
-     * @return Plugin|TPlugin
+     * @return Eresus_Plugin
      *
      * @since 3.00
      */
@@ -220,7 +220,7 @@ abstract class ORM_Table
     }
 
     /**
-     * Назначет основной ключ
+     * Назначает основной ключ
      *
      * @param string|array $key
      *
@@ -278,7 +278,7 @@ abstract class ORM_Table
      */
     public function persist(ORM_Entity $entity)
     {
-        $q = DB::getHandler()->createInsertQuery();
+        $q = Eresus_DB::getHandler()->createInsertQuery();
         $q->insertInto($this->getName());
         $this->bindValuesToQuery($entity, $q);
         $newQuery = $entity->beforeSave($q);
@@ -286,7 +286,7 @@ abstract class ORM_Table
         {
             $q = $newQuery;
         }
-        DB::execute($q);
+        $q->execute();
         $entity->afterSave();
     }
 
@@ -303,7 +303,7 @@ abstract class ORM_Table
     {
         $pKey = $this->getPrimaryKey();
         $columns = $this->getColumns();
-        $q = DB::getHandler()->createUpdateQuery();
+        $q = Eresus_DB::getHandler()->createUpdateQuery();
         $q->update($this->getName())->
             where($q->expr->eq($pKey,
                 $q->bindValue($entity->$pKey, null, $columns[$pKey]->getPdoType())
@@ -314,7 +314,7 @@ abstract class ORM_Table
         {
             $q = $newQuery;
         }
-        DB::execute($q);
+        $q->execute();
         $entity->afterSave();
     }
 
@@ -331,13 +331,13 @@ abstract class ORM_Table
     {
         $pKey = $this->getPrimaryKey();
         $columns = $this->getColumns();
-        $q = DB::getHandler()->createDeleteQuery();
+        $q = Eresus_DB::getHandler()->createDeleteQuery();
         $q->deleteFrom($this->getName())->
             where($q->expr->eq($pKey,
                 $q->bindValue($entity->getPrimaryKey(), null, $columns[$pKey]->getPdoType())
             ));
         $entity->beforeDelete($q);
-        DB::execute($q);
+        $q->execute();
         $entity->afterDelete();
     }
 
@@ -353,7 +353,7 @@ abstract class ORM_Table
     public function count(ezcQuerySelect $query = null)
     {
         $q = $query ? $query : $this->createCountQuery();
-        $raw = DB::fetch($q);
+        $raw = $q->fetch();
         if ($raw)
         {
             return $raw['record_count'];
@@ -455,7 +455,7 @@ abstract class ORM_Table
      */
     public function createSelectQuery($fill = true)
     {
-        $q = DB::getHandler()->createSelectQuery();
+        $q = Eresus_DB::getHandler()->createSelectQuery();
         if ($fill)
         {
             $columns = $this->getColumns();
@@ -496,7 +496,7 @@ abstract class ORM_Table
      */
     public function createCountQuery()
     {
-        $q = DB::getHandler()->createSelectQuery();
+        $q = Eresus_DB::getHandler()->createSelectQuery();
         $q->select($q->alias($q->expr->count('*'), 'record_count'));
         $q->from($this->getName());
         $q->limit(1);
@@ -520,7 +520,7 @@ abstract class ORM_Table
         {
             $query->limit($limit, $offset);
         }
-        $raw = DB::fetchAll($query);
+        $raw = $query->fetchAll();
         $items = new ORM_Entity_Collection();
         if ($raw)
         {
@@ -544,7 +544,7 @@ abstract class ORM_Table
     public function loadOneFromQuery(ezcQuerySelect $query)
     {
         $query->limit(1);
-        $attrs = DB::fetch($query);
+        $attrs = $query->fetch();
         if ($attrs)
         {
             return $this->entityFactory($attrs);
@@ -568,7 +568,7 @@ abstract class ORM_Table
     abstract protected function setTableDefinition();
 
     /**
-     * Устанавлвиает имя таблицы
+     * Устанавливает имя таблицы
      *
      * @param string $name
      *
@@ -649,7 +649,7 @@ abstract class ORM_Table
      * - boolean
      * - date
      * - datetime
-     * - entity — ссылка на другую сущность
+     * - entity — {@link ORM_Field_Entities ссылка на другую сущность}
      * - entities — коллекция других сущностей
      * - float
      * - integer

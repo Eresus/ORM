@@ -34,7 +34,7 @@
  *
  * @package ORM
  */
-class ORM extends Plugin
+class ORM extends Eresus_Plugin
 {
     /**
      * Версия плагина
@@ -46,7 +46,7 @@ class ORM extends Plugin
      * Требуемая версия ядра
      * @var string
      */
-    public $kernel = '3.00';
+    public $kernel = '3.01a';
 
     /**
      * Название плагина
@@ -55,7 +55,7 @@ class ORM extends Plugin
     public $title = 'ORM';
 
     /**
-     * Опиание плагина
+     * Описание плагина
      * @var string
      */
     public $description = 'Средства ORM для использования в других плагинах';
@@ -74,7 +74,7 @@ class ORM extends Plugin
     public static function getManager()
     {
         /** @var ORM $orm */
-        $orm = Eresus_Kernel::app()->getLegacyKernel()->plugins->load('orm');
+        $orm = Eresus_Plugin_Registry::getInstance()->load('orm');
         if (null === $orm->manager)
         {
             $orm->manager = new ORM_Manager();
@@ -85,8 +85,8 @@ class ORM extends Plugin
     /**
      * Возвращает объект таблицы для указанной сущности указанного плагина
      *
-     * @param Plugin|TPlugin|string $plugin      плагин, которому принадлежит сущность
-     * @param string                $entityName  имя сущности (без имени плагина и слова «Entity»)
+     * @param Eresus_Plugin|string $plugin      плагин, которому принадлежит сущность
+     * @param string               $entityName  имя сущности (без имени плагина и слова «Entity»)
      *
      * @return ORM_Table
      *
@@ -100,7 +100,7 @@ class ORM extends Plugin
         if (is_string($plugin))
         {
             $name = $plugin;
-            $plugin = Eresus_Kernel::app()->getLegacyKernel()->plugins->load($plugin);
+            $plugin = Eresus_Plugin_Registry::getInstance()->load($plugin);
             if (false === $plugin)
             {
                 throw new RuntimeException(sprintf('Plugin "%s" not found or inactive', $name));

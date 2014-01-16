@@ -62,7 +62,7 @@ class BaseTest extends PHPUnit_Framework_TestCase
             ->will($this->returnValue(new \Mekras\TestDoubles\UniversalStub()));
         $db->options = new stdClass;
         $db->options->tableNamePrefix = 'prf_';
-        DB::setHandler($db);
+        Eresus_DB::setHandler($db);
     }
 
     /**
@@ -71,7 +71,8 @@ class BaseTest extends PHPUnit_Framework_TestCase
     public function testCreateDropComplexTable()
     {
         $manager = new ORM_Manager();
-        $plugin = new Plugin;
+        /** @var Eresus_Plugin $plugin */
+        $plugin = $this->getMockForAbstractClass('Eresus_Plugin');
         $driver = $this->getMock('ORM_Driver_MySQL', array('none'), array($manager));
         /** @var ORM_Driver_MySQL $driver */
         $manager->setDriver($driver);
@@ -82,19 +83,19 @@ class BaseTest extends PHPUnit_Framework_TestCase
 
         $this->assertEquals(
             'CREATE TABLE prf_foo (' .
-                'id INT(10) UNSIGNED AUTO_INCREMENT, ' .
-                'active BOOLEAN DEFAULT 0, ' .
-                'entity INTEGER UNSIGNED, ' .
+                '`id` INT(10) UNSIGNED AUTO_INCREMENT, ' .
+                '`active` BOOLEAN DEFAULT 0, ' .
+                '`entity` INTEGER UNSIGNED, ' .
                 'PRIMARY KEY (id), ' .
-                'KEY active_idx (active)' .
+                'KEY active_idx (`active`)' .
             ') ENGINE InnoDB DEFAULT CHARSET=utf8',
             $this->queries->dequeue()
         );
 
         $this->assertEquals(
             'CREATE TABLE prf_foo_bindings (' .
-            'foo INT(10) UNSIGNED, ' .
-            'bindings INT(10) UNSIGNED, ' .
+            '`foo` INT(10) UNSIGNED, ' .
+            '`bindings` INT(10) UNSIGNED, ' .
             'PRIMARY KEY (foo, bindings)' .
             ') ENGINE InnoDB DEFAULT CHARSET=utf8',
             $this->queries->dequeue()

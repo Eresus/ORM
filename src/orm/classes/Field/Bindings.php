@@ -97,7 +97,7 @@ class ORM_Field_Bindings extends ORM_Field_Abstract
         {
             $table = $this->getBindingsTable();
 
-            $q = DB::getHandler()->createSelectQuery();
+            $q = Eresus_DB::getHandler()->createSelectQuery();
             $q->select($this->getName());
             $q->from($table->getName());
             $q->where(
@@ -105,7 +105,7 @@ class ORM_Field_Bindings extends ORM_Field_Abstract
                     preg_replace('/^.*?_/', '', $entity->getTable()->getName()),
                     $q->bindValue($entity->getPrimaryKey())
                 ));
-            $bindings = DB::fetchAll($q);
+            $bindings = $q->fetchAll();
             $targetIds = array();
             foreach ($bindings as $binding)
             {
@@ -237,11 +237,11 @@ class ORM_Field_Bindings extends ORM_Field_Abstract
         /*
          * Загружаем список привязок, сохранённых в БД
          */
-        $q = DB::getHandler()->createSelectQuery();
+        $q = Eresus_DB::getHandler()->createSelectQuery();
         $q->select('*');
         $q->from($bindingsTableName);
         $q->where($q->expr->eq($sourceField, $q->bindValue($entity->getPrimaryKey())));
-        $storedBindings = DB::fetchAll($q);
+        $storedBindings = $q->fetchAll();
 
         /*
          * Удаляем из $inMemoryBindings те, что уже есть в БД. Добавляем в $toDelete те,
@@ -265,7 +265,7 @@ class ORM_Field_Bindings extends ORM_Field_Abstract
          */
         if (count($toDelete) > 0)
         {
-            $q = DB::getHandler()->createDeleteQuery();
+            $q = Eresus_DB::getHandler()->createDeleteQuery();
             $keys = array();
             foreach ($toDelete as $record)
             {
@@ -277,7 +277,7 @@ class ORM_Field_Bindings extends ORM_Field_Abstract
                 );
             }
             $q->deleteFrom($bindingsTableName)->where($q->expr->lOr($keys));
-            DB::execute($q);
+            $q->execute();
         }
 
         /*
@@ -285,7 +285,7 @@ class ORM_Field_Bindings extends ORM_Field_Abstract
          */
         if (count($inMemoryBindings) > 0)
         {
-            $q = DB::getHandler()->createInsertQuery();
+            $q = Eresus_DB::getHandler()->createInsertQuery();
             $q->insertInto($bindingsTableName);
             $q->set($sourceField, $q->bindValue($entity->getPrimaryKey()));
             $bindedId = null;
@@ -295,7 +295,7 @@ class ORM_Field_Bindings extends ORM_Field_Abstract
                 /** @var ORM_Entity $binding */
                 /** @noinspection PhpUnusedLocalVariableInspection */
                 $bindedId = $binding->getPrimaryKey();
-                DB::execute($q);
+                $q->execute();
             }
         }
     }
@@ -308,10 +308,10 @@ class ORM_Field_Bindings extends ORM_Field_Abstract
     public function afterEntityDelete(ORM_Entity $entity)
     {
         $table = $this->getBindingsTable();
-        $q = DB::getHandler()->createDeleteQuery();
+        $q = Eresus_DB::getHandler()->createDeleteQuery();
         $q->deleteFrom($table->getName());
         $q->where($q->expr->eq($table->getSourceField(), $q->bindValue($entity->getPrimaryKey())));
-        DB::execute($q);
+        $q->execute();
     }
 
     /**

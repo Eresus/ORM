@@ -12,22 +12,12 @@ use Mekras\TestDoubles\MockFacade;
 require_once __DIR__ . '/../../vendor/autoload.php';
 
 /**
- * Заглушка для класса Plugin
+ * Заглушка для класса Eresus_Plugin
  *
  * @package Eresus
  * @subpackage Tests
  */
-class Plugin extends UniversalStub
-{
-}
-
-/**
- * Заглушка для класса TPlugin
- *
- * @package Eresus
- * @subpackage Tests
- */
-class TPlugin extends UniversalStub
+class Eresus_Plugin extends UniversalStub
 {
 }
 
@@ -52,12 +42,22 @@ class Eresus_CMS extends MockFacade
 }
 
 /**
- * Заглушка для класса DB
+ * Заглушка для класса Eresus_Plugin_Registry
  *
  * @package Eresus
  * @subpackage Tests
  */
-class DB extends MockFacade
+class Eresus_Plugin_Registry extends MockFacade
+{
+}
+
+/**
+ * Заглушка для класса Eresus_DB
+ *
+ * @package Eresus
+ * @subpackage Tests
+ */
+class Eresus_DB extends MockFacade
 {
     private static $handler;
 
